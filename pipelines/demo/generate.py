@@ -20,6 +20,7 @@ from pipelines.demo.accounts import CAREGIVER_CENTRE, account_id, load_accounts
 from pipelines.demo.catalogue import load_catalogue, load_need_model
 from pipelines.demo.centres import load_centres
 from pipelines.demo.demand import load_demand
+from pipelines.demo.derive import derive, load_model_versions
 from pipelines.demo.geography import BoundaryDownloadError, load_boundaries
 from pipelines.demo.need import load_need
 from pipelines.demo.planning import load_sites, load_unit_costs
@@ -72,6 +73,9 @@ def generate(engine: Engine) -> dict[str, int]:
             counts["unit_cost"] = load_unit_costs(conn, run_id)
             counts["candidate_site"] = load_sites(conn, run_id, centres)
             counts["demand_signal"] = load_demand(conn)
+            load_model_versions(conn)
+            counts |= derive(conn)
+            counts["alert"] = conn.execute(text("SELECT count(*) FROM alert")).scalar_one()
     except Exception:
         recorder.finish(RunStatus.FAILED, {}, [])
         raise

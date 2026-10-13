@@ -9,7 +9,7 @@ RUN pnpm install --frozen-lockfile --filter web
 FROM deps AS build
 COPY apps/web apps/web
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm --filter web build
+RUN mkdir -p apps/web/public && pnpm --filter web build
 
 FROM node:22-alpine AS run
 WORKDIR /app

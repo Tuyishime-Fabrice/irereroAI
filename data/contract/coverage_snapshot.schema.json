@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irereroai.rw/contract/coverage_snapshot.schema.json",
+  "title": "coverage_snapshot",
+  "description": "Weekly coverage per sector. Produced by CoverageModel from centres and need.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "area_code",
+    "week_start",
+    "model_version_id",
+    "children_covered",
+    "children_uncovered",
+    "overcrowded_centres",
+    "catchment_minutes",
+    "source",
+    "reference_year",
+    "origin"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Row id"
+    },
+    "area_code": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Sector"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Monday of the week"
+    },
+    "model_version_id": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Coverage model that produced the row"
+    },
+    "children_covered": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Children 0 to 6 with a place within the catchment"
+    },
+    "children_uncovered": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Children 0 to 6 without a reachable place"
+    },
+    "overcrowded_centres": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Centres with attendance above capacity"
+    },
+    "catchment_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Walking time used for the catchment"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Named source, for example \"NISR Census 2022\" or \"IrereroAI demo generator\""
+    },
+    "reference_year": {
+      "type": "integer",
+      "minimum": 2000,
+      "maximum": 2100,
+      "description": "Year the values describe, not the year they were loaded"
+    },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "official",
+        "public",
+        "partner",
+        "simulated"
+      ],
+      "description": "official | public | partner | simulated. Drives UI badges"
+    },
+    "pipeline_run_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Pipeline run that loaded the row. Null for records entered through the app"
+    }
+  }
+}

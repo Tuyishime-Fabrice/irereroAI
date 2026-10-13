@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irereroai.rw/contract/data_source.schema.json",
+  "title": "data_source",
+  "description": "Catalogue of every source the platform uses or will use, and its status today.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "publisher",
+    "origin",
+    "status",
+    "licence",
+    "feeds"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 48,
+      "description": "Adapter name, e.g. census_2022"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Human-readable source name"
+    },
+    "publisher": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "Publishing institution"
+    },
+    "reference_year": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Year described"
+    },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "official",
+        "public",
+        "partner",
+        "simulated"
+      ],
+      "description": "Origin once loaded"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "loaded",
+        "simulated_stand_in",
+        "planned"
+      ],
+      "description": "loaded | simulated_stand_in | planned"
+    },
+    "licence": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Licence or access terms"
+    },
+    "url": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 300
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Where the source is published"
+    },
+    "feeds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tables or indicators this source feeds"
+    }
+  }
+}

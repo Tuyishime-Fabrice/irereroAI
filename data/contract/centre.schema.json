@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irereroai.rw/contract/centre.schema.json",
+  "title": "centre",
+  "description": "An ECD centre. Mirrors the NCDA ECD Mapping System record so a connector can sync it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "code",
+    "name",
+    "type",
+    "sector_code",
+    "location",
+    "capacity",
+    "serves_0_2",
+    "serves_3_6",
+    "opening_hours",
+    "fee_band",
+    "offers_meals",
+    "offers_growth_monitoring",
+    "disability_inclusive",
+    "source",
+    "reference_year",
+    "origin"
+  ],
+  "properties": {
+    "code": {
+      "type": "string",
+      "maxLength": 32,
+      "description": "IrereroAI centre code"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Centre name as registered"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "home_based",
+        "community_based",
+        "school_based",
+        "centre_based"
+      ],
+      "description": "home_based | community_based | school_based | centre_based"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "closed"
+      ],
+      "description": "active | closed"
+    },
+    "sector_code": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Sector the centre is in"
+    },
+    "location": {
+      "type": "object",
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "properties": {
+        "type": {
+          "const": "Point"
+        },
+        "coordinates": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": 28.8,
+              "maximum": 31.0
+            },
+            {
+              "type": "number",
+              "minimum": -2.9,
+              "maximum": -1.0
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "description": "Centre location, EPSG:4326"
+    },
+    "capacity": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of children the centre can take"
+    },
+    "serves_0_2": {
+      "type": "boolean",
+      "description": "Takes children aged 0 to 2"
+    },
+    "serves_3_6": {
+      "type": "boolean",
+      "description": "Takes children aged 3 to 6"
+    },
+    "opening_hours": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "OpenStreetMap opening_hours syntax, e.g. \"Mo-Fr 07:30-12:00\""
+    },
+    "fee_band": {
+      "type": "string",
+      "enum": [
+        "free",
+        "under_1000",
+        "from_1000_to_5000",
+        "over_5000"
+      ],
+      "description": "Monthly fee per child in RWF: free | under_1000 | from_1000_to_5000 | over_5000"
+    },
+    "offers_meals": {
+      "type": "boolean",
+      "description": "Serves at least one meal a day"
+    },
+    "offers_growth_monitoring": {
+      "type": "boolean",
+      "description": "Hosts growth monitoring or refers to it"
+    },
+    "disability_inclusive": {
+      "type": "boolean",
+      "description": "Has adapted space and trained caregivers for children with disabilities"
+    },
+    "verified": {
+      "type": "boolean",
+      "description": "A sector officer has checked the centre in person"
+    },
+    "verified_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "When the last verification happened"
+    },
+    "verified_by": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Officer who verified the centre"
+    },
+    "reliability_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "0 to 1. Share of the last 12 weeks reported on time without quality flags"
+    },
+    "ncda_ref": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 64
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Record identifier in the NCDA ECD Mapping System"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Named source, for example \"NISR Census 2022\" or \"IrereroAI demo generator\""
+    },
+    "reference_year": {
+      "type": "integer",
+      "minimum": 2000,
+      "maximum": 2100,
+      "description": "Year the values describe, not the year they were loaded"
+    },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "official",
+        "public",
+        "partner",
+        "simulated"
+      ],
+      "description": "official | public | partner | simulated. Drives UI badges"
+    },
+    "pipeline_run_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Pipeline run that loaded the row. Null for records entered through the app"
+    }
+  }
+}

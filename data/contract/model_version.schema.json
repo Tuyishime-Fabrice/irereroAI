@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irereroai.rw/contract/model_version.schema.json",
+  "title": "model_version",
+  "description": "A versioned engine component. Phase 1 baselines and Phase 2 trained models live here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "component",
+    "description",
+    "params",
+    "metrics"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Version id, e.g. need-baseline-1"
+    },
+    "component": {
+      "type": "string",
+      "enum": [
+        "need",
+        "coverage",
+        "optimizer",
+        "early_warning",
+        "explainer"
+      ],
+      "description": "need | coverage | optimizer | early_warning | explainer"
+    },
+    "description": {
+      "type": "string",
+      "description": "What the model does, in plain words"
+    },
+    "params": {
+      "description": "Parameters and thresholds"
+    },
+    "metrics": {
+      "description": "Evaluation metrics. Empty for rule-based baselines"
+    },
+    "trained_on_run_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Pipeline run that produced the training data"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the row was written"
+    }
+  }
+}

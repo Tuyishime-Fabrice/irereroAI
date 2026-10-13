@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irereroai.rw/contract/area_indicator.schema.json",
+  "title": "area_indicator",
+  "description": "Source indicators aligned to an area. Phase 2 adapters write here; models read here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "area_code",
+    "indicator",
+    "value",
+    "unit",
+    "source",
+    "reference_year",
+    "origin"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Row id"
+    },
+    "area_code": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Area the value describes"
+    },
+    "indicator": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Indicator code from docs/DATA_CONTRACT.md#indicators"
+    },
+    "value": {
+      "type": "number",
+      "description": "Value in the indicator's unit"
+    },
+    "low": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Lower bound when the source gives one"
+    },
+    "high": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Upper bound when the source gives one"
+    },
+    "unit": {
+      "type": "string",
+      "maxLength": 32,
+      "description": "count | share | minutes | rwf"
+    },
+    "sample_size": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Survey respondents behind the value, when survey-based"
+    },
+    "reference_date": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exact date when finer than reference_year"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Named source, for example \"NISR Census 2022\" or \"IrereroAI demo generator\""
+    },
+    "reference_year": {
+      "type": "integer",
+      "minimum": 2000,
+      "maximum": 2100,
+      "description": "Year the values describe, not the year they were loaded"
+    },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "official",
+        "public",
+        "partner",
+        "simulated"
+      ],
+      "description": "official | public | partner | simulated. Drives UI badges"
+    },
+    "pipeline_run_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Pipeline run that loaded the row. Null for records entered through the app"
+    }
+  }
+}

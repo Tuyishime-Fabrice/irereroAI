@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irereroai.rw/contract/need_estimate.schema.json",
+  "title": "need_estimate",
+  "description": "Estimated need per area with an interval for every value. Produced by NeedEstimator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "area_code",
+    "model_version_id",
+    "children_0_2_estimate",
+    "children_0_2_low",
+    "children_0_2_high",
+    "children_3_6_estimate",
+    "children_3_6_low",
+    "children_3_6_high",
+    "stunting_risk_estimate",
+    "stunting_risk_low",
+    "stunting_risk_high",
+    "mothers_barrier_share_estimate",
+    "mothers_barrier_share_low",
+    "mothers_barrier_share_high",
+    "top_drivers",
+    "source",
+    "reference_year",
+    "origin"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Row id"
+    },
+    "area_code": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Sector for district deep dives, district for the national map"
+    },
+    "model_version_id": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Model that produced the estimate"
+    },
+    "children_0_2_estimate": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Children aged 0 to 2, point estimate"
+    },
+    "children_0_2_low": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Children aged 0 to 2, lower bound"
+    },
+    "children_0_2_high": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Children aged 0 to 2, upper bound"
+    },
+    "children_3_6_estimate": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Children aged 3 to 6, point estimate"
+    },
+    "children_3_6_low": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Children aged 3 to 6, lower bound"
+    },
+    "children_3_6_high": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Children aged 3 to 6, upper bound"
+    },
+    "stunting_risk_estimate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Share of under-5s at risk of stunting"
+    },
+    "stunting_risk_low": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Stunting risk, lower bound"
+    },
+    "stunting_risk_high": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Stunting risk, upper bound"
+    },
+    "mothers_barrier_share_estimate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Share of mothers of under-3s who report childcare as a barrier to work"
+    },
+    "mothers_barrier_share_low": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Mothers' childcare barrier, lower bound"
+    },
+    "mothers_barrier_share_high": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Mothers' childcare barrier, upper bound"
+    },
+    "top_drivers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "feature",
+          "label_en",
+          "label_rw",
+          "contribution"
+        ],
+        "properties": {
+          "feature": {
+            "type": "string"
+          },
+          "label_en": {
+            "type": "string"
+          },
+          "label_rw": {
+            "type": "string"
+          },
+          "contribution": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Up to five drivers: [{feature, label_en, label_rw, contribution}]"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Named source, for example \"NISR Census 2022\" or \"IrereroAI demo generator\""
+    },
+    "reference_year": {
+      "type": "integer",
+      "minimum": 2000,
+      "maximum": 2100,
+      "description": "Year the values describe, not the year they were loaded"
+    },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "official",
+        "public",
+        "partner",
+        "simulated"
+      ],
+      "description": "official | public | partner | simulated. Drives UI badges"
+    },
+    "pipeline_run_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Pipeline run that loaded the row. Null for records entered through the app"
+    }
+  }
+}

@@ -35,9 +35,14 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
+      - name: Contract schemas and docs are current
+        run: uv run python -m irerero_contract.export --check
       - name: Migrate
         working-directory: apps/api
         run: uv run alembic upgrade head
+      - name: Migrations match the contract tables
+        working-directory: apps/api
+        run: uv run alembic check
       - run: uv run pytest
 
   web:

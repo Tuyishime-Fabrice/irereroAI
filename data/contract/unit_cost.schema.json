@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irereroai.rw/contract/unit_cost.schema.json",
+  "title": "unit_cost",
+  "description": "Cost of one action by cost band, used by the optimizer and the what-if simulator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action",
+    "band",
+    "cost_rwf",
+    "cost_low_rwf",
+    "cost_high_rwf",
+    "places_added",
+    "source",
+    "reference_year",
+    "origin"
+  ],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "build",
+        "upgrade",
+        "support"
+      ],
+      "description": "build | upgrade | support"
+    },
+    "band": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "description": "low | medium | high"
+    },
+    "cost_rwf": {
+      "type": "integer",
+      "description": "Expected cost in RWF"
+    },
+    "cost_low_rwf": {
+      "type": "integer",
+      "description": "Lower bound in RWF"
+    },
+    "cost_high_rwf": {
+      "type": "integer",
+      "description": "Upper bound in RWF"
+    },
+    "places_added": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "New places the action creates"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 160,
+      "description": "Named source, for example \"NISR Census 2022\" or \"IrereroAI demo generator\""
+    },
+    "reference_year": {
+      "type": "integer",
+      "minimum": 2000,
+      "maximum": 2100,
+      "description": "Year the values describe, not the year they were loaded"
+    },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "official",
+        "public",
+        "partner",
+        "simulated"
+      ],
+      "description": "official | public | partner | simulated. Drives UI badges"
+    },
+    "pipeline_run_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Pipeline run that loaded the row. Null for records entered through the app"
+    }
+  }
+}

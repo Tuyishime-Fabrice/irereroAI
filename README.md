@@ -13,6 +13,7 @@ Requirements: Docker with Compose.
 
 ```sh
 docker compose up --build -d
+make seed       # downloads boundaries, then builds the simulated Gicumbi demo
 ```
 
 API: <http://localhost:8000/docs> · Web: <http://localhost:3000>
@@ -25,6 +26,7 @@ with PostGIS.
 ```sh
 make setup      # dependencies and git hooks
 make migrate
+make seed-local
 make api        # http://localhost:8000
 make web        # http://localhost:3000
 ```

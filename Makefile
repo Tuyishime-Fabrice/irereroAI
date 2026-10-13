@@ -15,7 +15,7 @@ web:  ## Run the web app in dev mode (local)
 	pnpm --filter web dev
 
 seed:  ## Seed simulated demo data into the docker compose database
-	docker compose exec api python -m pipelines.demo.generate
+	docker compose exec -T api python -m pipelines.demo.generate
 
 seed-local:  ## Seed simulated demo data into the local database
 	uv run python -m pipelines.demo.generate

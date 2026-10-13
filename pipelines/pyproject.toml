@@ -7,11 +7,14 @@ dependencies = [
   "irerero-contract",
   "irerero-engine",
   "psycopg[binary]>=3.3",
+  "alembic>=1.20",
+  "irerero-api",
 ]
 
 [tool.uv.sources]
 irerero-contract = { workspace = true }
 irerero-engine = { workspace = true }
+irerero-api = { workspace = true }
 
 [build-system]
 requires = ["hatchling>=1.27"]

@@ -5,7 +5,7 @@ Nothing in this folder is committed except this file and `contract/`.
 | Folder | Contents | In git |
 | --- | --- | --- |
 | `contract/` | JSON Schemas for every dataset the pipelines load | yes |
-| `raw/` | Downloaded source files (boundaries, and in Phase 2 NISR microdata) | no |
+| `raw/` | Downloaded source files: `geoboundaries/` today, NISR microdata in Phase 2 | no |
 | `interim/` | Cleaned, aligned intermediate files | no |
 | `processed/` | Model inputs and outputs | no |
 

@@ -30,7 +30,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./data/raw:/app/data/raw
+      - rawdata:/app/data/raw
 
   web:
     build:
@@ -48,3 +48,4 @@ services:
 
 volumes:
   dbdata:
+  rawdata:

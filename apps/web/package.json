@@ -10,10 +10,12 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "generate:api": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts"
   },
   "dependencies": {
     "next": "16.4.0",
+    "openapi-fetch": "0.17.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
@@ -25,6 +27,7 @@
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.4.0",
+    "openapi-typescript": "7.13.0",
     "prettier": "^3.9.10",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",

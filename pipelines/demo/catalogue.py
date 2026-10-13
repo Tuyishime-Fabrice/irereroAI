@@ -3,7 +3,7 @@
 from sqlalchemy import Connection, insert
 
 from irerero_contract.enums import EngineComponent, Origin, SourceStatus
-from irerero_contract.tables import DataSource, ModelVersion
+from irerero_contract.tables import DataSource, ModelVersion, PlanningDefault
 from pipelines.demo.geography import SOURCE as BOUNDARY_SOURCE
 from pipelines.demo.need import MODEL_VERSION as NEED_MODEL_VERSION
 from pipelines.registry import ADAPTERS
@@ -82,4 +82,21 @@ def load_need_model(conn: Connection) -> None:
             params={"boundaries": BOUNDARY_SOURCE},
             metrics={},
         )
+    )
+
+
+def load_planning_defaults(conn: Connection) -> None:
+    """Simulated defaults so the plan workspace opens with sensible values."""
+    conn.execute(
+        insert(PlanningDefault),
+        [
+            {
+                "area_code": code,
+                "budget_rwf": 120_000_000,
+                "weight_stunting": 0.4,
+                "weight_readiness": 0.4,
+                "weight_jobs": 0.2,
+            }
+            for code in ("RW", "D-GICUMBI")
+        ],
     )

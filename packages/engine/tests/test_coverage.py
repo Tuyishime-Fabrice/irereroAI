@@ -16,8 +16,19 @@ def test_assign_fills_nearest_first_up_to_capacity() -> None:
     points = [point("far", 2000, 0, 30), point("near", 100, 0, 30)]
     state = initial_state(points)
     assignment = model.assign(Seat("s", Position(0, 0), 40), points, state)
-    taken = {pid: young + old for pid, young, old in assignment.from_points}
+    taken = {pid: round(young + old, 6) for pid, young, old in assignment.from_points}
     assert taken == {"near": 30, "far": 10}
+
+
+def test_places_are_shared_between_age_bands_unless_seat_is_3_to_6_only() -> None:
+    model = StraightLineCoverage()
+    points = [point("p", 0, 0, 100)]  # 40 aged 0-2, 60 aged 3-6
+    mixed = model.assign(Seat("s", Position(0, 0), 50), points, initial_state(points))
+    assert round(mixed.children_0_2) == 20
+    school = model.assign(
+        Seat("s", Position(0, 0), 50, serves_0_2=False), points, initial_state(points)
+    )
+    assert school.children_0_2 == 0 and round(school.children) == 50
 
 
 def test_cover_never_exceeds_total_places() -> None:

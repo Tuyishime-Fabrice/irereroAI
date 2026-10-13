@@ -41,6 +41,8 @@ def test_suggestion_explains_numbers_and_never_claims_stunting_reduction() -> No
     }
     en, rw = TemplateExplainer().suggestion("build", "Cyumba site A", numbers, [driver], 30)
     assert "between 60 and 88" in en and "25,000,000 RWF" in en
+    flat = dict(numbers, reached_low=74, reached_high=74)
+    assert "between" not in TemplateExplainer().suggestion("build", "A", flat, [driver], 30)[0]
     assert "reduce" not in en.lower() and "reduction" not in en.lower()
     assert "hagati ya 60 na 88" in rw
 

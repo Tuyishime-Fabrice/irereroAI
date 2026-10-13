@@ -17,7 +17,7 @@ from irerero_contract.enums import Origin, RunStatus
 from pipelines.adapter import REPO_ROOT, CheckResult, RunRecorder
 from pipelines.db import engine as make_engine
 from pipelines.demo.accounts import CAREGIVER_CENTRE, account_id, load_accounts
-from pipelines.demo.catalogue import load_catalogue, load_need_model
+from pipelines.demo.catalogue import load_catalogue, load_need_model, load_planning_defaults
 from pipelines.demo.centres import load_centres
 from pipelines.demo.demand import load_demand
 from pipelines.demo.derive import derive, load_model_versions
@@ -64,6 +64,7 @@ def generate(engine: Engine) -> dict[str, int]:
         with engine.begin() as conn:
             counts["data_source"] = load_catalogue(conn)
             load_need_model(conn)
+            load_planning_defaults(conn)
             counts["user_account"] = load_accounts(conn)
             centres = load_centres(conn, run_id)
             counts["centre"] = len(centres)

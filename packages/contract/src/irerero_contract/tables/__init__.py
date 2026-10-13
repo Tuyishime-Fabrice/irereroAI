@@ -11,6 +11,7 @@ from irerero_contract.tables.geography import AdminUnit
 from irerero_contract.tables.planning import (
     CandidateSite,
     Decision,
+    PlanningDefault,
     Recommendation,
     Scenario,
     UnitCost,
@@ -32,6 +33,7 @@ __all__ = [
     "NeedEstimate",
     "OtpChallenge",
     "PipelineRun",
+    "PlanningDefault",
     "Recommendation",
     "RefreshToken",
     "SavedSearch",

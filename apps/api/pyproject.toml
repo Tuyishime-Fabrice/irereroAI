@@ -11,6 +11,8 @@ dependencies = [
   "alembic>=1.20",
   "psycopg[binary]>=3.3",
   "pydantic-settings>=2.15",
+  "pyjwt>=2.15",
+  "pyotp>=2.10",
 ]
 
 [tool.uv.sources]

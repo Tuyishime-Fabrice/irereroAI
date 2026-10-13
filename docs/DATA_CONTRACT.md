@@ -411,6 +411,20 @@ JSON Schema: [`data/contract/pipeline_run.schema.json`](../data/contract/pipelin
 | `row_counts` | json | yes | Rows written per table |
 | `checks` | json | yes | Checks run: [{name, passed, detail}] |
 
+### `planning_default`
+
+Default budget and policy weights for an area, set by national analysts.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `area_code` | string | key | District, or RW for national |
+| `budget_rwf` | biginteger | yes | Default budget in RWF |
+| `weight_stunting` | float | yes | Default stunting weight |
+| `weight_readiness` | float | yes | Default readiness weight |
+| `weight_jobs` | float | yes | Default jobs weight |
+| `updated_by` | uuid |  | Analyst who last changed it |
+| `updated_at` | datetime | yes | When the row was written |
+
 ### `recommendation`
 
 One ranked suggestion in a scenario. Never acted on until a person approves it.

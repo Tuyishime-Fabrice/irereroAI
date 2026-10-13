@@ -38,8 +38,22 @@ def test_optimizer_respects_budget_and_beats_population_baseline(demo_engine: En
     plan = GreedyOptimizer(MODEL).plan(data)
     baseline = largest_population_first(MODEL, data)
     assert plan.outcomes.cost <= BUDGET
-    assert plan.outcomes.children_reached.estimate > baseline.outcomes.children_reached.estimate
-    assert plan.outcomes.high_risk_reached > baseline.outcomes.high_risk_reached
+    # New places fill in both plans, so the gain shows in who is reached.
+    assert plan.outcomes.children_reached.estimate >= baseline.outcomes.children_reached.estimate
+    assert plan.outcomes.high_risk_reached.estimate > baseline.outcomes.high_risk_reached.estimate
+
+
+def test_weights_are_the_policy_lever(demo_engine: Engine) -> None:
+    """Raising the jobs weight reaches more mothers of under-3s than the population baseline."""
+    jobs_first = Weights(stunting=0.1, readiness=0.1, jobs=0.8)
+    with demo_engine.connect() as conn:
+        data = planning_input(conn, DEMO_DISTRICT, CURRENT_WEEK, BUDGET, jobs_first, MODEL)
+    plan = GreedyOptimizer(MODEL).plan(data)
+    baseline = largest_population_first(MODEL, data)
+    assert (
+        plan.outcomes.mothers_under3_reached.estimate
+        > baseline.outcomes.mothers_under3_reached.estimate
+    )
 
 
 def test_support_goes_to_centres_with_problems(demo_engine: Engine) -> None:

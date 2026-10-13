@@ -33,7 +33,9 @@ BOUNDS = text(
         children_0_2_low + children_3_6_low AS low,
         children_0_2_high + children_3_6_high AS high,
         children_0_2_estimate AS young, children_3_6_estimate AS old,
-        stunting_risk_estimate AS risk, mothers_barrier_share_estimate AS barrier
+        stunting_risk_estimate AS risk, stunting_risk_low AS risk_low,
+        stunting_risk_high AS risk_high, mothers_barrier_share_estimate AS barrier,
+        mothers_barrier_share_low AS barrier_low, mothers_barrier_share_high AS barrier_high
     FROM need_estimate WHERE area_code = ANY(:codes)
     ORDER BY area_code, reference_year DESC
     """
@@ -61,6 +63,8 @@ def demand_points(
                 children_3_6=area.old * cell.share,
                 stunting_risk=area.risk,
                 mothers_barrier_share=area.barrier,
+                stunting_risk_bounds=(area.risk_low, area.risk_high),
+                mothers_barrier_bounds=(area.barrier_low, area.barrier_high),
             )
         )
     bounds = {

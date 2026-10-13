@@ -9,7 +9,7 @@ from irerero_engine.types import Position
 
 SEATS = text(
     """
-    SELECT c.code, c.capacity,
+    SELECT c.code, c.capacity, c.serves_0_2,
         ST_X(ST_Transform(c.location, 32735)) AS x, ST_Y(ST_Transform(c.location, 32735)) AS y,
         (SELECT r.days_open FROM weekly_report r WHERE r.centre_code = c.code
             AND r.week_start <= :week ORDER BY r.week_start DESC LIMIT 1) AS days_open
@@ -35,7 +35,12 @@ HISTORY = text(
 def seats(conn: Connection, district: str, week: date) -> list[Seat]:
     """Places offered by active centres; a centre that reported zero open days offers none."""
     return [
-        Seat(row.code, Position(row.x, row.y), 0 if row.days_open == 0 else row.capacity)
+        Seat(
+            row.code,
+            Position(row.x, row.y),
+            0 if row.days_open == 0 else row.capacity,
+            serves_0_2=row.serves_0_2,
+        )
         for row in conn.execute(SEATS, {"district": district, "week": week})
     ]
 

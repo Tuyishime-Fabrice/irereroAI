@@ -44,6 +44,10 @@ jobs:
         working-directory: apps/api
         run: uv run alembic check
       - run: uv run pytest
+      - name: OpenAPI schema is current
+        run: |
+          uv run python -m irerero_api.openapi_export apps/web/openapi.json
+          git diff --exit-code apps/web/openapi.json
 
   web:
     runs-on: ubuntu-latest
@@ -55,6 +59,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: API types match the OpenAPI schema
+        run: |
+          pnpm --filter web generate:api
+          git diff --exit-code apps/web/src/lib/api/schema.d.ts
       - run: pnpm --filter web lint
       - run: pnpm --filter web typecheck
       - run: pnpm --filter web test

@@ -4,15 +4,12 @@ from dataclasses import dataclass
 
 from sqlalchemy import Connection, insert
 
+from irerero_api.demo import DEMO_PASSWORD, DEMO_TOTP_SECRET
 from irerero_contract.enums import Role, ScopeLevel
 from irerero_contract.passwords import hash_secret
 from irerero_contract.tables import UserAccount
 from pipelines.demo.config import DEMO_DISTRICT, OFFICER_SECTOR, stable_id
 from pipelines.demo.story import STORY_BY_ROLE
-
-# Demo-only credentials, published in the README. Never reuse them anywhere real.
-DEMO_PASSWORD = "irerero-demo-2026"  # noqa: S105  # pragma: allowlist secret
-DEMO_TOTP_SECRET = "JBSWY3DPEHPK3PXPIRERERO2"  # noqa: S105  # pragma: allowlist secret
 
 
 @dataclass(frozen=True)

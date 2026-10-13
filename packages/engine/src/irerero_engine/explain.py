@@ -132,20 +132,24 @@ class TemplateExplainer:
                 f"Impamvu nyamukuru: {reasons_rw}. Igiciro giteganyijwe: {cost} RWF."
             )
             return en, rw
+        reached = number(n["reached"])
+        spread = number(n["reached_low"]) != number(n["reached_high"])
+        range_en = f" (between {number(n['reached_low'])} and {number(n['reached_high'])})"
+        range_rw = f" (hagati ya {number(n['reached_low'])} na {number(n['reached_high'])})"
         en = (
-            f"{action_en} at {site_name}. About {number(n['reached'])} children (between "
-            f"{number(n['reached_low'])} and {number(n['reached_high'])}) would gain a place "
-            f"within a {catchment_minutes}-minute walk. About {number(n['high_risk'])} of them "
-            f"are expected to be at risk of stunting, and {number(n['mothers'])} of their mothers "
-            f"say childcare keeps them from work. Main reasons: {reasons_en}. "
-            f"Estimated cost: {cost} RWF."
+            f"{action_en} at {site_name}. About {reached} children{range_en if spread else ''} "
+            f"would gain a place within a {catchment_minutes}-minute walk. About "
+            f"{number(n['high_risk'])} of them are expected to be at risk of stunting. Mothers of "
+            f"under-3s reached who say childcare keeps them from work: about "
+            f"{number(n['mothers'])}. Main reasons: {reasons_en}. Estimated cost: {cost} RWF."
         )
         rw = (
-            f"{action_rw} kuri {site_name}. Abana bagera kuri {number(n['reached'])} (hagati ya "
-            f"{number(n['reached_low'])} na {number(n['reached_high'])}) babona umwanya mu "
-            f"rugendo rw'iminota {catchment_minutes} n'amaguru. Abagera kuri "
-            f"{number(n['high_risk'])} muri bo bashobora kugira ibyago byo kugwingira, kandi "
-            f"ababyeyi babo {number(n['mothers'])} bavuga ko kurera abana bibabuza gukora. "
-            f"Impamvu nyamukuru: {reasons_rw}. Igiciro giteganyijwe: {cost} RWF."
+            f"{action_rw} kuri {site_name}. Abana bagera kuri {reached}"
+            f"{range_rw if spread else ''} babona umwanya mu rugendo rw'iminota "
+            f"{catchment_minutes} n'amaguru. Abagera kuri {number(n['high_risk'])} muri bo "
+            f"bashobora kugira ibyago byo kugwingira. Ababyeyi b'abana bari munsi y'imyaka 3 "
+            f"bagezweho bavuga ko kurera abana bibabuza gukora: bagera kuri "
+            f"{number(n['mothers'])}. Impamvu nyamukuru: {reasons_rw}. "
+            f"Igiciro giteganyijwe: {cost} RWF."
         )
         return en, rw

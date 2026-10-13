@@ -12,6 +12,7 @@ from irerero_contract.tables import DemandSignal
 from pipelines.demo.config import DEMO_DISTRICT, UNDERSERVED_SECTOR, WEEKS, rng, stable_id
 
 CLUSTER_SIGNALS = 14
+DEMAND_SITE = "SITE-CYUMBA-V1"
 SCATTERED_SIGNALS = 4
 
 
@@ -22,18 +23,26 @@ def _random_points(conn: Connection, area_sql: str, n: int, seed: int) -> list[t
             "SELECT ST_X(d.geom), ST_Y(d.geom) FROM "  # noqa: S608
             f"ST_Dump(ST_GeneratePoints(({area_sql}), :n, :seed)) d ORDER BY d.path"
         ),
-        {"n": n, "seed": seed, "sector": UNDERSERVED_SECTOR, "district": DEMO_DISTRICT},
+        {
+            "n": n,
+            "seed": seed,
+            "sector": UNDERSERVED_SECTOR,
+            "district": DEMO_DISTRICT,
+            "site": DEMAND_SITE,
+        },
     ).all()
     return [(x, y) for x, y in rows]
 
 
 def load_demand(conn: Connection) -> int:
     r = rng("demand")
-    # The cluster sits in the northern half of the under-served sector, so it reads as one area.
+    # The cluster sits around one village site in the under-served sector, so the plan's
+    # suggestion there and the parents' requests tell the same story.
     cluster = _random_points(
         conn,
-        "SELECT ST_Intersection(geom, ST_Translate(ST_Envelope(geom), 0, "
-        "(ST_YMax(geom) - ST_YMin(geom)) / 2)) FROM admin_unit WHERE code = :sector",
+        "SELECT ST_Transform(ST_Intersection(ST_Buffer(ST_Transform(s.location, 32735), 1500), "
+        "ST_Transform(a.geom, 32735)), 4326) FROM candidate_site s "
+        "JOIN admin_unit a ON a.code = s.sector_code WHERE s.id = :site",
         CLUSTER_SIGNALS,
         seed=41,
     )

@@ -26,6 +26,20 @@ class DemandPoint:
     children_3_6: float
     stunting_risk: float
     mothers_barrier_share: float
+    # Interval bounds of the two shares; equal to the estimates when unknown.
+    stunting_risk_bounds: tuple[float, float] | None = None
+    mothers_barrier_bounds: tuple[float, float] | None = None
+
+    def risk(self, bound: int | None) -> float:
+        """Stunting risk at the estimate (None), lower (0) or upper (1) bound."""
+        if bound is None or self.stunting_risk_bounds is None:
+            return self.stunting_risk
+        return self.stunting_risk_bounds[bound]
+
+    def barrier(self, bound: int | None) -> float:
+        if bound is None or self.mothers_barrier_bounds is None:
+            return self.mothers_barrier_share
+        return self.mothers_barrier_bounds[bound]
 
     @property
     def children(self) -> float:
@@ -40,6 +54,7 @@ class Seat:
     position: Position
     places: int
     radius_factor: float = 1.0
+    serves_0_2: bool = True
 
 
 @dataclass
@@ -110,7 +125,8 @@ class StraightLineCoverage:
         return sorted(near, key=lambda p: (p.position.distance_to(seat.position), p.id))
 
     def assign(self, seat: Seat, points: Sequence[DemandPoint], state: CoverageState) -> Assignment:
-        """Nearest children first, older children before younger at the same point.
+        """Nearest children first; at each point, places are shared between the age bands in
+        proportion to the children still waiting. Seats for 3 to 6 only take older children.
 
         Does not change `state`; call `apply` to commit.
         """
@@ -119,12 +135,15 @@ class StraightLineCoverage:
         for point in self.reachable(seat, points):
             if remaining <= 0:
                 break
-            old = min(state.uncovered_3_6[point.id], remaining)
-            remaining -= old
-            young = min(state.uncovered_0_2[point.id], remaining)
-            remaining -= young
-            if young or old:
-                taken.append((point.id, young, old))
+            young_left = state.uncovered_0_2[point.id] if seat.serves_0_2 else 0.0
+            old_left = state.uncovered_3_6[point.id]
+            waiting = young_left + old_left
+            if waiting <= 0:
+                continue
+            share = min(1.0, remaining / waiting)
+            young, old = young_left * share, old_left * share
+            remaining -= young + old
+            taken.append((point.id, young, old))
         return Assignment(seat.id, tuple(taken))
 
 

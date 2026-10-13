@@ -1,0 +1,6883 @@
+{
+  "components": {
+    "schemas": {
+      "Action": {
+        "enum": [
+          "build",
+          "upgrade",
+          "support"
+        ],
+        "title": "Action",
+        "type": "string"
+      },
+      "AlertAssign": {
+        "properties": {
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "AlertAssign",
+        "type": "object"
+      },
+      "AlertDetail": {
+        "properties": {
+          "age_weeks": {
+            "title": "Age Weeks",
+            "type": "integer"
+          },
+          "assigned_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Name"
+          },
+          "assigned_to": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To"
+          },
+          "capacity": {
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "centre_code": {
+            "title": "Centre Code",
+            "type": "string"
+          },
+          "centre_name": {
+            "title": "Centre Name",
+            "type": "string"
+          },
+          "evidence": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Evidence",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AlertKind"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "reason_en": {
+            "title": "Reason En",
+            "type": "string"
+          },
+          "reason_rw": {
+            "title": "Reason Rw",
+            "type": "string"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/ReportOut"
+            },
+            "title": "Reports",
+            "type": "array"
+          },
+          "resolution_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution Note"
+          },
+          "sector_code": {
+            "title": "Sector Code",
+            "type": "string"
+          },
+          "sector_name": {
+            "title": "Sector Name",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/AlertSeverity"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AlertStatus"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "centre_code",
+          "centre_name",
+          "sector_code",
+          "sector_name",
+          "week_start",
+          "kind",
+          "severity",
+          "reason_en",
+          "reason_rw",
+          "evidence",
+          "status",
+          "assigned_to",
+          "assigned_name",
+          "resolution_note",
+          "age_weeks",
+          "origin",
+          "reports",
+          "capacity"
+        ],
+        "title": "AlertDetail",
+        "type": "object"
+      },
+      "AlertKind": {
+        "enum": [
+          "attendance_drop",
+          "missing_report",
+          "overcrowding",
+          "wash",
+          "closure_risk"
+        ],
+        "title": "AlertKind",
+        "type": "string"
+      },
+      "AlertOut": {
+        "properties": {
+          "age_weeks": {
+            "title": "Age Weeks",
+            "type": "integer"
+          },
+          "assigned_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Name"
+          },
+          "assigned_to": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To"
+          },
+          "centre_code": {
+            "title": "Centre Code",
+            "type": "string"
+          },
+          "centre_name": {
+            "title": "Centre Name",
+            "type": "string"
+          },
+          "evidence": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Evidence",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AlertKind"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "reason_en": {
+            "title": "Reason En",
+            "type": "string"
+          },
+          "reason_rw": {
+            "title": "Reason Rw",
+            "type": "string"
+          },
+          "resolution_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution Note"
+          },
+          "sector_code": {
+            "title": "Sector Code",
+            "type": "string"
+          },
+          "sector_name": {
+            "title": "Sector Name",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/AlertSeverity"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AlertStatus"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "centre_code",
+          "centre_name",
+          "sector_code",
+          "sector_name",
+          "week_start",
+          "kind",
+          "severity",
+          "reason_en",
+          "reason_rw",
+          "evidence",
+          "status",
+          "assigned_to",
+          "assigned_name",
+          "resolution_note",
+          "age_weeks",
+          "origin"
+        ],
+        "title": "AlertOut",
+        "type": "object"
+      },
+      "AlertResolve": {
+        "properties": {
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "title": "AlertResolve",
+        "type": "object"
+      },
+      "AlertSeverity": {
+        "enum": [
+          "info",
+          "warning",
+          "critical"
+        ],
+        "title": "AlertSeverity",
+        "type": "string"
+      },
+      "AlertStatus": {
+        "enum": [
+          "open",
+          "acknowledged",
+          "resolved"
+        ],
+        "title": "AlertStatus",
+        "type": "string"
+      },
+      "AnswerOut": {
+        "properties": {
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "tables": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tables",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "text",
+          "tables",
+          "provider"
+        ],
+        "title": "AnswerOut",
+        "type": "object"
+      },
+      "AreaProperties": {
+        "properties": {
+          "centres": {
+            "title": "Centres",
+            "type": "integer"
+          },
+          "children": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RangeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "children_covered": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Children Covered"
+          },
+          "children_uncovered": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Children Uncovered"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "demand_signals": {
+            "title": "Demand Signals",
+            "type": "integer"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "mothers_barrier_share": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RangeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Origin"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overcrowded_centres": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overcrowded Centres"
+          },
+          "stunting_risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RangeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "uncertainty": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uncertainty"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "level",
+          "children",
+          "stunting_risk",
+          "mothers_barrier_share",
+          "uncertainty",
+          "children_covered",
+          "children_uncovered",
+          "overcrowded_centres",
+          "centres",
+          "demand_signals",
+          "origin"
+        ],
+        "title": "AreaProperties",
+        "type": "object"
+      },
+      "AskIn": {
+        "properties": {
+          "language": {
+            "default": "en",
+            "enum": [
+              "en",
+              "rw"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "subject": {
+            "enum": [
+              "recommendation",
+              "alert"
+            ],
+            "title": "Subject",
+            "type": "string"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject",
+          "subject_id",
+          "question"
+        ],
+        "title": "AskIn",
+        "type": "object"
+      },
+      "AuditOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Id"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          },
+          "actor_role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "after": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entity_id": {
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "actor_name",
+          "actor_role",
+          "action",
+          "entity_type",
+          "entity_id",
+          "before",
+          "after",
+          "reason",
+          "created_at"
+        ],
+        "title": "AuditOut",
+        "type": "object"
+      },
+      "Brief": {
+        "properties": {
+          "approved": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationOut"
+            },
+            "title": "Approved",
+            "type": "array"
+          },
+          "budget_rwf": {
+            "title": "Budget Rwf",
+            "type": "integer"
+          },
+          "children": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "decided_by": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Decided By",
+            "type": "array"
+          },
+          "demand_signals": {
+            "title": "Demand Signals",
+            "type": "integer"
+          },
+          "district_code": {
+            "title": "District Code",
+            "type": "string"
+          },
+          "district_name": {
+            "title": "District Name",
+            "type": "string"
+          },
+          "open_alerts": {
+            "title": "Open Alerts",
+            "type": "integer"
+          },
+          "outcomes": {
+            "$ref": "#/components/schemas/OutcomesOut"
+          },
+          "scenario_name": {
+            "title": "Scenario Name",
+            "type": "string"
+          },
+          "stunting_risk": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "week": {
+            "format": "date",
+            "title": "Week",
+            "type": "string"
+          }
+        },
+        "required": [
+          "district_code",
+          "district_name",
+          "week",
+          "scenario_name",
+          "budget_rwf",
+          "children",
+          "stunting_risk",
+          "open_alerts",
+          "demand_signals",
+          "approved",
+          "outcomes",
+          "decided_by"
+        ],
+        "title": "Brief",
+        "type": "object"
+      },
+      "Calendar": {
+        "properties": {
+          "current_week": {
+            "format": "date",
+            "title": "Current Week",
+            "type": "string"
+          },
+          "demo_mode": {
+            "title": "Demo Mode",
+            "type": "boolean"
+          },
+          "weeks": {
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "title": "Weeks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "current_week",
+          "weeks",
+          "demo_mode"
+        ],
+        "title": "Calendar",
+        "type": "object"
+      },
+      "CandidateKind": {
+        "enum": [
+          "village",
+          "school",
+          "centre_upgrade",
+          "centre_support"
+        ],
+        "title": "CandidateKind",
+        "type": "string"
+      },
+      "CaregiverLogin": {
+        "properties": {
+          "centre_code": {
+            "title": "Centre Code",
+            "type": "string"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone",
+          "centre_code"
+        ],
+        "title": "CaregiverLogin",
+        "type": "object"
+      },
+      "CentreDetail": {
+        "properties": {
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/AlertOut"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "capacity": {
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "disability_inclusive": {
+            "title": "Disability Inclusive",
+            "type": "boolean"
+          },
+          "fee_band": {
+            "$ref": "#/components/schemas/FeeBand"
+          },
+          "last_report_week": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Report Week"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "latest_attendance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Attendance"
+          },
+          "latest_enrolled": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Enrolled"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "ncda_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ncda Ref"
+          },
+          "offers_growth_monitoring": {
+            "title": "Offers Growth Monitoring",
+            "type": "boolean"
+          },
+          "offers_meals": {
+            "title": "Offers Meals",
+            "type": "boolean"
+          },
+          "open_alerts": {
+            "title": "Open Alerts",
+            "type": "integer"
+          },
+          "opening_hours": {
+            "title": "Opening Hours",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "reliability_score": {
+            "title": "Reliability Score",
+            "type": "number"
+          },
+          "reported_this_week": {
+            "title": "Reported This Week",
+            "type": "boolean"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/ReportOut"
+            },
+            "title": "Reports",
+            "type": "array"
+          },
+          "sector_code": {
+            "title": "Sector Code",
+            "type": "string"
+          },
+          "sector_name": {
+            "title": "Sector Name",
+            "type": "string"
+          },
+          "serves_0_2": {
+            "title": "Serves 0 2",
+            "type": "boolean"
+          },
+          "serves_3_6": {
+            "title": "Serves 3 6",
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CentreStatus"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CentreType"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "type",
+          "status",
+          "sector_code",
+          "sector_name",
+          "capacity",
+          "verified",
+          "verified_at",
+          "reliability_score",
+          "last_report_week",
+          "reported_this_week",
+          "latest_enrolled",
+          "latest_attendance",
+          "open_alerts",
+          "lon",
+          "lat",
+          "origin",
+          "opening_hours",
+          "fee_band",
+          "serves_0_2",
+          "serves_3_6",
+          "offers_meals",
+          "offers_growth_monitoring",
+          "disability_inclusive",
+          "ncda_ref",
+          "reports",
+          "alerts"
+        ],
+        "title": "CentreDetail",
+        "type": "object"
+      },
+      "CentreProperties": {
+        "properties": {
+          "alert_severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AlertSeverity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capacity": {
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "latest_attendance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Attendance"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "overcrowded": {
+            "title": "Overcrowded",
+            "type": "boolean"
+          },
+          "reliability_score": {
+            "title": "Reliability Score",
+            "type": "number"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CentreType"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "type",
+          "capacity",
+          "verified",
+          "reliability_score",
+          "latest_attendance",
+          "overcrowded",
+          "alert_severity",
+          "origin"
+        ],
+        "title": "CentreProperties",
+        "type": "object"
+      },
+      "CentreRow": {
+        "properties": {
+          "capacity": {
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "last_report_week": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Report Week"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "latest_attendance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Attendance"
+          },
+          "latest_enrolled": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Enrolled"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "open_alerts": {
+            "title": "Open Alerts",
+            "type": "integer"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "reliability_score": {
+            "title": "Reliability Score",
+            "type": "number"
+          },
+          "reported_this_week": {
+            "title": "Reported This Week",
+            "type": "boolean"
+          },
+          "sector_code": {
+            "title": "Sector Code",
+            "type": "string"
+          },
+          "sector_name": {
+            "title": "Sector Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CentreStatus"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CentreType"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "type",
+          "status",
+          "sector_code",
+          "sector_name",
+          "capacity",
+          "verified",
+          "verified_at",
+          "reliability_score",
+          "last_report_week",
+          "reported_this_week",
+          "latest_enrolled",
+          "latest_attendance",
+          "open_alerts",
+          "lon",
+          "lat",
+          "origin"
+        ],
+        "title": "CentreRow",
+        "type": "object"
+      },
+      "CentreStatus": {
+        "enum": [
+          "active",
+          "closed"
+        ],
+        "title": "CentreStatus",
+        "type": "string"
+      },
+      "CentreType": {
+        "enum": [
+          "home_based",
+          "community_based",
+          "school_based",
+          "centre_based"
+        ],
+        "title": "CentreType",
+        "type": "string"
+      },
+      "CheckOut": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "passed",
+          "detail"
+        ],
+        "title": "CheckOut",
+        "type": "object"
+      },
+      "DataSourceOut": {
+        "properties": {
+          "feeds": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Feeds",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "reference_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Year"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SourceStatus"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "publisher",
+          "reference_year",
+          "origin",
+          "status",
+          "licence",
+          "url",
+          "feeds"
+        ],
+        "title": "DataSourceOut",
+        "type": "object"
+      },
+      "DecisionIn": {
+        "properties": {
+          "edits": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edits"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RejectionReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason_text": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Text"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/Verdict"
+          }
+        },
+        "required": [
+          "verdict"
+        ],
+        "title": "DecisionIn",
+        "type": "object"
+      },
+      "DecisionLogRow": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/Action"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RejectionReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Text"
+          },
+          "scenario_name": {
+            "title": "Scenario Name",
+            "type": "string"
+          },
+          "site_name": {
+            "title": "Site Name",
+            "type": "string"
+          },
+          "user_name": {
+            "title": "User Name",
+            "type": "string"
+          },
+          "user_role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/Verdict"
+          }
+        },
+        "required": [
+          "created_at",
+          "user_name",
+          "user_role",
+          "verdict",
+          "reason_code",
+          "reason_text",
+          "action",
+          "site_name",
+          "scenario_name"
+        ],
+        "title": "DecisionLogRow",
+        "type": "object"
+      },
+      "DecisionOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "edits": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edits"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RejectionReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Text"
+          },
+          "user_name": {
+            "title": "User Name",
+            "type": "string"
+          },
+          "user_role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/Verdict"
+          }
+        },
+        "required": [
+          "verdict",
+          "reason_code",
+          "reason_text",
+          "edits",
+          "user_name",
+          "user_role",
+          "created_at"
+        ],
+        "title": "DecisionOut",
+        "type": "object"
+      },
+      "DemandProperties": {
+        "properties": {
+          "centre_requests": {
+            "title": "Centre Requests",
+            "type": "integer"
+          },
+          "empty_searches": {
+            "title": "Empty Searches",
+            "type": "integer"
+          },
+          "grid_cell": {
+            "title": "Grid Cell",
+            "type": "string"
+          },
+          "sector_code": {
+            "title": "Sector Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grid_cell",
+          "sector_code",
+          "empty_searches",
+          "centre_requests"
+        ],
+        "title": "DemandProperties",
+        "type": "object"
+      },
+      "DemandRecorded": {
+        "properties": {
+          "grid_cell": {
+            "title": "Grid Cell",
+            "type": "string"
+          },
+          "sector_name": {
+            "title": "Sector Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grid_cell",
+          "sector_name"
+        ],
+        "title": "DemandRecorded",
+        "type": "object"
+      },
+      "DemandRequest": {
+        "properties": {
+          "age_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "0_2",
+                  "3_6"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Band"
+          },
+          "lat": {
+            "maximum": -1.0,
+            "minimum": -2.9,
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "maximum": 31.0,
+            "minimum": 28.8,
+            "title": "Lon",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lon",
+          "lat"
+        ],
+        "title": "DemandRequest",
+        "type": "object"
+      },
+      "DemoAccountOut": {
+        "properties": {
+          "centre_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centre Code"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "role",
+          "display_name",
+          "email",
+          "phone",
+          "centre_code"
+        ],
+        "title": "DemoAccountOut",
+        "type": "object"
+      },
+      "DemoConfig": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/DemoAccountOut"
+            },
+            "title": "Accounts",
+            "type": "array"
+          },
+          "admin_totp_code": {
+            "title": "Admin Totp Code",
+            "type": "string"
+          },
+          "current_week": {
+            "format": "date",
+            "title": "Current Week",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_week",
+          "password",
+          "admin_totp_code",
+          "accounts"
+        ],
+        "title": "DemoConfig",
+        "type": "object"
+      },
+      "DistrictRow": {
+        "properties": {
+          "centres": {
+            "title": "Centres",
+            "type": "integer"
+          },
+          "children": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "children_covered": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Children Covered"
+          },
+          "children_uncovered": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Children Uncovered"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "deep_data": {
+            "title": "Deep Data",
+            "type": "boolean"
+          },
+          "mothers_barrier_share": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "province": {
+            "title": "Province",
+            "type": "string"
+          },
+          "stunting_risk": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "uncertainty": {
+            "title": "Uncertainty",
+            "type": "number"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "province",
+          "children",
+          "stunting_risk",
+          "mothers_barrier_share",
+          "uncertainty",
+          "centres",
+          "children_covered",
+          "children_uncovered",
+          "deep_data",
+          "origin"
+        ],
+        "title": "DistrictRow",
+        "type": "object"
+      },
+      "DriverOut": {
+        "properties": {
+          "contribution": {
+            "title": "Contribution",
+            "type": "number"
+          },
+          "feature": {
+            "title": "Feature",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          },
+          "label_rw": {
+            "title": "Label Rw",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature",
+          "label_en",
+          "label_rw",
+          "contribution"
+        ],
+        "title": "DriverOut",
+        "type": "object"
+      },
+      "EngineComponent": {
+        "enum": [
+          "need",
+          "coverage",
+          "optimizer",
+          "early_warning",
+          "explainer"
+        ],
+        "title": "EngineComponent",
+        "type": "string"
+      },
+      "Envelope_AlertDetail_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AlertDetail"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[AlertDetail]",
+        "type": "object"
+      },
+      "Envelope_Brief_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Brief"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[Brief]",
+        "type": "object"
+      },
+      "Envelope_CentreDetail_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CentreDetail"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[CentreDetail]",
+        "type": "object"
+      },
+      "Envelope_FeatureCollection_AreaProperties__": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FeatureCollection_AreaProperties_"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[FeatureCollection[AreaProperties]]",
+        "type": "object"
+      },
+      "Envelope_FeatureCollection_CentreProperties__": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FeatureCollection_CentreProperties_"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[FeatureCollection[CentreProperties]]",
+        "type": "object"
+      },
+      "Envelope_FeatureCollection_DemandProperties__": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FeatureCollection_DemandProperties_"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[FeatureCollection[DemandProperties]]",
+        "type": "object"
+      },
+      "Envelope_FeatureCollection_SiteProperties__": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FeatureCollection_SiteProperties_"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[FeatureCollection[SiteProperties]]",
+        "type": "object"
+      },
+      "Envelope_FindResult_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FindResult"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[FindResult]",
+        "type": "object"
+      },
+      "Envelope_PublicCentre_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PublicCentre"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[PublicCentre]",
+        "type": "object"
+      },
+      "Envelope_ScenarioOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ScenarioOut"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[ScenarioOut]",
+        "type": "object"
+      },
+      "Envelope_list_AlertOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AlertOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[list[AlertOut]]",
+        "type": "object"
+      },
+      "Envelope_list_CentreRow__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CentreRow"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[list[CentreRow]]",
+        "type": "object"
+      },
+      "Envelope_list_DistrictRow__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DistrictRow"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[list[DistrictRow]]",
+        "type": "object"
+      },
+      "Envelope_list_ReportOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ReportOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "data",
+          "provenance"
+        ],
+        "title": "Envelope[list[ReportOut]]",
+        "type": "object"
+      },
+      "FeatureCollection_AreaProperties_": {
+        "properties": {
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Feature_AreaProperties_"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "type": {
+            "const": "FeatureCollection",
+            "default": "FeatureCollection",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "features"
+        ],
+        "title": "FeatureCollection[AreaProperties]",
+        "type": "object"
+      },
+      "FeatureCollection_CentreProperties_": {
+        "properties": {
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Feature_CentreProperties_"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "type": {
+            "const": "FeatureCollection",
+            "default": "FeatureCollection",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "features"
+        ],
+        "title": "FeatureCollection[CentreProperties]",
+        "type": "object"
+      },
+      "FeatureCollection_DemandProperties_": {
+        "properties": {
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Feature_DemandProperties_"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "type": {
+            "const": "FeatureCollection",
+            "default": "FeatureCollection",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "features"
+        ],
+        "title": "FeatureCollection[DemandProperties]",
+        "type": "object"
+      },
+      "FeatureCollection_SiteProperties_": {
+        "properties": {
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Feature_SiteProperties_"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "type": {
+            "const": "FeatureCollection",
+            "default": "FeatureCollection",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "features"
+        ],
+        "title": "FeatureCollection[SiteProperties]",
+        "type": "object"
+      },
+      "Feature_AreaProperties_": {
+        "properties": {
+          "geometry": {
+            "additionalProperties": true,
+            "title": "Geometry",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/AreaProperties"
+          },
+          "type": {
+            "const": "Feature",
+            "default": "Feature",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "geometry",
+          "properties"
+        ],
+        "title": "Feature[AreaProperties]",
+        "type": "object"
+      },
+      "Feature_CentreProperties_": {
+        "properties": {
+          "geometry": {
+            "additionalProperties": true,
+            "title": "Geometry",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/CentreProperties"
+          },
+          "type": {
+            "const": "Feature",
+            "default": "Feature",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "geometry",
+          "properties"
+        ],
+        "title": "Feature[CentreProperties]",
+        "type": "object"
+      },
+      "Feature_DemandProperties_": {
+        "properties": {
+          "geometry": {
+            "additionalProperties": true,
+            "title": "Geometry",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/DemandProperties"
+          },
+          "type": {
+            "const": "Feature",
+            "default": "Feature",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "geometry",
+          "properties"
+        ],
+        "title": "Feature[DemandProperties]",
+        "type": "object"
+      },
+      "Feature_SiteProperties_": {
+        "properties": {
+          "geometry": {
+            "additionalProperties": true,
+            "title": "Geometry",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/SiteProperties"
+          },
+          "type": {
+            "const": "Feature",
+            "default": "Feature",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "geometry",
+          "properties"
+        ],
+        "title": "Feature[SiteProperties]",
+        "type": "object"
+      },
+      "FeeBand": {
+        "description": "Monthly fee per child in Rwandan francs.",
+        "enum": [
+          "free",
+          "under_1000",
+          "from_1000_to_5000",
+          "over_5000"
+        ],
+        "title": "FeeBand",
+        "type": "string"
+      },
+      "FindResult": {
+        "properties": {
+          "centres": {
+            "items": {
+              "$ref": "#/components/schemas/PublicCentre"
+            },
+            "title": "Centres",
+            "type": "array"
+          },
+          "demand_recorded": {
+            "description": "True when the search found nothing and was counted as unmet demand",
+            "title": "Demand Recorded",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "centres",
+          "demand_recorded"
+        ],
+        "title": "FindResult",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Issue": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Params",
+            "type": "object"
+          }
+        },
+        "required": [
+          "code",
+          "field"
+        ],
+        "title": "Issue",
+        "type": "object"
+      },
+      "MainProblem": {
+        "enum": [
+          "none",
+          "no_food",
+          "no_water",
+          "caregiver_absent",
+          "building_damage",
+          "weather",
+          "other"
+        ],
+        "title": "MainProblem",
+        "type": "string"
+      },
+      "Me": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "scope_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Code"
+          },
+          "scope_level": {
+            "$ref": "#/components/schemas/ScopeLevel"
+          },
+          "scope_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Name"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "scope_level",
+          "scope_code",
+          "scope_name",
+          "display_name"
+        ],
+        "title": "Me",
+        "type": "object"
+      },
+      "Methodology": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineRunOut"
+            },
+            "title": "Runs",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/DataSourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sources",
+          "runs"
+        ],
+        "title": "Methodology",
+        "type": "object"
+      },
+      "ModelVersionOut": {
+        "properties": {
+          "component": {
+            "$ref": "#/components/schemas/EngineComponent"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "title": "Metrics",
+            "type": "object"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "component",
+          "description",
+          "params",
+          "metrics"
+        ],
+        "title": "ModelVersionOut",
+        "type": "object"
+      },
+      "OfficerOut": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "scope_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Code"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "scope_code"
+        ],
+        "title": "OfficerOut",
+        "type": "object"
+      },
+      "Origin": {
+        "description": "Where a record comes from. The UI reads this to show badges and the simulated label.",
+        "enum": [
+          "official",
+          "public",
+          "partner",
+          "simulated"
+        ],
+        "title": "Origin",
+        "type": "string"
+      },
+      "OtpRequest": {
+        "properties": {
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone"
+        ],
+        "title": "OtpRequest",
+        "type": "object"
+      },
+      "OtpRequested": {
+        "properties": {
+          "demo_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Shown only in demo mode, where no SMS is sent",
+            "title": "Demo Code"
+          },
+          "expires_in_seconds": {
+            "title": "Expires In Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expires_in_seconds"
+        ],
+        "title": "OtpRequested",
+        "type": "object"
+      },
+      "OtpVerify": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone",
+          "code"
+        ],
+        "title": "OtpVerify",
+        "type": "object"
+      },
+      "OutcomesOut": {
+        "description": "Countable outcomes only. No stunting reduction is estimated or implied.",
+        "properties": {
+          "actions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Actions",
+            "type": "object"
+          },
+          "children_reached": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "children_supported": {
+            "title": "Children Supported",
+            "type": "number"
+          },
+          "cost_rwf": {
+            "title": "Cost Rwf",
+            "type": "number"
+          },
+          "high_risk_reached": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "mothers_under3_reached": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "uncovered_remaining": {
+            "$ref": "#/components/schemas/RangeOut"
+          }
+        },
+        "required": [
+          "children_reached",
+          "uncovered_remaining",
+          "high_risk_reached",
+          "mothers_under3_reached",
+          "children_supported",
+          "cost_rwf",
+          "actions"
+        ],
+        "title": "OutcomesOut",
+        "type": "object"
+      },
+      "PipelineRunOut": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CheckOut"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "code_version": {
+            "title": "Code Version",
+            "type": "string"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "pipeline": {
+            "title": "Pipeline",
+            "type": "string"
+          },
+          "row_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Row Counts",
+            "type": "object"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          }
+        },
+        "required": [
+          "id",
+          "pipeline",
+          "origin",
+          "status",
+          "started_at",
+          "finished_at",
+          "code_version",
+          "row_counts",
+          "checks"
+        ],
+        "title": "PipelineRunOut",
+        "type": "object"
+      },
+      "PlanningDefaults": {
+        "properties": {
+          "area_code": {
+            "title": "Area Code",
+            "type": "string"
+          },
+          "budget_rwf": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 10000000000.0,
+            "title": "Budget Rwf",
+            "type": "integer"
+          },
+          "weights": {
+            "$ref": "#/components/schemas/WeightsIn"
+          }
+        },
+        "required": [
+          "area_code",
+          "budget_rwf",
+          "weights"
+        ],
+        "title": "PlanningDefaults",
+        "type": "object"
+      },
+      "Provenance": {
+        "description": "Every origin and source behind the data in a response. The UI shows the simulated\nlabel whenever `origins` contains \"simulated\".",
+        "properties": {
+          "origins": {
+            "items": {
+              "$ref": "#/components/schemas/Origin"
+            },
+            "title": "Origins",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "origins",
+          "sources"
+        ],
+        "title": "Provenance",
+        "type": "object"
+      },
+      "PublicCentre": {
+        "properties": {
+          "capacity": {
+            "$ref": "#/components/schemas/PublicCount"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "disability_inclusive": {
+            "title": "Disability Inclusive",
+            "type": "boolean"
+          },
+          "distance_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Km"
+          },
+          "fee_band": {
+            "$ref": "#/components/schemas/FeeBand"
+          },
+          "free_places": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicCount"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "From the latest weekly report; null when the centre has not reported"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "offers_growth_monitoring": {
+            "title": "Offers Growth Monitoring",
+            "type": "boolean"
+          },
+          "offers_meals": {
+            "title": "Offers Meals",
+            "type": "boolean"
+          },
+          "opening_hours": {
+            "title": "Opening Hours",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "sector_name": {
+            "title": "Sector Name",
+            "type": "string"
+          },
+          "serves_0_2": {
+            "title": "Serves 0 2",
+            "type": "boolean"
+          },
+          "serves_3_6": {
+            "title": "Serves 3 6",
+            "type": "boolean"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CentreType"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "type",
+          "sector_name",
+          "lon",
+          "lat",
+          "distance_km",
+          "serves_0_2",
+          "serves_3_6",
+          "opening_hours",
+          "fee_band",
+          "offers_meals",
+          "offers_growth_monitoring",
+          "disability_inclusive",
+          "capacity",
+          "free_places",
+          "verified_at",
+          "origin"
+        ],
+        "title": "PublicCentre",
+        "type": "object"
+      },
+      "PublicCount": {
+        "description": "A count on a public page. Below 5 it is withheld: value is null, suppressed is true.",
+        "properties": {
+          "suppressed": {
+            "title": "Suppressed",
+            "type": "boolean"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "suppressed"
+        ],
+        "title": "PublicCount",
+        "type": "object"
+      },
+      "QualityFlag": {
+        "description": "Set by validation. A flagged report is stored, shown to the officer, never dropped.",
+        "enum": [
+          "out_of_range_confirmed",
+          "enrolment_jump",
+          "attendance_jump",
+          "late_submission"
+        ],
+        "title": "QualityFlag",
+        "type": "string"
+      },
+      "RangeOut": {
+        "properties": {
+          "estimate": {
+            "title": "Estimate",
+            "type": "number"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "title": "Low",
+            "type": "number"
+          }
+        },
+        "required": [
+          "estimate",
+          "low",
+          "high"
+        ],
+        "title": "RangeOut",
+        "type": "object"
+      },
+      "RecommendationOut": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/Action"
+          },
+          "centre_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centre Code"
+          },
+          "children_reached": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "children_supported": {
+            "title": "Children Supported",
+            "type": "integer"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/DecisionOut"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/DriverOut"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "explanation_en": {
+            "title": "Explanation En",
+            "type": "string"
+          },
+          "explanation_rw": {
+            "title": "Explanation Rw",
+            "type": "string"
+          },
+          "high_risk_children_reached": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "mothers_under3_reached": {
+            "$ref": "#/components/schemas/RangeOut"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "sector_code": {
+            "title": "Sector Code",
+            "type": "string"
+          },
+          "sector_name": {
+            "title": "Sector Name",
+            "type": "string"
+          },
+          "site_id": {
+            "title": "Site Id",
+            "type": "string"
+          },
+          "site_name": {
+            "title": "Site Name",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RecommendationStatus"
+          }
+        },
+        "required": [
+          "id",
+          "rank",
+          "action",
+          "site_id",
+          "site_name",
+          "sector_code",
+          "sector_name",
+          "centre_code",
+          "lon",
+          "lat",
+          "children_reached",
+          "high_risk_children_reached",
+          "mothers_under3_reached",
+          "children_supported",
+          "cost",
+          "drivers",
+          "sources",
+          "status",
+          "explanation_en",
+          "explanation_rw",
+          "decisions"
+        ],
+        "title": "RecommendationOut",
+        "type": "object"
+      },
+      "RecommendationStatus": {
+        "enum": [
+          "proposed",
+          "approved",
+          "edited",
+          "rejected"
+        ],
+        "title": "RecommendationStatus",
+        "type": "string"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest",
+        "type": "object"
+      },
+      "RejectionReason": {
+        "description": "Each code maps to an optimizer constraint in the next run (see engine.optimizer).",
+        "enum": [
+          "no_land",
+          "already_funded",
+          "access_problem",
+          "community_objection",
+          "other"
+        ],
+        "title": "RejectionReason",
+        "type": "string"
+      },
+      "ReportChannel": {
+        "enum": [
+          "web",
+          "offline",
+          "sms",
+          "assisted"
+        ],
+        "title": "ReportChannel",
+        "type": "string"
+      },
+      "ReportIn": {
+        "properties": {
+          "avg_daily_attendance": {
+            "maximum": 9999.0,
+            "minimum": 0.0,
+            "title": "Avg Daily Attendance",
+            "type": "integer"
+          },
+          "caregivers_present": {
+            "maximum": 99.0,
+            "minimum": 0.0,
+            "title": "Caregivers Present",
+            "type": "integer"
+          },
+          "centre_code": {
+            "title": "Centre Code",
+            "type": "string"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ReportChannel"
+          },
+          "children_with_disability": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Children With Disability",
+            "type": "integer"
+          },
+          "confirmed": {
+            "default": false,
+            "description": "The reporter has seen the warnings and confirms the values",
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "days_meal_served": {
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Days Meal Served",
+            "type": "integer"
+          },
+          "days_open": {
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Days Open",
+            "type": "integer"
+          },
+          "enrolled_0_2_female": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Enrolled 0 2 Female",
+            "type": "integer"
+          },
+          "enrolled_0_2_male": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Enrolled 0 2 Male",
+            "type": "integer"
+          },
+          "enrolled_3_6_female": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Enrolled 3 6 Female",
+            "type": "integer"
+          },
+          "enrolled_3_6_male": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Enrolled 3 6 Male",
+            "type": "integer"
+          },
+          "main_problem": {
+            "$ref": "#/components/schemas/MainProblem"
+          },
+          "referrals_growth_monitoring": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Referrals Growth Monitoring",
+            "type": "integer"
+          },
+          "waiting_list": {
+            "maximum": 9999.0,
+            "minimum": 0.0,
+            "title": "Waiting List",
+            "type": "integer"
+          },
+          "wash_available": {
+            "title": "Wash Available",
+            "type": "boolean"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enrolled_0_2_female",
+          "enrolled_0_2_male",
+          "enrolled_3_6_female",
+          "enrolled_3_6_male",
+          "avg_daily_attendance",
+          "waiting_list",
+          "caregivers_present",
+          "days_open",
+          "days_meal_served",
+          "referrals_growth_monitoring",
+          "children_with_disability",
+          "centre_code",
+          "week_start",
+          "wash_available",
+          "main_problem",
+          "channel"
+        ],
+        "title": "ReportIn",
+        "type": "object"
+      },
+      "ReportOut": {
+        "properties": {
+          "avg_daily_attendance": {
+            "maximum": 9999.0,
+            "minimum": 0.0,
+            "title": "Avg Daily Attendance",
+            "type": "integer"
+          },
+          "caregivers_present": {
+            "maximum": 99.0,
+            "minimum": 0.0,
+            "title": "Caregivers Present",
+            "type": "integer"
+          },
+          "centre_code": {
+            "title": "Centre Code",
+            "type": "string"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ReportChannel"
+          },
+          "children_with_disability": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Children With Disability",
+            "type": "integer"
+          },
+          "days_meal_served": {
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Days Meal Served",
+            "type": "integer"
+          },
+          "days_open": {
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Days Open",
+            "type": "integer"
+          },
+          "enrolled_0_2_female": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Enrolled 0 2 Female",
+            "type": "integer"
+          },
+          "enrolled_0_2_male": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Enrolled 0 2 Male",
+            "type": "integer"
+          },
+          "enrolled_3_6_female": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Enrolled 3 6 Female",
+            "type": "integer"
+          },
+          "enrolled_3_6_male": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Enrolled 3 6 Male",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "main_problem": {
+            "$ref": "#/components/schemas/MainProblem"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "quality_flags": {
+            "items": {
+              "$ref": "#/components/schemas/QualityFlag"
+            },
+            "title": "Quality Flags",
+            "type": "array"
+          },
+          "referrals_growth_monitoring": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Referrals Growth Monitoring",
+            "type": "integer"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "waiting_list": {
+            "maximum": 9999.0,
+            "minimum": 0.0,
+            "title": "Waiting List",
+            "type": "integer"
+          },
+          "wash_available": {
+            "title": "Wash Available",
+            "type": "boolean"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enrolled_0_2_female",
+          "enrolled_0_2_male",
+          "enrolled_3_6_female",
+          "enrolled_3_6_male",
+          "avg_daily_attendance",
+          "waiting_list",
+          "caregivers_present",
+          "days_open",
+          "days_meal_served",
+          "referrals_growth_monitoring",
+          "children_with_disability",
+          "id",
+          "centre_code",
+          "week_start",
+          "wash_available",
+          "main_problem",
+          "channel",
+          "quality_flags",
+          "submitted_at",
+          "origin"
+        ],
+        "title": "ReportOut",
+        "type": "object"
+      },
+      "Role": {
+        "enum": [
+          "parent",
+          "caregiver",
+          "sector_officer",
+          "district_planner",
+          "national_analyst",
+          "admin"
+        ],
+        "title": "Role",
+        "type": "string"
+      },
+      "RunDetail": {
+        "properties": {
+          "checks": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "code_version": {
+            "title": "Code Version",
+            "type": "string"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "inputs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Inputs",
+            "type": "array"
+          },
+          "origin": {
+            "title": "Origin",
+            "type": "string"
+          },
+          "pipeline": {
+            "title": "Pipeline",
+            "type": "string"
+          },
+          "row_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Row Counts",
+            "type": "object"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "pipeline",
+          "status",
+          "origin",
+          "started_at",
+          "finished_at",
+          "code_version",
+          "inputs",
+          "row_counts",
+          "checks"
+        ],
+        "title": "RunDetail",
+        "type": "object"
+      },
+      "RunStatus": {
+        "enum": [
+          "running",
+          "succeeded",
+          "failed"
+        ],
+        "title": "RunStatus",
+        "type": "string"
+      },
+      "SavedSearchIn": {
+        "properties": {
+          "filters": {
+            "additionalProperties": true,
+            "title": "Filters",
+            "type": "object"
+          },
+          "label": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "lat": {
+            "maximum": -1.0,
+            "minimum": -2.9,
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "maximum": 31.0,
+            "minimum": 28.8,
+            "title": "Lon",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "lon",
+          "lat"
+        ],
+        "title": "SavedSearchIn",
+        "type": "object"
+      },
+      "SavedSearchOut": {
+        "properties": {
+          "filters": {
+            "additionalProperties": true,
+            "title": "Filters",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "lon",
+          "lat",
+          "filters"
+        ],
+        "title": "SavedSearchOut",
+        "type": "object"
+      },
+      "ScenarioIn": {
+        "properties": {
+          "budget_rwf": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 10000000000.0,
+            "title": "Budget Rwf",
+            "type": "integer"
+          },
+          "district_code": {
+            "title": "District Code",
+            "type": "string"
+          },
+          "excluded_site_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Excluded Site Ids",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "weights": {
+            "$ref": "#/components/schemas/WeightsIn"
+          }
+        },
+        "required": [
+          "district_code",
+          "name",
+          "budget_rwf",
+          "weights"
+        ],
+        "title": "ScenarioIn",
+        "type": "object"
+      },
+      "ScenarioOut": {
+        "properties": {
+          "baseline": {
+            "$ref": "#/components/schemas/OutcomesOut"
+          },
+          "budget_rwf": {
+            "title": "Budget Rwf",
+            "type": "integer"
+          },
+          "catchment_minutes": {
+            "title": "Catchment Minutes",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_name": {
+            "title": "Created By Name",
+            "type": "string"
+          },
+          "district_code": {
+            "title": "District Code",
+            "type": "string"
+          },
+          "district_name": {
+            "title": "District Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "optimizer_version": {
+            "title": "Optimizer Version",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "outcomes": {
+            "$ref": "#/components/schemas/OutcomesOut"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationOut"
+            },
+            "title": "Recommendations",
+            "type": "array"
+          },
+          "rejected": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationOut"
+            },
+            "title": "Rejected",
+            "type": "array"
+          },
+          "weights": {
+            "$ref": "#/components/schemas/WeightsIn"
+          }
+        },
+        "required": [
+          "id",
+          "district_code",
+          "district_name",
+          "name",
+          "budget_rwf",
+          "weights",
+          "created_at",
+          "created_by_name",
+          "origin",
+          "optimizer_version",
+          "catchment_minutes",
+          "recommendations",
+          "rejected",
+          "outcomes",
+          "baseline"
+        ],
+        "title": "ScenarioOut",
+        "type": "object"
+      },
+      "ScenarioSummary": {
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "integer"
+          },
+          "budget_rwf": {
+            "title": "Budget Rwf",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_name": {
+            "title": "Created By Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "proposed": {
+            "title": "Proposed",
+            "type": "integer"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          },
+          "weights": {
+            "$ref": "#/components/schemas/WeightsIn"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "budget_rwf",
+          "weights",
+          "created_at",
+          "created_by_name",
+          "approved",
+          "rejected",
+          "proposed"
+        ],
+        "title": "ScenarioSummary",
+        "type": "object"
+      },
+      "ScopeLevel": {
+        "enum": [
+          "none",
+          "centre",
+          "sector",
+          "district",
+          "national"
+        ],
+        "title": "ScopeLevel",
+        "type": "string"
+      },
+      "SimulateIn": {
+        "properties": {
+          "budget_rwf": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 10000000000.0,
+            "title": "Budget Rwf",
+            "type": "integer"
+          },
+          "district_code": {
+            "title": "District Code",
+            "type": "string"
+          },
+          "include_baseline": {
+            "default": false,
+            "title": "Include Baseline",
+            "type": "boolean"
+          },
+          "weights": {
+            "$ref": "#/components/schemas/WeightsIn"
+          }
+        },
+        "required": [
+          "district_code",
+          "budget_rwf",
+          "weights"
+        ],
+        "title": "SimulateIn",
+        "type": "object"
+      },
+      "SimulationOut": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OutcomesOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outcomes": {
+            "$ref": "#/components/schemas/OutcomesOut"
+          }
+        },
+        "required": [
+          "outcomes",
+          "baseline"
+        ],
+        "title": "SimulationOut",
+        "type": "object"
+      },
+      "SiteProperties": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CandidateKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sector_code": {
+            "title": "Sector Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "sector_code"
+        ],
+        "title": "SiteProperties",
+        "type": "object"
+      },
+      "SmsFormat": {
+        "properties": {
+          "example": {
+            "title": "Example",
+            "type": "string"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          }
+        },
+        "required": [
+          "example",
+          "fields",
+          "problems"
+        ],
+        "title": "SmsFormat",
+        "type": "object"
+      },
+      "SmsIn": {
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "SmsIn",
+        "type": "object"
+      },
+      "SmsResult": {
+        "properties": {
+          "format_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format Detail"
+          },
+          "format_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format Error"
+          },
+          "parsed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "saved",
+              "needs_confirmation",
+              "rejected",
+              "duplicate",
+              "format_error"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "validation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValidationOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "SmsResult",
+        "type": "object"
+      },
+      "SourceOut": {
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "reference_year": {
+            "title": "Reference Year",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "table": {
+            "title": "Table",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table",
+          "source",
+          "reference_year",
+          "origin"
+        ],
+        "title": "SourceOut",
+        "type": "object"
+      },
+      "SourceStatus": {
+        "description": "Whether a source is loaded, or stood in for by simulated data until Phase 2.",
+        "enum": [
+          "loaded",
+          "simulated_stand_in",
+          "planned"
+        ],
+        "title": "SourceStatus",
+        "type": "string"
+      },
+      "StaffLogin": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "totp_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Code"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "StaffLogin",
+        "type": "object"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/Me"
+          }
+        },
+        "required": [
+          "access_token",
+          "refresh_token",
+          "user"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      },
+      "UserCreated": {
+        "properties": {
+          "totp_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Shown once, for admins to add to their app",
+            "title": "Totp Secret"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          }
+        },
+        "required": [
+          "user",
+          "totp_secret"
+        ],
+        "title": "UserCreated",
+        "type": "object"
+      },
+      "UserIn": {
+        "properties": {
+          "display_name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "minLength": 12,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "scope_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Code"
+          }
+        },
+        "required": [
+          "role",
+          "display_name"
+        ],
+        "title": "UserIn",
+        "type": "object"
+      },
+      "UserOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "has_totp": {
+            "title": "Has Totp",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "scope_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Code"
+          },
+          "scope_level": {
+            "$ref": "#/components/schemas/ScopeLevel"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "scope_level",
+          "scope_code",
+          "display_name",
+          "email",
+          "phone",
+          "is_active",
+          "has_totp",
+          "created_at"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "UserPatch": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scope_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Code"
+          }
+        },
+        "title": "UserPatch",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "ValidationOut": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/QualityFlag"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "accepted",
+          "errors",
+          "warnings",
+          "flags"
+        ],
+        "title": "ValidationOut",
+        "type": "object"
+      },
+      "Verdict": {
+        "enum": [
+          "approve",
+          "edit",
+          "reject"
+        ],
+        "title": "Verdict",
+        "type": "string"
+      },
+      "VerifyIn": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "VerifyIn",
+        "type": "object"
+      },
+      "WeightsIn": {
+        "description": "Policy weights. Choosing them is a policy decision, not a technical one.",
+        "properties": {
+          "jobs": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Jobs",
+            "type": "number"
+          },
+          "readiness": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Readiness",
+            "type": "number"
+          },
+          "stunting": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Stunting",
+            "type": "number"
+          }
+        },
+        "required": [
+          "stunting",
+          "readiness",
+          "jobs"
+        ],
+        "title": "WeightsIn",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Decision support for early childhood development in Rwanda. Suggestions only: every action needs a person's approval.",
+    "title": "IrereroAI API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/admin/audit": {
+      "get": {
+        "operationId": "audit_log_admin_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "action",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "in": "query",
+            "name": "actor_role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actor Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entity_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditOut"
+                  },
+                  "title": "Response Audit Log Admin Audit Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Audit Log",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/pipeline-runs": {
+      "get": {
+        "operationId": "pipeline_runs_admin_pipeline_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RunDetail"
+                  },
+                  "title": "Response Pipeline Runs Admin Pipeline Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Pipeline Runs",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "operationId": "list_users_admin_users_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserOut"
+                  },
+                  "title": "Response List Users Admin Users Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Users",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "create_user_admin_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create User",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users/{user_id}": {
+      "patch": {
+        "operationId": "update_user_admin_users__user_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update User",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/alerts": {
+      "get": {
+        "operationId": "list_alerts_alerts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "area",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Area"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status_filter",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/AlertStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status Filter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_AlertOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Alerts",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/alerts/{alert_id}": {
+      "get": {
+        "operationId": "alert_detail_alerts__alert_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AlertDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Alert Detail",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/alerts/{alert_id}/acknowledge": {
+      "post": {
+        "operationId": "acknowledge_alerts__alert_id__acknowledge_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AlertDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Acknowledge",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/alerts/{alert_id}/assign": {
+      "post": {
+        "operationId": "assign_alerts__alert_id__assign_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertAssign"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AlertDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Assign",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/alerts/{alert_id}/resolve": {
+      "post": {
+        "operationId": "resolve_alert_alerts__alert_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertResolve"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AlertDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Resolve Alert",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/assistant/ask": {
+      "post": {
+        "operationId": "ask_assistant_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Ask",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/auth/caregiver": {
+      "post": {
+        "operationId": "caregiver_login_auth_caregiver_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaregiverLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Caregiver Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "staff_login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Staff Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "whoami_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Whoami",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/otp/request": {
+      "post": {
+        "operationId": "request_code_auth_otp_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpRequested"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/otp/verify": {
+      "post": {
+        "operationId": "verify_code_auth_otp_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerify"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify Code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "refresh_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Refresh",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/brief": {
+      "get": {
+        "operationId": "brief_brief_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "district",
+            "required": true,
+            "schema": {
+              "title": "District",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Brief_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Brief",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/calendar": {
+      "get": {
+        "operationId": "calendar_calendar_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calendar"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Calendar",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/centres": {
+      "get": {
+        "operationId": "list_centres_centres_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "area",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Area"
+            }
+          },
+          {
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_CentreRow__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Centres",
+        "tags": [
+          "centres"
+        ]
+      }
+    },
+    "/centres/{code}": {
+      "get": {
+        "operationId": "centre_detail_centres__code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_CentreDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Centre Detail",
+        "tags": [
+          "centres"
+        ]
+      }
+    },
+    "/centres/{code}/verify": {
+      "post": {
+        "description": "Record that an officer checked the centre in person.",
+        "operationId": "verify_centre_centres__code__verify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_CentreDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verify Centre",
+        "tags": [
+          "centres"
+        ]
+      }
+    },
+    "/decisions": {
+      "get": {
+        "operationId": "decisions_decisions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "district",
+            "required": true,
+            "schema": {
+              "title": "District",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DecisionLogRow"
+                  },
+                  "title": "Response Decisions Decisions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Decisions",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/demo/config": {
+      "get": {
+        "operationId": "demo_config_demo_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoConfig"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Demo Config",
+        "tags": [
+          "demo"
+        ]
+      }
+    },
+    "/demo/login/{role}": {
+      "post": {
+        "operationId": "demo_login_demo_login__role__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Demo Login",
+        "tags": [
+          "demo"
+        ]
+      }
+    },
+    "/geo/areas": {
+      "get": {
+        "description": "Areas inside `parent` with need, uncertainty, coverage and demand: its direct children,\nor, with `level`, its descendants at that level (parent=RW, level=district for the\nnational map).",
+        "operationId": "areas_geo_areas_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "parent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Parent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "detail",
+            "required": false,
+            "schema": {
+              "default": "medium",
+              "enum": [
+                "full",
+                "medium",
+                "coarse"
+              ],
+              "title": "Detail",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week"
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "district",
+                    "sector"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Level"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FeatureCollection_AreaProperties__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Areas",
+        "tags": [
+          "geo"
+        ]
+      }
+    },
+    "/geo/centres": {
+      "get": {
+        "operationId": "centres_geo_centres_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "area",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Area"
+            }
+          },
+          {
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FeatureCollection_CentreProperties__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Centres",
+        "tags": [
+          "geo"
+        ]
+      }
+    },
+    "/geo/demand": {
+      "get": {
+        "description": "Parent demand per 500 m cell, up to the end of the given week.",
+        "operationId": "demand_geo_demand_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "area",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Area"
+            }
+          },
+          {
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FeatureCollection_DemandProperties__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Demand",
+        "tags": [
+          "geo"
+        ]
+      }
+    },
+    "/geo/sites": {
+      "get": {
+        "operationId": "sites_geo_sites_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "area",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Area"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FeatureCollection_SiteProperties__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Sites",
+        "tags": [
+          "geo"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/local-suggestions": {
+      "get": {
+        "description": "The latest district plan, for a sector officer to review the suggestions in their sector.",
+        "operationId": "local_suggestions_local_suggestions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sector",
+            "required": true,
+            "schema": {
+              "title": "Sector",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope_ScenarioOut_"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Local Suggestions Local Suggestions Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Local Suggestions",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/national/districts": {
+      "get": {
+        "operationId": "districts_national_districts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_DistrictRow__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Districts",
+        "tags": [
+          "national"
+        ]
+      }
+    },
+    "/national/export.csv": {
+      "get": {
+        "description": "District aggregates. Counts below 5 are written as <5. Every row states its origin.",
+        "operationId": "export_csv_national_export_csv_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Export Csv",
+        "tags": [
+          "national"
+        ]
+      }
+    },
+    "/national/models": {
+      "get": {
+        "operationId": "models_national_models_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelVersionOut"
+                  },
+                  "title": "Response Models National Models Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Models",
+        "tags": [
+          "national"
+        ]
+      }
+    },
+    "/officers": {
+      "get": {
+        "description": "Officers who may be assigned an alert at this centre.",
+        "operationId": "list_officers_officers_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "centre_code",
+            "required": true,
+            "schema": {
+              "title": "Centre Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OfficerOut"
+                  },
+                  "title": "Response List Officers Officers Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Officers",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/parent/account": {
+      "delete": {
+        "description": "Deletes the parent's phone number and saved searches. Demand signals were never linked.",
+        "operationId": "delete_account_parent_account_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Account",
+        "tags": [
+          "parent"
+        ]
+      }
+    },
+    "/parent/searches": {
+      "get": {
+        "operationId": "list_searches_parent_searches_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SavedSearchOut"
+                  },
+                  "title": "Response List Searches Parent Searches Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Searches",
+        "tags": [
+          "parent"
+        ]
+      },
+      "post": {
+        "operationId": "save_search_parent_searches_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedSearchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedSearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Search",
+        "tags": [
+          "parent"
+        ]
+      }
+    },
+    "/parent/searches/{search_id}": {
+      "delete": {
+        "operationId": "delete_search_parent_searches__search_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "search_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Search Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Search",
+        "tags": [
+          "parent"
+        ]
+      }
+    },
+    "/planning-defaults/{area}": {
+      "get": {
+        "operationId": "get_defaults_planning_defaults__area__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "area",
+            "required": true,
+            "schema": {
+              "title": "Area",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningDefaults"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Defaults",
+        "tags": [
+          "plan"
+        ]
+      },
+      "put": {
+        "operationId": "set_defaults_planning_defaults__area__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "area",
+            "required": true,
+            "schema": {
+              "title": "Area",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanningDefaults"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningDefaults"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Defaults",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/public/centres": {
+      "get": {
+        "operationId": "find_centres_public_centres_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lon",
+            "required": true,
+            "schema": {
+              "maximum": 31.0,
+              "minimum": 28.8,
+              "title": "Lon",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lat",
+            "required": true,
+            "schema": {
+              "maximum": -1.0,
+              "minimum": -2.9,
+              "title": "Lat",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "radius_km",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "exclusiveMinimum": 0,
+              "maximum": 30,
+              "title": "Radius Km",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "age_band",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "0_2",
+                    "3_6"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Age Band"
+            }
+          },
+          {
+            "in": "query",
+            "name": "meals",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Meals",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_fee",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FeeBand"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Fee"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FindResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Find Centres",
+        "tags": [
+          "public"
+        ]
+      }
+    },
+    "/public/centres/{code}": {
+      "get": {
+        "operationId": "centre_detail_public_centres__code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PublicCentre_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Centre Detail",
+        "tags": [
+          "public"
+        ]
+      }
+    },
+    "/public/demand": {
+      "post": {
+        "operationId": "request_centre_public_demand_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemandRecorded"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Centre",
+        "tags": [
+          "public"
+        ]
+      }
+    },
+    "/public/methodology": {
+      "get": {
+        "operationId": "methodology_public_methodology_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Methodology"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Methodology",
+        "tags": [
+          "public"
+        ]
+      }
+    },
+    "/recommendations/{recommendation_id}/decision": {
+      "post": {
+        "operationId": "decide_recommendations__recommendation_id__decision_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recommendation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Recommendation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ScenarioOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Decide",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/reports": {
+      "get": {
+        "operationId": "list_reports_reports_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "centre_code",
+            "required": true,
+            "schema": {
+              "title": "Centre Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_ReportOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Reports",
+        "tags": [
+          "reports"
+        ]
+      },
+      "post": {
+        "operationId": "submit_report_reports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "Already reported"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submit Report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/check": {
+      "post": {
+        "description": "Validate without saving, so the form can explain problems step by step.",
+        "operationId": "check_report_reports_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Check Report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/scenarios": {
+      "get": {
+        "operationId": "list_scenarios_scenarios_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "district",
+            "required": true,
+            "schema": {
+              "title": "District",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScenarioSummary"
+                  },
+                  "title": "Response List Scenarios Scenarios Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Scenarios",
+        "tags": [
+          "plan"
+        ]
+      },
+      "post": {
+        "operationId": "run_scenario_scenarios_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ScenarioOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Scenario",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/scenarios/{scenario_id}": {
+      "get": {
+        "operationId": "get_scenario_scenarios__scenario_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Scenario Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ScenarioOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Scenario",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/simulate": {
+      "post": {
+        "description": "What-if: outcomes of a budget and weights without saving anything.",
+        "operationId": "simulate_simulate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Simulate",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/sms/format": {
+      "get": {
+        "operationId": "sms_format_sms_format_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmsFormat"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Sms Format",
+        "tags": [
+          "sms"
+        ]
+      }
+    },
+    "/sms/simulate": {
+      "post": {
+        "operationId": "simulate_sms_simulate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmsResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Simulate",
+        "tags": [
+          "sms"
+        ]
+      }
+    }
+  }
+}

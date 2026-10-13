@@ -27,6 +27,7 @@ def _strip_run_ids(engine: Engine) -> None:
 
 
 def test_generator_is_deterministic(demo_engine: Engine) -> None:
+    generate(demo_engine)
     _strip_run_ids(demo_engine)
     first = _fingerprint(demo_engine)
     generate(demo_engine)

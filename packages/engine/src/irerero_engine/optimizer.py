@@ -32,6 +32,14 @@ BASE_VALUE = 0.25
 # per child than a new place.
 SUPPORT_FACTOR = 0.5
 ACCESS_PROBLEM_RADIUS = 0.5
+# Parents asking for a centre near a site is direct evidence that places would be used: up to
+# +30% value once ten or more requests or empty searches fall in the catchment.
+DEMAND_BOOST = 0.3
+DEMAND_CAP = 10
+# A driver is shown only when the site stands out from the others by this many deviations.
+DRIVER_MIN_Z = 0.5
+# Value per franc is how sites are ranked, so it is shown only when it is exceptional.
+LOW_COST_MIN_Z = 1.0
 
 
 class Action(StrEnum):
@@ -63,6 +71,7 @@ class Candidate:
     cost: Range
     places_added: int
     centre_code: str | None = None
+    serves_0_2: bool = True
     support_children: float = 0.0
     severity: float = 0.0
     parent_demand: int = 0
@@ -86,14 +95,16 @@ class PlanningInput:
     constraints: Constraints
     # Per area: (low / estimate, high / estimate) of the child counts, for impact ranges.
     child_count_bounds: Mapping[str, tuple[float, float]]
+    # Sites a person already approved: kept, in this order, before anything new is added.
+    preselected: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
 class Impact:
     children_reached: Range
     children_0_2_reached: float
-    high_risk_reached: float
-    mothers_under3_reached: float
+    high_risk_reached: Range
+    mothers_under3_reached: Range
     children_supported: float
 
 
@@ -110,8 +121,8 @@ class Suggestion:
 class Outcomes:
     children_reached: Range
     uncovered_remaining: Range
-    high_risk_reached: float
-    mothers_under3_reached: float
+    high_risk_reached: Range
+    mothers_under3_reached: Range
     children_supported: float
     cost: float
 
@@ -131,17 +142,22 @@ class SiteOptimizer(Protocol):
 
 @dataclass
 class _Valuer:
+    """Value of reaching a child. Risk and barrier are scaled to the district's highest value,
+    so each weight moves the ranking by a comparable amount."""
+
     weights: Weights
     max_risk: float
+    max_barrier: float
     points: Mapping[str, DemandPoint] = field(default_factory=dict)
 
     def child_value(self, point: DemandPoint, young: float, old: float) -> float:
         w = self.weights
         risk = point.stunting_risk / self.max_risk if self.max_risk else 0.0
+        barrier = point.mothers_barrier_share / self.max_barrier if self.max_barrier else 0.0
         return (
             (BASE_VALUE + w.stunting * risk) * (young + old)
             + w.readiness * old
-            + w.jobs * point.mothers_barrier_share * young
+            + w.jobs * barrier * young
         )
 
     def assignment_value(self, assignment: Assignment) -> float:
@@ -153,13 +169,17 @@ class _Valuer:
     def support_value(self, candidate: Candidate, area_risk: float, area_barrier: float) -> float:
         w = self.weights
         risk = area_risk / self.max_risk if self.max_risk else 0.0
-        per_child = BASE_VALUE + w.stunting * risk + w.readiness * 0.6 + w.jobs * area_barrier * 0.4
+        barrier = area_barrier / self.max_barrier if self.max_barrier else 0.0
+        # Enrolled children are assumed to be about 60% aged 3 to 6.
+        per_child = BASE_VALUE + w.stunting * risk + w.readiness * 0.6 + w.jobs * barrier * 0.4
         return SUPPORT_FACTOR * candidate.severity * candidate.support_children * per_child
 
 
 def _seat(candidate: Candidate, constraints: Constraints) -> Seat:
     factor = ACCESS_PROBLEM_RADIUS if candidate.id in constraints.reduced_access else 1.0
-    return Seat(candidate.id, candidate.position, candidate.places_added, factor)
+    return Seat(
+        candidate.id, candidate.position, candidate.places_added, factor, candidate.serves_0_2
+    )
 
 
 def _area_means(points: Sequence[DemandPoint]) -> dict[str, tuple[float, float]]:
@@ -231,33 +251,36 @@ def evaluate(model: CoverageModel, data: PlanningInput, chosen: Sequence[Candida
 
     impacts = []
     state = data.base_state.copy()
-    high_risk_total = mothers_total = supported_total = 0.0
+    supported_total = 0.0
+    risk_totals = [0.0, 0.0, 0.0]
+    mother_totals = [0.0, 0.0, 0.0]
     for i, candidate in enumerate(chosen):
         if candidate.action is Action.SUPPORT:
             # Support protects existing places; it reaches no new children.
-            impact = Impact(Range(0, 0, 0), 0.0, 0.0, 0.0, candidate.support_children)
+            zero = Range(0, 0, 0)
+            impact = Impact(zero, 0.0, zero, zero, candidate.support_children)
         else:
             assignment = model.assign(_seat(candidate, data.constraints), data.points, state)
             apply(state, assignment)
-            high_risk = sum(
-                (young + old) * points_by_id[pid].stunting_risk
-                for pid, young, old in assignment.from_points
-            )
-            mothers = sum(
-                young * points_by_id[pid].mothers_barrier_share
-                for pid, young, _ in assignment.from_points
-            )
+            risk = [
+                sum((y + o) * points_by_id[pid].risk(b) for pid, y, o in assignment.from_points)
+                for b in (None, 0, 1)
+            ]
+            mothers = [
+                sum(y * points_by_id[pid].barrier(b) for pid, y, _ in assignment.from_points)
+                for b in (None, 0, 1)
+            ]
             low, high = sorted((runs["low"][i], runs["high"][i]))
             estimate = runs["estimate"][i]
             impact = Impact(
                 Range(estimate, min(low, estimate), max(high, estimate)),
                 assignment.children_0_2,
-                high_risk,
-                mothers,
+                Range(*risk),
+                Range(*mothers),
                 0.0,
             )
-        high_risk_total += impact.high_risk_reached
-        mothers_total += impact.mothers_under3_reached
+            risk_totals = [t + v for t, v in zip(risk_totals, risk, strict=True)]
+            mother_totals = [t + v for t, v in zip(mother_totals, mothers, strict=True)]
         supported_total += impact.children_supported
         impacts.append(impact)
 
@@ -268,22 +291,30 @@ def evaluate(model: CoverageModel, data: PlanningInput, chosen: Sequence[Candida
         Outcomes(
             reached_total,
             uncovered,
-            high_risk_total,
-            mothers_total,
+            Range(*risk_totals),
+            Range(*mother_totals),
             supported_total,
             sum(c.cost.estimate for c in chosen),
         ),
     )
 
 
-def _drivers(metrics: Mapping[str, Mapping[str, float]], candidate_id: str) -> tuple[Driver, ...]:
-    """Top three features where this candidate stands out from the pool (positive z-scores)."""
+def _drivers(
+    metrics: Mapping[str, Mapping[str, float]], candidate: Candidate
+) -> tuple[Driver, ...]:
+    """Top three features where this candidate stands out from the others of its kind."""
+    group = "support" if candidate.action is Action.SUPPORT else "places"
+    candidate_id = candidate.id
     scores = []
-    for feature, values in metrics.items():
+    for key, values in metrics.items():
+        prefix, feature = key.split(":")
+        if prefix != group or candidate_id not in values:
+            continue
         pool = list(values.values())
         spread = pstdev(pool) or 1.0
         z = (values.get(candidate_id, 0.0) - mean(pool)) / spread
-        if z > 0:
+        threshold = LOW_COST_MIN_Z if feature == "low_cost" else DRIVER_MIN_Z
+        if z >= threshold:
             scores.append((z, feature))
     top = sorted(scores, reverse=True)[:3]
     total = sum(z for z, _ in top) or 1.0
@@ -302,7 +333,8 @@ class GreedyOptimizer:
         constraints = data.constraints
         weights = data.weights.normalised()
         max_risk = max((p.stunting_risk for p in data.points), default=0.0)
-        valuer = _Valuer(weights, max_risk, {p.id: p for p in data.points})
+        max_barrier = max((p.mothers_barrier_share for p in data.points), default=0.0)
+        valuer = _Valuer(weights, max_risk, max_barrier, {p.id: p for p in data.points})
         area_means = _area_means(data.points)
         state = data.base_state.copy()
         remaining = constraints.budget
@@ -311,6 +343,19 @@ class GreedyOptimizer:
         per_area: dict[str, int] = {}
         pool = [c for c in data.candidates if c.id not in constraints.excluded]
         metrics: dict[str, dict[str, float]] = {}
+        for candidate in pool:
+            value, _ = self._value(candidate, valuer, area_means, state, constraints)
+            self._record(metrics, candidate, value, state, constraints, valuer)
+        by_id = {c.id: c for c in data.candidates}
+        for site_id in data.preselected:
+            candidate = by_id[site_id]
+            value, assignment = self._value(candidate, valuer, area_means, state, constraints)
+            if assignment is not None:
+                apply(state, assignment)
+            chosen.append(candidate)
+            scores.append(value / candidate.cost.estimate)
+            remaining -= candidate.cost.estimate
+            per_area[candidate.area_code] = per_area.get(candidate.area_code, 0) + 1
 
         while True:
             best: tuple[float, Candidate, Assignment | None] | None = None
@@ -321,8 +366,6 @@ class GreedyOptimizer:
                 if limit is not None and per_area.get(candidate.area_code, 0) >= limit:
                     continue
                 value, assignment = self._value(candidate, valuer, area_means, state, constraints)
-                if not chosen:
-                    self._record(metrics, candidate, value, assignment, valuer)
                 if value <= 0:
                     continue
                 ratio = value / candidate.cost.estimate
@@ -344,7 +387,7 @@ class GreedyOptimizer:
 
         evaluation = evaluate(self.model, data, chosen)
         suggestions = tuple(
-            Suggestion(rank, candidate, impact, score * 1_000_000, _drivers(metrics, candidate.id))
+            Suggestion(rank, candidate, impact, score * 1_000_000, _drivers(metrics, candidate))
             for rank, (candidate, impact, score) in enumerate(
                 zip(chosen, evaluation.impacts, scores, strict=True), start=1
             )
@@ -364,36 +407,47 @@ class GreedyOptimizer:
             return valuer.support_value(candidate, risk, barrier), None
         seat = _seat(candidate, constraints)
         assignment = self.model.assign(seat, list(valuer.points.values()), state)
-        return valuer.assignment_value(assignment), assignment
+        boost = 1 + DEMAND_BOOST * min(candidate.parent_demand, DEMAND_CAP) / DEMAND_CAP
+        return valuer.assignment_value(assignment) * boost, assignment
 
-    @staticmethod
     def _record(
+        self,
         metrics: dict[str, dict[str, float]],
         candidate: Candidate,
         value: float,
-        assignment: Assignment | None,
+        state: CoverageState,
+        constraints: Constraints,
         valuer: _Valuer,
     ) -> None:
-        """First-round metrics for every candidate, so drivers compare like with like."""
+        """Before-any-pick metrics, so drivers compare each site with the others of its kind."""
+        group = "support" if candidate.action is Action.SUPPORT else "places"
 
         def put(feature: str, amount: float) -> None:
-            metrics.setdefault(feature, {})[candidate.id] = amount
+            metrics.setdefault(f"{group}:{feature}", {})[candidate.id] = amount
 
-        reached = assignment.children if assignment else 0.0
-        put("uncovered_children", reached)
-        if assignment and reached:
-            risk = sum(
-                (y + o) * valuer.points[pid].stunting_risk for pid, y, o in assignment.from_points
-            )
-            barrier = sum(
-                y * valuer.points[pid].mothers_barrier_share for pid, y, _ in assignment.from_points
-            )
-            put("stunting_risk", risk / reached)
-            put("mothers_barrier", barrier / reached)
-        put("parent_demand", float(candidate.parent_demand))
-        put("overcrowding", float(candidate.overcrowded_nearby))
-        put("report_problems", candidate.severity)
         put("low_cost", value / candidate.cost.estimate * 1_000_000)
+        put("overcrowding", float(candidate.overcrowded_nearby))
+        if group == "support":
+            put("report_problems", candidate.severity)
+            return
+        reachable = self.model.reachable(
+            _seat(candidate, constraints), list(valuer.points.values())
+        )
+        waiting = sum(state.uncovered(p.id) for p in reachable)
+        put("uncovered_children", waiting)
+        put("parent_demand", float(candidate.parent_demand))
+        if waiting:
+            put(
+                "stunting_risk",
+                sum(state.uncovered(p.id) * p.stunting_risk for p in reachable) / waiting,
+            )
+            young = sum(state.uncovered_0_2[p.id] for p in reachable)
+            if young:
+                put(
+                    "mothers_barrier",
+                    sum(state.uncovered_0_2[p.id] * p.mothers_barrier_share for p in reachable)
+                    / young,
+                )
 
 
 def largest_population_first(model: CoverageModel, data: PlanningInput) -> Plan:

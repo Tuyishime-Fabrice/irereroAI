@@ -75,6 +75,7 @@ def candidates(conn: Connection, district: str, radius_metres: float) -> list[Ca
                 cost=Range(row.cost_rwf, row.cost_low_rwf, row.cost_high_rwf),
                 places_added=row.places_added,
                 centre_code=row.centre_code,
+                serves_0_2=row.kind != "school",
                 support_children=float(row.enrolled or 0) if support else 0.0,
                 severity=_severity(row.alert_level, row.reliability_score) if support else 0.0,
                 parent_demand=row.demand,

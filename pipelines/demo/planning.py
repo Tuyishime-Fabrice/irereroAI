@@ -8,18 +8,22 @@ from irerero_contract.enums import Action, CandidateKind, CostBand
 from pipelines.demo.config import DEMO_DISTRICT, REFERENCE_YEAR, SOURCE, rng
 
 # (cost in RWF, places added). Simulated: Phase 2 replaces them with MINEDUC and NCDA unit costs.
+# Upgrades mainly raise quality, so they add few places for their cost.
 UNIT_COSTS = {
     (Action.BUILD, CostBand.LOW): (18_000_000, 60),
     (Action.BUILD, CostBand.MEDIUM): (25_000_000, 80),
     (Action.BUILD, CostBand.HIGH): (35_000_000, 100),
-    (Action.UPGRADE, CostBand.LOW): (3_000_000, 15),
-    (Action.UPGRADE, CostBand.MEDIUM): (5_000_000, 20),
-    (Action.UPGRADE, CostBand.HIGH): (8_000_000, 30),
+    (Action.UPGRADE, CostBand.LOW): (4_500_000, 10),
+    (Action.UPGRADE, CostBand.MEDIUM): (6_500_000, 15),
+    (Action.UPGRADE, CostBand.HIGH): (9_000_000, 20),
     (Action.SUPPORT, CostBand.LOW): (800_000, 0),
     (Action.SUPPORT, CostBand.MEDIUM): (1_200_000, 0),
     (Action.SUPPORT, CostBand.HIGH): (2_000_000, 0),
 }
 COST_SPREAD = 0.25
+# The demo story: the first Cyumba village site is the cheapest build in the under-served
+# sector, and the planner rejects it in the tour because no land is available.
+STORY_SITE_BANDS = {"SITE-CYUMBA-V1": CostBand.LOW}
 LETTERS = "ABC"
 
 
@@ -84,7 +88,9 @@ def build_sites(conn: Connection, centres: list[dict[str, Any]]) -> list[dict[st
                     "centre_code": None,
                     "lon": lon,
                     "lat": lat,
-                    "band": r.choice([CostBand.MEDIUM, CostBand.HIGH]).value,
+                    "band": STORY_SITE_BANDS.get(
+                        f"SITE-{short}-V{n + 1}", r.choice([CostBand.MEDIUM, CostBand.HIGH])
+                    ).value,
                 }
             )
         if has_school:
@@ -114,7 +120,7 @@ def build_sites(conn: Connection, centres: list[dict[str, Any]]) -> list[dict[st
                 | {
                     "id": f"SITE-{centre['code']}-U",
                     "kind": CandidateKind.CENTRE_UPGRADE.value,
-                    "name": f"Upgrade {centre['name']}",
+                    "name": centre["name"],
                     "band": r.choice([CostBand.LOW, CostBand.MEDIUM]).value,
                 }
             )
@@ -123,7 +129,7 @@ def build_sites(conn: Connection, centres: list[dict[str, Any]]) -> list[dict[st
             | {
                 "id": f"SITE-{centre['code']}-Q",
                 "kind": CandidateKind.CENTRE_SUPPORT.value,
-                "name": f"Quality support for {centre['name']}",
+                "name": centre["name"],
                 "band": CostBand.LOW.value,
             }
         )

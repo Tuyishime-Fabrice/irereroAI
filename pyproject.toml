@@ -1,0 +1,64 @@
+[project]
+name = "irereroai"
+version = "0.1.0"
+description = "IrereroAI monorepo: API, engine, data contract and pipelines"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "irerero-api",
+  "irerero-contract",
+  "irerero-engine",
+  "irerero-pipelines",
+]
+
+[dependency-groups]
+dev = [
+  "ruff>=0.17",
+  "mypy>=2.4",
+  "pytest>=9.1",
+  "httpx2>=2.13",
+  "detect-secrets>=1.5",
+  "pre-commit>=4",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["apps/api", "packages/contract", "packages/engine", "pipelines"]
+
+[tool.uv.sources]
+irerero-api = { workspace = true }
+irerero-contract = { workspace = true }
+irerero-engine = { workspace = true }
+irerero-pipelines = { workspace = true }
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["apps/web"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF", "S", "PTH", "DTZ"]
+ignore = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["irerero_api", "irerero_contract", "irerero_engine", "pipelines"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S105", "S106", "S311"]
+"pipelines/demo/**" = ["S311"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["packages/engine/src", "packages/contract/src", "apps/api/src", "pipelines"]
+exclude = ["/tests/"]
+
+[[tool.mypy.overrides]]
+module = ["geoalchemy2.*", "pyotp.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["packages/engine/tests", "packages/contract/tests", "apps/api/tests", "pipelines/tests"]
+addopts = "--import-mode=importlib"

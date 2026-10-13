@@ -1,0 +1,23 @@
+# Local hooks only, so the hooks install without fetching code from third-party repositories.
+repos:
+  - repo: local
+    hooks:
+      - id: detect-secrets
+        name: detect secrets
+        entry: uv run detect-secrets-hook --baseline .secrets.baseline
+        language: system
+        exclude: (pnpm-lock\.yaml|uv\.lock)$
+      - id: file-size-guard
+        name: file size and data format guard
+        entry: uv run python scripts/check_file_size.py
+        language: system
+      - id: ruff
+        name: ruff
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]

@@ -1,0 +1,26 @@
+[project]
+name = "irerero-pipelines"
+version = "0.1.0"
+description = "Ingestion adapters (Phase 2) and the deterministic demo data generator (Phase 1)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "irerero-contract",
+  "irerero-engine",
+  "psycopg[binary]>=3.3",
+]
+
+[tool.uv.sources]
+irerero-contract = { workspace = true }
+irerero-engine = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+# The package is the `pipelines/` directory itself so that the generator lives at
+# pipelines/demo/generate.py and runs as `python -m pipelines.demo.generate`.
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.build]
+dev-mode-dirs = [".."]

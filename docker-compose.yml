@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-irerero}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-irerero}
+      POSTGRES_DB: ${POSTGRES_DB:-irerero}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-irerero} -d ${POSTGRES_DB:-irerero}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-irerero}:${POSTGRES_PASSWORD:-irerero}@db:5432/${POSTGRES_DB:-irerero}
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/raw:/app/data/raw
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+volumes:
+  dbdata:

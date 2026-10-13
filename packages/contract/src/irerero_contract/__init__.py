@@ -1,0 +1,1 @@
+"""IrereroAI data contract."""

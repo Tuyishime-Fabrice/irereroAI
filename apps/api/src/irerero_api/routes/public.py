@@ -1,22 +1,27 @@
 """Public endpoints: no sign-in. Never expose internal report data beyond free places."""
 
+import json
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import Row, select, text
 from sqlalchemy.orm import Session
 
 from irerero_api.config import get_settings
 from irerero_api.db import get_session
 from irerero_api.schemas.common import Envelope, wrap
+from irerero_api.schemas.geo import Feature, FeatureCollection
 from irerero_api.schemas.public import (
     AgeBand,
     DataSourceOut,
     DemandRecorded,
     DemandRequest,
+    District,
     FindResult,
     Methodology,
     PipelineRunOut,
+    Place,
     PublicCentre,
 )
 from irerero_api.services.demand import record_demand
@@ -143,4 +148,54 @@ def methodology(session: SessionDep) -> Methodology:
             )
             for r in runs
         ],
+    )
+
+
+@router.get("/places", response_model=list[District])
+def places(session: SessionDep) -> list[District]:
+    """Districts and their sectors with a central point, for the place picker."""
+    rows = session.execute(
+        text(
+            "SELECT a.code, a.name, a.level, a.parent_code, ST_X(a.centroid) AS lon, "
+            "ST_Y(a.centroid) AS lat FROM admin_unit a "
+            "WHERE a.level IN ('district', 'sector') ORDER BY a.name"
+        )
+    ).all()
+    districts = {
+        r.code: District(code=r.code, name=r.name, lon=r.lon, lat=r.lat, sectors=[])
+        for r in rows
+        if r.level == "district"
+    }
+    for r in rows:
+        if r.level == "sector" and r.parent_code in districts:
+            districts[r.parent_code].sectors.append(
+                Place(code=r.code, name=r.name, lon=r.lon, lat=r.lat)
+            )
+    return list(districts.values())
+
+
+class Outline(BaseModel):
+    code: str
+    name: str
+
+
+@router.get("/outlines", response_model=FeatureCollection[Outline])
+def outlines(district: str, session: SessionDep) -> FeatureCollection[Outline]:
+    """Sector boundaries of a district, so maps work without a basemap. Public data only."""
+    rows = session.execute(
+        text(
+            "SELECT code, name, ST_AsGeoJSON(geom_medium, 5) AS geometry FROM admin_unit "
+            "WHERE parent_code = :d AND level = 'sector' ORDER BY code"
+        ),
+        {"d": district},
+    ).all()
+    return FeatureCollection[Outline](
+        features=[
+            Feature[Outline](
+                id=r.code,
+                geometry=json.loads(r.geometry),
+                properties=Outline(code=r.code, name=r.name),
+            )
+            for r in rows
+        ]
     )

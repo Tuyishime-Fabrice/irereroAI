@@ -12,7 +12,7 @@ Kinyarwanda text also comes from the API: alert reasons and suggestion explanati
 (`packages/engine/src/irerero_engine/features.py`) and assistant answers
 (`packages/engine/src/irerero_engine/assistant.py`). Those templates need the same review.
 
-Status: 0 of 127 strings reviewed.
+Status: 0 of 329 strings reviewed.
 
 | Key | English | Kinyarwanda draft | Reviewed |
 | --- | --- | --- | --- |
@@ -137,9 +137,211 @@ Status: 0 of 127 strings reviewed.
 | `map.hatchLevel.1` | Some doubt | Gushidikanya guke | no |
 | `map.hatchLevel.2` | Wide range | Intera nini | no |
 | `map.hatchLevel.3` | Very wide range | Intera nini cyane | no |
+| `map.findLabel` | Map of verified centres: {count} shown. The list below has the same centres. | Ikarita y'amarerero yagenzuwe: {count} agaragara. Urutonde ruri hasi rufite amarerero amwe. | no |
 | `design.title` | Design system | Uburyo bw'imiterere | no |
 | `design.lead` | Imigongo tokens and the signature components, rendered with sample values. Development only. | Amabara ya Imigongo n'ibice by'ingenzi, byerekanwa n'imibare y'urugero. Ku bakora porogaramu gusa. | no |
 | `design.colours` | Colour tokens | Amabara | no |
 | `design.type` | Type | Inyandiko | no |
 | `design.components` | Signature components | Ibice by'ingenzi | no |
 | `design.sample` | Sample values on this page are illustrative. | Imibare iri kuri iyi paji ni iy'urugero. | no |
+| `public.skip` | Skip to content | Jya ku bikubiyemo | no |
+| `public.home` | IrereroAI home | Ahabanza ha IrereroAI | no |
+| `public.navLabel` | Main | Ibice by'ingenzi | no |
+| `public.nav.find` | Find a centre | Shaka irerero | no |
+| `public.nav.methodology` | How it works | Uko bikora | no |
+| `public.nav.signIn` | Sign in | Injira | no |
+| `public.nav.myWork` | My work | Akazi kanjye | no |
+| `public.footer.honesty` | Data honesty: in this demo every centre, report and estimate is simulated and labelled as such. Only the district and sector boundaries are real public data. | Ukuri ku makuru: muri iri gerageza buri irerero, raporo n'igereranya ni iby'igerageza kandi byanditsweho. Imbibi z'uturere n'imirenge ni zo makuru nyayo rusange gusa. | no |
+| `public.footer.layer` | IrereroAI is designed as a layer on NCDA's ECD Mapping System, not a replacement for it. | IrereroAI yakozwe nk'urwego rwiyongera ku buryo bwa NCDA bwo gushushanya amarerero, si iyo kubusimbura. | no |
+| `public.footer.methodology` | See exactly what is real and what is simulated | Reba neza ibiri ukuri n'ibiri igerageza | no |
+| `public.footer.hackathon` | NISR 2026 Big Data Hackathon, Track 3 | NISR 2026 Big Data Hackathon, icyiciro cya 3 | no |
+| `landing.title` | Every young child within reach of a good ECD centre | Buri mwana muto agere ku irerero ryiza riri hafi | no |
+| `landing.lead` | IrereroAI helps districts plan where ECD centres are needed, helps centres report in three minutes, and helps parents find a place nearby. AI suggests. People decide. | IrereroAI ifasha uturere gutegura aho amarerero akenewe, ifasha amarerero gutanga raporo mu minota itatu, kandi ifasha ababyeyi kubona umwanya hafi. AI itanga inama. Abantu bafata ibyemezo. | no |
+| `landing.ctaFind` | Find a centre | Shaka irerero | no |
+| `landing.ctaStaff` | Staff sign in | Abakozi binjire | no |
+| `landing.ctaTour` | Take the five-minute tour | Kurikira urugendo rw'iminota itanu | no |
+| `landing.numbersTitle` | The problem in three numbers | Ikibazo mu mibare itatu | no |
+| `landing.numbers.enrolment.text` | Pre-primary enrolment today, and the national target for 2029. | Abana bari mu mashuri y'incuke uyu munsi, n'intego y'igihugu ya 2029. | no |
+| `landing.numbers.stunting.text` | The national target for stunting among children under 5 by 2029. | Intego y'igihugu ku igwingira ry'abana bari munsi y'imyaka 5 mu 2029. | no |
+| `landing.numbers.gicumbi.text` | Children under 5 who are stunted in Gicumbi, the pilot district. | Abana bari munsi y'imyaka 5 bagwingiye i Gicumbi, akarere k'igerageza. | no |
+| `landing.cycle.caption` | One loop: what centres report and what parents ask for improves the next plan. | Uruziga rumwe: ibyo amarerero atangaza n'ibyo ababyeyi basaba binoza igenamigambi rikurikira. | no |
+| `landing.cycle.plan.title` | Plan | Tegura | no |
+| `landing.cycle.plan.text` | Rank where to build, upgrade or support centres within a budget. | Shyira ku rutonde aho kubaka, kuzamura cyangwa gushyigikira amarerero mu ngengo y'imari. | no |
+| `landing.cycle.track.title` | Track | Kurikirana | no |
+| `landing.cycle.track.text` | Centres send ten counts a week; officers get early warnings with reasons. | Amarerero yohereza imibare icumi buri cyumweru; abakozi b'imirenge babona iburira n'impamvu. | no |
+| `landing.cycle.find.title` | Find | Shaka | no |
+| `landing.cycle.find.text` | Parents find verified centres. A search with no result counts as unmet demand. | Ababyeyi babona amarerero yagenzuwe. Gushakisha kutagize icyo kubona bibarwa nk'icyifuzo kitarasubizwa. | no |
+| `landing.cycle.learn.title` | Learn | Iga | no |
+| `landing.cycle.learn.text` | Reports, requests and every decision, including rejections, shape the next suggestions. | Raporo, ibyifuzo n'ibyemezo byose, harimo ibyanzwe, bihindura inama zikurikira. | no |
+| `landing.promiseTitle` | AI suggests, people decide | AI itanga inama, abantu bafata ibyemezo | no |
+| `landing.promise.suggests` | Every output is a suggestion, never a decision. | Buri gisubizo ni inama, si icyemezo. | no |
+| `landing.promise.reasons` | Each suggestion shows its reasons, a range and the data it used. | Buri nama yerekana impamvu zayo, intera n'amakuru yakoreshejwe. | no |
+| `landing.promise.reject` | Planners approve, edit or reject; a rejection needs a reason, and the reason changes the next plan. | Abategura bemeza, bahindura cyangwa banga; kwanga bisaba impamvu, kandi iyo mpamvu ihindura igenamigambi rikurikira. | no |
+| `landing.promise.audit` | Every decision is written to an audit log that cannot be edited. | Buri cyemezo cyandikwa mu gitabo cy'igenzura kidashobora guhindurwa. | no |
+| `landing.promise.nothingAutomatic` | Nothing happens automatically. | Nta kintu gikorwa mu buryo bwikora. | no |
+| `landing.honestyTitle` | What is real and what is not | Ibiri ukuri n'ibitari byo | no |
+| `landing.honesty.simulated` | This is a demonstration. Centres, weekly reports, child counts and estimates are simulated for Gicumbi and clearly labelled "simulated data" wherever they appear. | Iri ni igerageza. Amarerero, raporo za buri cyumweru, imibare y'abana n'igereranya ni iby'igerageza by'i Gicumbi kandi byanditsweho "amakuru y'igerageza" aho bigaragara hose. | no |
+| `landing.honesty.real` | District and sector boundaries are real public data (NISR via geoBoundaries). The stunting figure for Gicumbi is the published RDHS 2025 value; sector values around it are simulated. | Imbibi z'uturere n'imirenge ni amakuru nyayo rusange (NISR binyuze kuri geoBoundaries). Umubare w'igwingira i Gicumbi ni uwatangajwe na RDHS 2025; imibare y'imirenge iwukikije ni iy'igerageza. | no |
+| `landing.honesty.phase2` | Phase 2 loads the Census, EICV7, DHS, Labour Force Survey, education statistics and NCDA's register into the same structures. | Icyiciro cya 2 kizashyira ibarura rusange, EICV7, DHS, ubushakashatsi ku murimo, imibare y'uburezi n'urutonde rwa NCDA muri izi nzego zimwe. | no |
+| `landing.honesty.privacy` | No child names, photos or IDs are ever collected. Parent locations are rounded to a 500 m square. | Nta mazina, amafoto cyangwa nimero by'abana bikusanywa. Aho ababyeyi bari hazengurutswa kuri kare ya metero 500. | no |
+| `landing.honestyLink` | How it works, step by step | Uko bikora, intambwe ku yindi | no |
+| `landing.whoTitle` | Who it is for | Abo bigenewe | no |
+| `landing.who.parents.title` | Parents | Ababyeyi | no |
+| `landing.who.parents.text` | Find a verified centre near you, with fees, hours and free places. | Shaka irerero ryagenzuwe riri hafi, n'amafaranga, amasaha n'imyanya iboneka. | no |
+| `landing.who.parents.link` | Find a centre | Shaka irerero | no |
+| `landing.who.caregivers.title` | Caregivers | Abarezi | no |
+| `landing.who.caregivers.text` | Send the weekly report in three minutes, even offline or by SMS. | Ohereza raporo y'icyumweru mu minota itatu, n'iyo nta murandasi cyangwa ukoresheje SMS. | no |
+| `landing.who.caregivers.link` | Sign in | Injira | no |
+| `landing.who.officers.title` | Sector officers | Abakozi b'imirenge | no |
+| `landing.who.officers.text` | See which centres need help this week, and why. | Reba amarerero akeneye ubufasha iki cyumweru n'impamvu. | no |
+| `landing.who.officers.link` | Sign in | Injira | no |
+| `landing.who.planners.title` | Planners and analysts | Abategura n'abasesenguzi | no |
+| `landing.who.planners.text` | Compare plans within a budget, with honest ranges. | Gereranya igenamigambi mu ngengo y'imari, n'intera zivugisha ukuri. | no |
+| `landing.who.planners.link` | Sign in | Injira | no |
+| `landing.ncda` | IrereroAI is designed to sit on top of NCDA's ECD Mapping System and the digitised ECD book, not to replace them. | IrereroAI yakozwe kugira ngo yubakire ku buryo bwa NCDA bwo gushushanya amarerero n'igitabo cy'irerero cyashyizwe mu ikoranabuhanga, si ukubisimbura. | no |
+| `find.title` | Find a centre | Shaka irerero | no |
+| `find.lead` | Verified ECD centres near a place you choose. Your exact location is never stored. | Amarerero yagenzuwe ari hafi y'aho uhisemo. Aho uri neza ntihabikwa. | no |
+| `find.where` | Where | Hehe | no |
+| `find.district` | District | Akarere | no |
+| `find.sector` | Sector | Umurenge | no |
+| `find.chooseSector` | Choose a sector | Hitamo umurenge | no |
+| `find.useLocation` | Use my location | Koresha aho ndi | no |
+| `find.locating` | Finding you… | Turagushakisha… | no |
+| `find.mapHint` | Or tap the map to choose a place. | Cyangwa kanda ku ikarita uhitemo ahantu. | no |
+| `find.myPlace` | My place | Aho ndi | no |
+| `find.filters` | Filters | Akayunguruzo | no |
+| `find.age` | Age of the child | Imyaka y'umwana | no |
+| `find.anyAge` | Any age | Imyaka yose | no |
+| `find.maxFee` | Monthly fee up to | Amafaranga ya buri kwezi atarenze | no |
+| `find.anyFee` | Any fee | Amafaranga yose | no |
+| `find.distance` | Distance | Intera | no |
+| `find.withinKm` | Within {km} km | Mu bilometero {km} | no |
+| `find.mealsOnly` | Serves meals | Hatangirwa amafunguro | no |
+| `find.results` | Results | Ibisubizo | no |
+| `find.pickFirst` | Choose a sector or tap the map to see centres nearby. | Hitamo umurenge cyangwa ukande ku ikarita urebe amarerero ari hafi. | no |
+| `find.found` | {count, plural, one {# centre found} other {# centres found}} | {count, plural, one {Irerero # ryabonetse} other {Amarerero # yabonetse}} | no |
+| `find.save` | Save this search | Bika ubu bushakashatsi | no |
+| `find.saved` | Saved | Byabitswe | no |
+| `find.signInToSave` | Sign in to save this search | Injira kugira ngo ubike ubu bushakashatsi | no |
+| `find.noneTitle` | No verified centre here yet | Nta rerero ryagenzuwe riraba hano | no |
+| `find.noneText` | There is no verified centre within this distance that matches your filters. | Nta rerero ryagenzuwe riri muri iyi ntera rihuje n'ibyo washakaga. | no |
+| `find.counted` | This search was counted as a need for a centre in this area. | Ubu bushakashatsi bwabaruwe nk'icyifuzo cy'irerero muri aka gace. | no |
+| `find.request` | Request a centre here | Saba irerero hano | no |
+| `find.requested` | Thank you. Your request was counted for the {sector} area. | Murakoze. Icyifuzo cyanyu cyabaruwe ku gace ka {sector}. | no |
+| `find.privacy` | Only a 500 m square around the place is recorded, never the exact point or your phone number. | Habikwa kare ya metero 500 ikikije aho hantu gusa, ntihabikwa aho nyirizina cyangwa nimero ya telefone yawe. | no |
+| `find.km` | {km} km | km {km} | no |
+| `find.type.home_based` | Home-based | Urugo mbonezamikurire | no |
+| `find.type.community_based` | Community-based | Irerero ry'umudugudu | no |
+| `find.type.school_based` | School-based | Irerero ry'ishuri | no |
+| `find.type.centre_based` | Centre-based | Ikigo cy'irerero | no |
+| `find.fee.free` | Free | Ni ubuntu | no |
+| `find.fee.under_1000` | Under 1,000 RWF a month | Munsi ya RWF 1,000 ku kwezi | no |
+| `find.fee.from_1000_to_5000` | 1,000–5,000 RWF a month | RWF 1,000–5,000 ku kwezi | no |
+| `find.fee.over_5000` | Over 5,000 RWF a month | Hejuru ya RWF 5,000 ku kwezi | no |
+| `find.ages.both` | Ages 0–6 | Imyaka 0–6 | no |
+| `find.ages.young` | Ages 0–2 | Imyaka 0–2 | no |
+| `find.ages.old` | Ages 3–6 | Imyaka 3–6 | no |
+| `find.meals` | Meals | Amafunguro | no |
+| `find.freePlaces` | Free places | Imyanya iboneka | no |
+| `find.notReported` | Not reported | Ntibyatangajwe | no |
+| `find.fewerThanFive` | Fewer than 5 | Munsi ya 5 | no |
+| `find.backToFind` | Back to search | Subira ku bushakashatsi | no |
+| `find.typeLabel` | Type | Ubwoko | no |
+| `find.agesLabel` | Ages | Imyaka | no |
+| `find.hours` | Opening hours | Amasaha akora | no |
+| `find.feeLabel` | Fees | Amafaranga | no |
+| `find.capacity` | Places | Imyanya | no |
+| `find.mealsLabel` | Meals | Amafunguro | no |
+| `find.growth` | Growth monitoring | Gukurikirana imikurire | no |
+| `find.inclusive` | Disability inclusive | Ryakira abana bafite ubumuga | no |
+| `find.lastVerified` | Last verified in person | Ryagenzuwe bwa nyuma n'umukozi | no |
+| `find.notVerified` | Not yet | Ntiriragenzurwa | no |
+| `find.yes` | Yes | Yego | no |
+| `find.no` | No | Oya | no |
+| `find.freePlacesNote` | Free places come from the centre's latest weekly report. Numbers below 5 are not shown. | Imyanya iboneka ituruka kuri raporo y'icyumweru iheruka y'irerero. Imibare iri munsi ya 5 ntigaragazwa. | no |
+| `methodology.title` | How it works | Uko bikora | no |
+| `methodology.lead` | The full data process, from sources to the decision a person takes, and what is real today versus simulated. | Uko amakuru akoreshwa kuva ku masoko kugeza ku cyemezo umuntu afata, n'ibiri ukuri uyu munsi n'ibiri igerageza. | no |
+| `methodology.steps.todayLabel` | Today: | Uyu munsi: | no |
+| `methodology.steps.phase2Label` | Phase 2: | Icyiciro cya 2: | no |
+| `methodology.steps.sources.title` | Sources | Amasoko | no |
+| `methodology.steps.sources.what` | Official statistics, public maps and partner registers. | Imibare ya Leta, amakarita rusange n'urutonde rw'abafatanyabikorwa. | no |
+| `methodology.steps.sources.today` | Real boundaries; everything else simulated for Gicumbi. | Imbibi nyazo; ibindi byose ni igerageza ry'i Gicumbi. | no |
+| `methodology.steps.sources.phase2` | Census 2022, EICV7, DHS 2025, LFS 2025, education yearbook, NCDA register, WorldPop, OpenStreetMap. | Ibarura rusange 2022, EICV7, DHS 2025, LFS 2025, igitabo cy'imibare y'uburezi, urutonde rwa NCDA, WorldPop, OpenStreetMap. | no |
+| `methodology.steps.alignment.title` | Alignment | Guhuza | no |
+| `methodology.steps.alignment.what` | Every source is matched to sectors with its year, origin and checks. | Buri soko rihuzwa n'imirenge, n'umwaka waryo, inkomoko n'igenzura. | no |
+| `methodology.steps.alignment.today` | The demo generator writes the same tables with origin = simulated. | Porogaramu y'igerageza yandika imbonerahamwe zimwe ifite inkomoko = igerageza. | no |
+| `methodology.steps.alignment.phase2` | One adapter per source, with checks that must pass before loading. | Uburyo bumwe kuri buri soko, n'igenzura rigomba gutsinda mbere yo kwinjiza amakuru. | no |
+| `methodology.steps.models.title` | Models | Imiterere y'imibare | no |
+| `methodology.steps.models.what` | Need per sector with ranges, coverage within walking distance, early warning. | Ibikenewe kuri buri murenge n'intera, ahagerwa n'amaguru, n'iburira hakiri kare. | no |
+| `methodology.steps.models.today` | Explainable baselines: stored estimates, straight-line catchments, rules against each centre's own history. | Uburyo bworoshye busobanurwa: igereranya ryabitswe, intera y'umurongo ugororotse, amategeko agereranya buri rerero n'amateka yaryo. | no |
+| `methodology.steps.models.phase2` | Small-area estimation calibrated to official totals, walking-time catchments, anomaly detection. | Igereranya ry'uduce duto rihuzwa n'imibare ya Leta, igihe cyo kugenda n'amaguru, no kubona ibidasanzwe. | no |
+| `methodology.steps.suggestions.title` | Suggestions | Inama | no |
+| `methodology.steps.suggestions.what` | A ranked shortlist within the budget, with reasons, ranges and sources. | Urutonde rugufi mu ngengo y'imari, n'impamvu, intera n'amasoko. | no |
+| `methodology.steps.suggestions.today` | Greedy maximal coverage with your policy weights; compared with a largest-population-first baseline. | Guhitamo intambwe ku yindi hakurikijwe uburemere mwahisemo; bigereranywa n'igipimo cy'abaturage benshi mbere. | no |
+| `methodology.steps.suggestions.phase2` | An exact optimisation model behind the same screen. | Uburyo nyabwo bwo gushaka igisubizo cyiza inyuma ya paji imwe. | no |
+| `methodology.steps.decision.title` | Human decision | Icyemezo cy'umuntu | no |
+| `methodology.steps.decision.what` | Approve, edit or reject. Rejections need a reason. | Emeza, hindura cyangwa wange. Kwanga bisaba impamvu. | no |
+| `methodology.steps.decision.today` | Fully working, with an audit log that cannot be edited. | Birakora byuzuye, n'igitabo cy'igenzura kidashobora guhindurwa. | no |
+| `methodology.steps.decision.phase2` | Unchanged: people always decide. | Nta gihinduka: abantu ni bo bafata ibyemezo buri gihe. | no |
+| `methodology.steps.feedback.title` | Feedback | Kwiga | no |
+| `methodology.steps.feedback.what` | Weekly reports, parent requests and rejection reasons shape the next round. | Raporo za buri cyumweru, ibyifuzo by'ababyeyi n'impamvu zo kwanga bihindura inama zikurikira. | no |
+| `methodology.steps.feedback.today` | Rejections become constraints; parent requests raise a site's value; reports drive alerts. | Ibyanzwe biba imbogamizi; ibyifuzo by'ababyeyi bizamura agaciro k'ahantu; raporo zitera iburira. | no |
+| `methodology.steps.feedback.phase2` | Models retrained on what decisions and reports show. | Imiterere y'imibare yongera kwigishwa hakurikijwe ibyemezo na raporo. | no |
+| `methodology.sourcesTitle` | Data sources and their status today | Amasoko y'amakuru n'aho ageze uyu munsi | no |
+| `methodology.source` | Source | Isoko | no |
+| `methodology.today` | Today | Uyu munsi | no |
+| `methodology.feeds` | Feeds | Ibyo rigaburira | no |
+| `methodology.licence` | Licence | Uruhushya | no |
+| `methodology.status.loaded` | Loaded | Ryinjijwe | no |
+| `methodology.status.simulated_stand_in` | Simulated stand-in | Risimburwa n'igerageza | no |
+| `methodology.status.planned` | Phase 2 | Icyiciro cya 2 | no |
+| `methodology.runsTitle` | Pipeline runs and their checks | Inshuro amakuru yinjijwe n'igenzura ryakozwe | no |
+| `methodology.origin.official` | official | ya Leta | no |
+| `methodology.origin.public` | public | rusange | no |
+| `methodology.origin.partner` | partner | umufatanyabikorwa | no |
+| `methodology.origin.simulated` | simulated | igerageza | no |
+| `signIn.title` | Sign in | Injira | no |
+| `signIn.lead` | Staff, caregivers and parents each sign in their own way. | Abakozi, abarezi n'ababyeyi buri wese yinjira mu buryo bwe. | no |
+| `signIn.who` | Who are you? | Uri nde? | no |
+| `signIn.mode.staff` | Staff | Umukozi | no |
+| `signIn.mode.caregiver` | Caregiver | Umurezi | no |
+| `signIn.mode.parent` | Parent | Umubyeyi | no |
+| `signIn.email` | Email | Imeyili | no |
+| `signIn.password` | Password | Ijambo ry'ibanga | no |
+| `signIn.totp` | Six-digit code | Kode y'imibare itandatu | no |
+| `signIn.totpHint` | Needed for system administrators. | Ikenewe ku bayobozi ba sisitemu. | no |
+| `signIn.phone` | Mobile number | Nimero ya telefone | no |
+| `signIn.phoneHint` | For example 078 123 4567. | Urugero: 078 123 4567. | no |
+| `signIn.centreCode` | Centre code | Kode y'irerero | no |
+| `signIn.centreHint` | Printed on your centre's registration, for example ECD-GIC-001. | Iri ku cyemezo cy'iyandikwa ry'irerero ryawe, urugero ECD-GIC-001. | no |
+| `signIn.code` | Code from the SMS | Kode yo muri SMS | no |
+| `signIn.demoCode` | Demo mode: no SMS is sent. Your code is | Uburyo bw'igerageza: nta SMS yoherejwe. Kode yawe ni | no |
+| `signIn.parentPrivacy` | We keep only your phone number and the searches you save. You can delete them at any time. | Tubika nimero ya telefone yawe n'ubushakashatsi ubitse gusa. Ushobora kubisiba igihe icyo ari cyo cyose. | no |
+| `signIn.sendCode` | Send me a code | Mwoherereze kode | no |
+| `signIn.submit` | Sign in | Injira | no |
+| `signIn.failed` | Those details did not match. Check them and try again. | Ibyo watanze ntibihuye. Bigenzure wongere ugerageze. | no |
+| `signIn.badPhone` | Enter a Rwandan mobile number. | Andika nimero ya telefone yo mu Rwanda. | no |
+| `signIn.demoTitle` | Demo accounts | Konti z'igerageza | no |
+| `signIn.demoLead` | Shown in demo mode only. One account per role, all on simulated data. | Zigaragara mu buryo bw'igerageza gusa. Konti imwe kuri buri ruhare, zose ku makuru y'igerageza. | no |
+| `signIn.demoPassword` | Password: | Ijambo ry'ibanga: | no |
+| `signIn.demoAdminCode` | admin code now: | kode y'umuyobozi ubu: | no |
+| `signIn.demoUse` | Use | Koresha | no |
+| `signIn.roles.parent` | Parent | Umubyeyi | no |
+| `signIn.roles.caregiver` | Caregiver | Umurezi | no |
+| `signIn.roles.sector_officer` | Sector ECD officer | Umukozi w'umurenge ushinzwe ECD | no |
+| `signIn.roles.district_planner` | District planner | Utegura w'akarere | no |
+| `signIn.roles.national_analyst` | National analyst | Umusesenguzi w'igihugu | no |
+| `signIn.roles.admin` | System admin | Umuyobozi wa sisitemu | no |
+| `account.title` | My account | Konti yanjye | no |
+| `account.lead` | Your saved searches, and deleting your account. | Ubushakashatsi wabitse, no gusiba konti yawe. | no |
+| `account.signInFirst` | Sign in with your phone to see your saved searches. | Injira ukoresheje telefone urebe ubushakashatsi wabitse. | no |
+| `account.signIn` | Sign in | Injira | no |
+| `account.searches` | Saved searches | Ubushakashatsi wabitse | no |
+| `account.noSearches` | No saved searches yet. | Nta bushakashatsi wari wabika. | no |
+| `account.goFind` | Find a centre | Shaka irerero | no |
+| `account.delete` | Delete | Siba | no |
+| `account.deleteTitle` | Delete my account | Siba konti yanjye | no |
+| `account.deleteText` | This removes your phone number and saved searches. Requests you made for a centre stay counted, but they were never linked to you. | Ibi bisiba nimero ya telefone yawe n'ubushakashatsi wabitse. Ibyifuzo by'irerero watanze bikomeza kubarwa, ariko ntibyigeze bihuzwa nawe. | no |
+| `account.deleteAccount` | Delete my account | Siba konti yanjye | no |
+| `account.deleteConfirm` | Yes, delete everything | Yego, siba byose | no |
+| `account.cancel` | Cancel | Reka | no |

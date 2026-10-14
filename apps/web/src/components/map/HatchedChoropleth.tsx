@@ -1,24 +1,14 @@
 "use client";
 
-import "maplibre-gl/dist/maplibre-gl.css";
-
 import type { FeatureCollection } from "geojson";
-import {
-  Map as MapLibreMap,
-  NavigationControl,
-  setWorkerUrl,
-  type GeoJSONSource,
-} from "maplibre-gl";
+import type { GeoJSONSource } from "maplibre-gl";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { classOf, NEED_COLOURS, quantileBreaks } from "./classes";
-import { hatchImage, hatchLevel } from "./hatch";
+import { hatchLevel } from "./hatch";
 import { Legend } from "./Legend";
-import { BASEMAP_URL, OFFLINE_STYLE } from "./style";
-
-// Served from public/ (copied there at build time by scripts/copy-maplibre-worker.mjs).
-setWorkerUrl("/maplibre-gl-worker.mjs");
+import { boundsOf, useMapLibre } from "./useMapLibre";
 
 export type AreaFeature = {
   id: string;
@@ -46,26 +36,6 @@ const POINT_STYLE = {
   highlight: { radius: 9, colour: "rgba(0,0,0,0)", stroke: "#1D5C63" },
 } as const;
 
-function boundsOf(features: AreaFeature[]): [number, number, number, number] | null {
-  let minX = Infinity,
-    minY = Infinity,
-    maxX = -Infinity,
-    maxY = -Infinity;
-  const visit = (coords: unknown): void => {
-    if (typeof (coords as number[])[0] === "number") {
-      const [x, y] = coords as [number, number];
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x);
-      maxY = Math.max(maxY, y);
-      return;
-    }
-    (coords as unknown[]).forEach(visit);
-  };
-  features.forEach((f) => "coordinates" in f.geometry && visit(f.geometry.coordinates));
-  return Number.isFinite(minX) ? [minX, minY, maxX, maxY] : null;
-}
-
 /**
  * Areas coloured by a need measure in five steps, hatched where the estimate is uncertain.
  * Point layers (centres, parent demand, candidate sites) sit on top. A table alternative is
@@ -90,9 +60,8 @@ export function HatchedChoropleth({
 }) {
   const t = useTranslations("map");
   const container = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
-  const [ready, setReady] = useState(false);
-  const [offline, setOffline] = useState(!BASEMAP_URL);
+  const { map: mapRef, ready, offline } = useMapLibre(container);
+  const fitted = useRef(false);
 
   const breaks = useMemo(
     () => quantileBreaks(areas.map((a) => a.value).filter((v): v is number => v !== null)),
@@ -116,44 +85,6 @@ export function HatchedChoropleth({
     }),
     [areas, breaks, selected],
   );
-
-  useEffect(() => {
-    if (!container.current) return;
-    const map = new MapLibreMap({
-      container: container.current,
-      style: BASEMAP_URL || OFFLINE_STYLE,
-      attributionControl: { compact: true },
-      dragRotate: false,
-      pitchWithRotate: false,
-    });
-    mapRef.current = map;
-    map.addControl(new NavigationControl({ showCompass: false }), "top-right");
-    const fallback = window.setTimeout(() => {
-      if (!map.isStyleLoaded()) {
-        setOffline(true);
-        map.setStyle(OFFLINE_STYLE);
-      }
-    }, 5000);
-    map.on("error", () => {
-      if (!map.isStyleLoaded()) {
-        setOffline(true);
-        map.setStyle(OFFLINE_STYLE);
-      }
-    });
-    map.on("style.load", () => {
-      for (const level of [1, 2, 3]) {
-        if (!map.hasImage(`hatch-${level}`))
-          map.addImage(`hatch-${level}`, hatchImage(level), { pixelRatio: 2 });
-      }
-      setReady(false);
-      setReady(true);
-    });
-    return () => {
-      window.clearTimeout(fallback);
-      map.remove();
-      mapRef.current = null;
-    };
-  }, []);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -214,10 +145,13 @@ export function HatchedChoropleth({
         () => (map.getCanvas().style.cursor = onSelect ? "pointer" : ""),
       );
       map.on("mouseleave", "area-fill", () => (map.getCanvas().style.cursor = ""));
-      const bounds = boundsOf(areas);
-      if (bounds) map.fitBounds(bounds, { padding: 24, duration: 0 });
     }
-  }, [ready, areaData, areas, onSelect]);
+    if (!fitted.current) {
+      const bounds = boundsOf(areas.map((a) => a.geometry));
+      if (bounds) map.fitBounds(bounds, { padding: 24, duration: 0 });
+      fitted.current = true;
+    }
+  }, [ready, areaData, areas, onSelect, mapRef]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -254,7 +188,7 @@ export function HatchedChoropleth({
         },
       });
     }
-  }, [ready, pointLayers]);
+  }, [ready, pointLayers, mapRef]);
 
   const sorted = [...areas].sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
   const labels = [0, 1, 2, 3, 4].map((i) => {

@@ -162,7 +162,8 @@
       "1": "Some doubt",
       "2": "Wide range",
       "3": "Very wide range"
-    }
+    },
+    "findLabel": "Map of verified centres: {count} shown. The list below has the same centres."
   },
   "design": {
     "title": "Design system",
@@ -171,5 +172,282 @@
     "type": "Type",
     "components": "Signature components",
     "sample": "Sample values on this page are illustrative."
+  },
+  "public": {
+    "skip": "Skip to content",
+    "home": "IrereroAI home",
+    "navLabel": "Main",
+    "nav": {
+      "find": "Find a centre",
+      "methodology": "How it works",
+      "signIn": "Sign in",
+      "myWork": "My work"
+    },
+    "footer": {
+      "honesty": "Data honesty: in this demo every centre, report and estimate is simulated and labelled as such. Only the district and sector boundaries are real public data.",
+      "layer": "IrereroAI is designed as a layer on NCDA's ECD Mapping System, not a replacement for it.",
+      "methodology": "See exactly what is real and what is simulated",
+      "hackathon": "NISR 2026 Big Data Hackathon, Track 3"
+    }
+  },
+  "landing": {
+    "title": "Every young child within reach of a good ECD centre",
+    "lead": "IrereroAI helps districts plan where ECD centres are needed, helps centres report in three minutes, and helps parents find a place nearby. AI suggests. People decide.",
+    "ctaFind": "Find a centre",
+    "ctaStaff": "Staff sign in",
+    "ctaTour": "Take the five-minute tour",
+    "numbersTitle": "The problem in three numbers",
+    "numbers": {
+      "enrolment": {
+        "text": "Pre-primary enrolment today, and the national target for 2029."
+      },
+      "stunting": {
+        "text": "The national target for stunting among children under 5 by 2029."
+      },
+      "gicumbi": {
+        "text": "Children under 5 who are stunted in Gicumbi, the pilot district."
+      }
+    },
+    "cycle": {
+      "caption": "One loop: what centres report and what parents ask for improves the next plan.",
+      "plan": {
+        "title": "Plan",
+        "text": "Rank where to build, upgrade or support centres within a budget."
+      },
+      "track": {
+        "title": "Track",
+        "text": "Centres send ten counts a week; officers get early warnings with reasons."
+      },
+      "find": {
+        "title": "Find",
+        "text": "Parents find verified centres. A search with no result counts as unmet demand."
+      },
+      "learn": {
+        "title": "Learn",
+        "text": "Reports, requests and every decision, including rejections, shape the next suggestions."
+      }
+    },
+    "promiseTitle": "AI suggests, people decide",
+    "promise": {
+      "suggests": "Every output is a suggestion, never a decision.",
+      "reasons": "Each suggestion shows its reasons, a range and the data it used.",
+      "reject": "Planners approve, edit or reject; a rejection needs a reason, and the reason changes the next plan.",
+      "audit": "Every decision is written to an audit log that cannot be edited.",
+      "nothingAutomatic": "Nothing happens automatically."
+    },
+    "honestyTitle": "What is real and what is not",
+    "honesty": {
+      "simulated": "This is a demonstration. Centres, weekly reports, child counts and estimates are simulated for Gicumbi and clearly labelled \"simulated data\" wherever they appear.",
+      "real": "District and sector boundaries are real public data (NISR via geoBoundaries). The stunting figure for Gicumbi is the published RDHS 2025 value; sector values around it are simulated.",
+      "phase2": "Phase 2 loads the Census, EICV7, DHS, Labour Force Survey, education statistics and NCDA's register into the same structures.",
+      "privacy": "No child names, photos or IDs are ever collected. Parent locations are rounded to a 500 m square."
+    },
+    "honestyLink": "How it works, step by step",
+    "whoTitle": "Who it is for",
+    "who": {
+      "parents": {
+        "title": "Parents",
+        "text": "Find a verified centre near you, with fees, hours and free places.",
+        "link": "Find a centre"
+      },
+      "caregivers": {
+        "title": "Caregivers",
+        "text": "Send the weekly report in three minutes, even offline or by SMS.",
+        "link": "Sign in"
+      },
+      "officers": {
+        "title": "Sector officers",
+        "text": "See which centres need help this week, and why.",
+        "link": "Sign in"
+      },
+      "planners": {
+        "title": "Planners and analysts",
+        "text": "Compare plans within a budget, with honest ranges.",
+        "link": "Sign in"
+      }
+    },
+    "ncda": "IrereroAI is designed to sit on top of NCDA's ECD Mapping System and the digitised ECD book, not to replace them."
+  },
+  "find": {
+    "title": "Find a centre",
+    "lead": "Verified ECD centres near a place you choose. Your exact location is never stored.",
+    "where": "Where",
+    "district": "District",
+    "sector": "Sector",
+    "chooseSector": "Choose a sector",
+    "useLocation": "Use my location",
+    "locating": "Finding you…",
+    "mapHint": "Or tap the map to choose a place.",
+    "myPlace": "My place",
+    "filters": "Filters",
+    "age": "Age of the child",
+    "anyAge": "Any age",
+    "maxFee": "Monthly fee up to",
+    "anyFee": "Any fee",
+    "distance": "Distance",
+    "withinKm": "Within {km} km",
+    "mealsOnly": "Serves meals",
+    "results": "Results",
+    "pickFirst": "Choose a sector or tap the map to see centres nearby.",
+    "found": "{count, plural, one {# centre found} other {# centres found}}",
+    "save": "Save this search",
+    "saved": "Saved",
+    "signInToSave": "Sign in to save this search",
+    "noneTitle": "No verified centre here yet",
+    "noneText": "There is no verified centre within this distance that matches your filters.",
+    "counted": "This search was counted as a need for a centre in this area.",
+    "request": "Request a centre here",
+    "requested": "Thank you. Your request was counted for the {sector} area.",
+    "privacy": "Only a 500 m square around the place is recorded, never the exact point or your phone number.",
+    "km": "{km} km",
+    "type": {
+      "home_based": "Home-based",
+      "community_based": "Community-based",
+      "school_based": "School-based",
+      "centre_based": "Centre-based"
+    },
+    "fee": {
+      "free": "Free",
+      "under_1000": "Under 1,000 RWF a month",
+      "from_1000_to_5000": "1,000–5,000 RWF a month",
+      "over_5000": "Over 5,000 RWF a month"
+    },
+    "ages": {
+      "both": "Ages 0–6",
+      "young": "Ages 0–2",
+      "old": "Ages 3–6"
+    },
+    "meals": "Meals",
+    "freePlaces": "Free places",
+    "notReported": "Not reported",
+    "fewerThanFive": "Fewer than 5",
+    "backToFind": "Back to search",
+    "typeLabel": "Type",
+    "agesLabel": "Ages",
+    "hours": "Opening hours",
+    "feeLabel": "Fees",
+    "capacity": "Places",
+    "mealsLabel": "Meals",
+    "growth": "Growth monitoring",
+    "inclusive": "Disability inclusive",
+    "lastVerified": "Last verified in person",
+    "notVerified": "Not yet",
+    "yes": "Yes",
+    "no": "No",
+    "freePlacesNote": "Free places come from the centre's latest weekly report. Numbers below 5 are not shown."
+  },
+  "methodology": {
+    "title": "How it works",
+    "lead": "The full data process, from sources to the decision a person takes, and what is real today versus simulated.",
+    "steps": {
+      "todayLabel": "Today:",
+      "phase2Label": "Phase 2:",
+      "sources": {
+        "title": "Sources",
+        "what": "Official statistics, public maps and partner registers.",
+        "today": "Real boundaries; everything else simulated for Gicumbi.",
+        "phase2": "Census 2022, EICV7, DHS 2025, LFS 2025, education yearbook, NCDA register, WorldPop, OpenStreetMap."
+      },
+      "alignment": {
+        "title": "Alignment",
+        "what": "Every source is matched to sectors with its year, origin and checks.",
+        "today": "The demo generator writes the same tables with origin = simulated.",
+        "phase2": "One adapter per source, with checks that must pass before loading."
+      },
+      "models": {
+        "title": "Models",
+        "what": "Need per sector with ranges, coverage within walking distance, early warning.",
+        "today": "Explainable baselines: stored estimates, straight-line catchments, rules against each centre's own history.",
+        "phase2": "Small-area estimation calibrated to official totals, walking-time catchments, anomaly detection."
+      },
+      "suggestions": {
+        "title": "Suggestions",
+        "what": "A ranked shortlist within the budget, with reasons, ranges and sources.",
+        "today": "Greedy maximal coverage with your policy weights; compared with a largest-population-first baseline.",
+        "phase2": "An exact optimisation model behind the same screen."
+      },
+      "decision": {
+        "title": "Human decision",
+        "what": "Approve, edit or reject. Rejections need a reason.",
+        "today": "Fully working, with an audit log that cannot be edited.",
+        "phase2": "Unchanged: people always decide."
+      },
+      "feedback": {
+        "title": "Feedback",
+        "what": "Weekly reports, parent requests and rejection reasons shape the next round.",
+        "today": "Rejections become constraints; parent requests raise a site's value; reports drive alerts.",
+        "phase2": "Models retrained on what decisions and reports show."
+      }
+    },
+    "sourcesTitle": "Data sources and their status today",
+    "source": "Source",
+    "today": "Today",
+    "feeds": "Feeds",
+    "licence": "Licence",
+    "status": {
+      "loaded": "Loaded",
+      "simulated_stand_in": "Simulated stand-in",
+      "planned": "Phase 2"
+    },
+    "runsTitle": "Pipeline runs and their checks",
+    "origin": {
+      "official": "official",
+      "public": "public",
+      "partner": "partner",
+      "simulated": "simulated"
+    }
+  },
+  "signIn": {
+    "title": "Sign in",
+    "lead": "Staff, caregivers and parents each sign in their own way.",
+    "who": "Who are you?",
+    "mode": {
+      "staff": "Staff",
+      "caregiver": "Caregiver",
+      "parent": "Parent"
+    },
+    "email": "Email",
+    "password": "Password",
+    "totp": "Six-digit code",
+    "totpHint": "Needed for system administrators.",
+    "phone": "Mobile number",
+    "phoneHint": "For example 078 123 4567.",
+    "centreCode": "Centre code",
+    "centreHint": "Printed on your centre's registration, for example ECD-GIC-001.",
+    "code": "Code from the SMS",
+    "demoCode": "Demo mode: no SMS is sent. Your code is",
+    "parentPrivacy": "We keep only your phone number and the searches you save. You can delete them at any time.",
+    "sendCode": "Send me a code",
+    "submit": "Sign in",
+    "failed": "Those details did not match. Check them and try again.",
+    "badPhone": "Enter a Rwandan mobile number.",
+    "demoTitle": "Demo accounts",
+    "demoLead": "Shown in demo mode only. One account per role, all on simulated data.",
+    "demoPassword": "Password:",
+    "demoAdminCode": "admin code now:",
+    "demoUse": "Use",
+    "roles": {
+      "parent": "Parent",
+      "caregiver": "Caregiver",
+      "sector_officer": "Sector ECD officer",
+      "district_planner": "District planner",
+      "national_analyst": "National analyst",
+      "admin": "System admin"
+    }
+  },
+  "account": {
+    "title": "My account",
+    "lead": "Your saved searches, and deleting your account.",
+    "signInFirst": "Sign in with your phone to see your saved searches.",
+    "signIn": "Sign in",
+    "searches": "Saved searches",
+    "noSearches": "No saved searches yet.",
+    "goFind": "Find a centre",
+    "delete": "Delete",
+    "deleteTitle": "Delete my account",
+    "deleteText": "This removes your phone number and saved searches. Requests you made for a centre stay counted, but they were never linked to you.",
+    "deleteAccount": "Delete my account",
+    "deleteConfirm": "Yes, delete everything",
+    "cancel": "Cancel"
   }
 }

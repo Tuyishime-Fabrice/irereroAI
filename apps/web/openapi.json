@@ -1586,6 +1586,42 @@
         "title": "DemoConfig",
         "type": "object"
       },
+      "District": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sectors": {
+            "items": {
+              "$ref": "#/components/schemas/Place"
+            },
+            "title": "Sectors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "lon",
+          "lat",
+          "sectors"
+        ],
+        "title": "District",
+        "type": "object"
+      },
       "DistrictRow": {
         "properties": {
           "centres": {
@@ -2009,6 +2045,28 @@
         "title": "FeatureCollection[DemandProperties]",
         "type": "object"
       },
+      "FeatureCollection_Outline_": {
+        "properties": {
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Feature_Outline_"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "type": {
+            "const": "FeatureCollection",
+            "default": "FeatureCollection",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "features"
+        ],
+        "title": "FeatureCollection[Outline]",
+        "type": "object"
+      },
       "FeatureCollection_SiteProperties_": {
         "properties": {
           "features": {
@@ -2116,6 +2174,35 @@
           "properties"
         ],
         "title": "Feature[DemandProperties]",
+        "type": "object"
+      },
+      "Feature_Outline_": {
+        "properties": {
+          "geometry": {
+            "additionalProperties": true,
+            "title": "Geometry",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/Outline"
+          },
+          "type": {
+            "const": "Feature",
+            "default": "Feature",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "geometry",
+          "properties"
+        ],
+        "title": "Feature[Outline]",
         "type": "object"
       },
       "Feature_SiteProperties_": {
@@ -2481,6 +2568,24 @@
         "title": "OutcomesOut",
         "type": "object"
       },
+      "Outline": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "Outline",
+        "type": "object"
+      },
       "PipelineRunOut": {
         "properties": {
           "checks": {
@@ -2545,6 +2650,34 @@
           "checks"
         ],
         "title": "PipelineRunOut",
+        "type": "object"
+      },
+      "Place": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "lon",
+          "lat"
+        ],
+        "title": "Place",
         "type": "object"
       },
       "PlanningDefaults": {
@@ -6396,6 +6529,75 @@
           }
         },
         "summary": "Methodology",
+        "tags": [
+          "public"
+        ]
+      }
+    },
+    "/public/outlines": {
+      "get": {
+        "description": "Sector boundaries of a district, so maps work without a basemap. Public data only.",
+        "operationId": "outlines_public_outlines_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "district",
+            "required": true,
+            "schema": {
+              "title": "District",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection_Outline_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Outlines",
+        "tags": [
+          "public"
+        ]
+      }
+    },
+    "/public/places": {
+      "get": {
+        "description": "Districts and their sectors with a central point, for the place picker.",
+        "operationId": "places_public_places_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/District"
+                  },
+                  "title": "Response Places Public Places Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Places",
         "tags": [
           "public"
         ]

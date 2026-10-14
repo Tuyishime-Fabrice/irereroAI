@@ -83,3 +83,14 @@ class PipelineRunOut(BaseModel):
 class Methodology(BaseModel):
     sources: list[DataSourceOut]
     runs: list[PipelineRunOut]
+
+
+class Place(BaseModel):
+    code: str
+    name: str
+    lon: float
+    lat: float
+
+
+class District(Place):
+    sectors: list[Place]

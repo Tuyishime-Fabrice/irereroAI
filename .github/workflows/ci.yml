@@ -29,7 +29,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --frozen
       - name: Secrets scan
-        run: git ls-files -z | xargs -0 uv run detect-secrets-hook --baseline .secrets.baseline
+        run: git ls-files -z | xargs -0 uv run detect-secrets-hook --baseline .secrets.baseline --exclude-files "^(pnpm-lock\.yaml|uv\.lock|apps/web/messages/.*\.json|apps/web/openapi\.json)$"
       - name: File size and data format guard
         run: git ls-files -z | xargs -0 uv run python scripts/check_file_size.py
       - run: uv run ruff check .

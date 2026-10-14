@@ -761,6 +761,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/public/outlines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Outlines
+         * @description Sector boundaries of a district, so maps work without a basemap. Public data only.
+         */
+        get: operations["outlines_public_outlines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Places
+         * @description Districts and their sectors with a central point, for the place picker.
+         */
+        get: operations["places_public_places_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/recommendations/{recommendation_id}/decision": {
         parameters: {
             query?: never;
@@ -1419,6 +1459,19 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** District */
+        District: {
+            /** Code */
+            code: string;
+            /** Lat */
+            lat: number;
+            /** Lon */
+            lon: number;
+            /** Name */
+            name: string;
+            /** Sectors */
+            sectors: components["schemas"]["Place"][];
+        };
         /** DistrictRow */
         DistrictRow: {
             /** Centres */
@@ -1565,6 +1618,17 @@ export interface components {
              */
             type: "FeatureCollection";
         };
+        /** FeatureCollection[Outline] */
+        FeatureCollection_Outline_: {
+            /** Features */
+            features: components["schemas"]["Feature_Outline_"][];
+            /**
+             * Type
+             * @default FeatureCollection
+             * @constant
+             */
+            type: "FeatureCollection";
+        };
         /** FeatureCollection[SiteProperties] */
         FeatureCollection_SiteProperties_: {
             /** Features */
@@ -1617,6 +1681,22 @@ export interface components {
             /** Id */
             id: string;
             properties: components["schemas"]["DemandProperties"];
+            /**
+             * Type
+             * @default Feature
+             * @constant
+             */
+            type: "Feature";
+        };
+        /** Feature[Outline] */
+        Feature_Outline_: {
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: string;
+            properties: components["schemas"]["Outline"];
             /**
              * Type
              * @default Feature
@@ -1774,6 +1854,13 @@ export interface components {
             mothers_under3_reached: components["schemas"]["RangeOut"];
             uncovered_remaining: components["schemas"]["RangeOut"];
         };
+        /** Outline */
+        Outline: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+        };
         /** PipelineRunOut */
         PipelineRunOut: {
             /** Checks */
@@ -1797,6 +1884,17 @@ export interface components {
              */
             started_at: string;
             status: components["schemas"]["RunStatus"];
+        };
+        /** Place */
+        Place: {
+            /** Code */
+            code: string;
+            /** Lat */
+            lat: number;
+            /** Lon */
+            lon: number;
+            /** Name */
+            name: string;
         };
         /** PlanningDefaults */
         PlanningDefaults: {
@@ -3719,6 +3817,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Methodology"];
+                };
+            };
+        };
+    };
+    outlines_public_outlines_get: {
+        parameters: {
+            query: {
+                district: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureCollection_Outline_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    places_public_places_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["District"][];
                 };
             };
         };

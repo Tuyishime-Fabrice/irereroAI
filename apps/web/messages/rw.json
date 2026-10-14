@@ -1,0 +1,175 @@
+{
+  "meta": {
+    "description": "Gufasha gufata ibyemezo ku iterambere ry'abana bato mu Rwanda. AI itanga inama, abantu bafata ibyemezo."
+  },
+  "common": {
+    "loading": "Birimo gufunguka…",
+    "error": "Habaye ikibazo. Amakuru yawe ntiyangiritse.",
+    "retry": "Ongera ugerageze",
+    "language": "Ururimi",
+    "projector": "Porojekiteri",
+    "draftTranslation": "Ubusobanuro bw'agateganyo",
+    "signOut": "Sohoka",
+    "signIn": "Injira",
+    "back": "Subira inyuma",
+    "close": "Funga",
+    "save": "Bika",
+    "cancel": "Reka",
+    "week": "Icyumweru",
+    "skipToContent": "Jya ku bikubiyemo"
+  },
+  "months": {
+    "jan": "Mut",
+    "feb": "Gas",
+    "mar": "Wer",
+    "apr": "Mat",
+    "may": "Gic",
+    "jun": "Kam",
+    "jul": "Nya",
+    "aug": "Kan",
+    "sep": "Nze",
+    "oct": "Ukw",
+    "nov": "Ugu",
+    "dec": "Uku"
+  },
+  "provenance": {
+    "simulatedPill": "Amakuru y'igerageza",
+    "simulatedShort": "Igerageza",
+    "simulatedStamp": "Amakuru y'igerageza · si imibare nyayo",
+    "simulatedExplain": "Imibare imwe kuri iyi paji ni iy'igerageza. Si imibare nyayo.",
+    "table": "Imbonerahamwe",
+    "year": "Umwaka",
+    "origin": {
+      "official": "Ya Leta",
+      "public": "Rusange",
+      "partner": "Umufatanyabikorwa",
+      "simulated": "Igerageza"
+    },
+    "originExplain": {
+      "official": "yatangajwe n'ikigo cya Leta nka NISR.",
+      "public": "ituruka ku makuru rusange afunguye.",
+      "partner": "yatanzwe n'umufatanyabikorwa nka NCDA cyangwa n'irerero.",
+      "simulated": "yakozwe ku bw'igerageza. Si umubare nyawo."
+    }
+  },
+  "drivers": {
+    "title": "Impamvu nyamukuru",
+    "none": "Nta mpamvu imwe yihariye igaragara."
+  },
+  "reliability": {
+    "label": "Kwizerwa kwa raporo",
+    "high": "yizewe",
+    "medium": "genzura",
+    "low": "ntiyizewe"
+  },
+  "impact": {
+    "reached": "Abana babona umwanya",
+    "uncovered": "Abana bakiri nta mwanya",
+    "highRisk": "Muri bo, abafite ibyago byo kugwingira",
+    "mothers": "Ababyeyi b'abana bari munsi y'imyaka 3 bavuga ko kurera bibabuza gukora",
+    "supported": "Abana bo mu marerero ashyigikiwe",
+    "cost": "Igiciro",
+    "vsBaseline": "ugereranyije n'igipimo fatizo",
+    "countableOnly": "Ibishobora kubarwa gusa. Iyi mibare ibara abana n'ababyeyi bagezweho; ntiteganya impinduka ku igwingira."
+  },
+  "alerts": {
+    "severity": {
+      "critical": "Byihutirwa",
+      "warning": "Iburira",
+      "info": "Icyitonderwa"
+    },
+    "kind": {
+      "attendance_drop": "Ubwitabire bwagabanutse",
+      "missing_report": "Raporo itaraza",
+      "overcrowding": "Ubucucike",
+      "wash": "Nta mazi",
+      "closure_risk": "Ibyago byo gufunga"
+    },
+    "status": {
+      "open": "Gifunguye",
+      "acknowledged": "Cyabonywe",
+      "resolved": "Cyakemutse"
+    },
+    "age": "{weeks, plural, =0 {Iki cyumweru} other {Hashize ibyumweru #}}",
+    "assignedTo": "Cyahawe {name}"
+  },
+  "sms": {
+    "phoneLabel": "Telefone yerekana ubutumwa: {message}",
+    "to": "Kuri"
+  },
+  "weeks": {
+    "play": "Ongera urebe ibyumweru",
+    "pause": "Hagarika",
+    "weekOf": "Icyumweru cya {n} muri {total} · {day} {month}"
+  },
+  "decision": {
+    "rank": "Umwanya wa {rank}",
+    "suggestion": "Inama",
+    "action": {
+      "build": "Kubaka irerero rishya",
+      "upgrade": "Kuzamura urugo mbonezamikurire",
+      "support": "Gushyigikira ireme"
+    },
+    "status": {
+      "proposed": "itegereje icyemezo",
+      "approved": "yemejwe",
+      "edited": "yemejwe ihinduwe",
+      "rejected": "yanzwe"
+    },
+    "verdict": {
+      "approve": "Yemejwe",
+      "edit": "Yahinduwe",
+      "reject": "Yanzwe"
+    },
+    "reached": "Abana babona umwanya",
+    "highRisk": "Bafite ibyago byo kugwingira",
+    "mothers": "Ababyeyi babuzwa gukora no kurera",
+    "supported": "Gushyigikira irerero ririmo abana {n} banditswe.",
+    "why": "Impamvu y'iyi nama",
+    "cost": "Igiciro (intera)",
+    "explain": "Soma ibisobanuro byose",
+    "approve": "Emeza",
+    "edit": "Hindura",
+    "reject": "Anga",
+    "ask": "Kubera iki iyi nama?",
+    "rejectWhy": "Kubera iki uyanze?",
+    "note": "Icyitonderwa",
+    "noteRequired": "Birakenewe: vuga impamvu.",
+    "noteOptional": "Si ngombwa.",
+    "rejectEffect": "Igikorwa gikurikira kizabyitaho. Icyemezo cyawe kibikwa mu gitabo cy'igenzura.",
+    "confirmReject": "Anga inama",
+    "cancel": "Reka",
+    "editCost": "Igiciro mu RWF",
+    "saveEdit": "Emeza ufite impinduka",
+    "failed": "Icyemezo nticyabitswe. Ongera ugerageze.",
+    "reason": {
+      "no_land": "Nta butaka buhari",
+      "already_funded": "Byamaze guterwa inkunga",
+      "access_problem": "Ahantu hagoye kugera",
+      "community_objection": "Abaturage barabyanze",
+      "other": "Indi mpamvu"
+    }
+  },
+  "map": {
+    "hatchLegend": "Imirongo: igereranya rifite intera nini. Uko ari myinshi ni ko gushidikanya kwiyongera.",
+    "mapLabel": "Ikarita y'ahantu {count}: {title}. Imbonerahamwe iri hasi.",
+    "offlineBasemap": "Ikarita fatizo ntiboneka: imbibi gusa",
+    "showTable": "Erekana nk'imbonerahamwe",
+    "area": "Ahantu",
+    "uncertainty": "Ukwizerwa",
+    "hatchLevel": {
+      "0": "Intera nto",
+      "1": "Gushidikanya guke",
+      "2": "Intera nini",
+      "3": "Intera nini cyane"
+    }
+  },
+  "design": {
+    "title": "Uburyo bw'imiterere",
+    "lead": "Amabara ya Imigongo n'ibice by'ingenzi, byerekanwa n'imibare y'urugero. Ku bakora porogaramu gusa.",
+    "colours": "Amabara",
+    "type": "Inyandiko",
+    "components": "Ibice by'ingenzi",
+    "sample": "Imibare iri kuri iyi paji ni iy'urugero."
+  }
+}

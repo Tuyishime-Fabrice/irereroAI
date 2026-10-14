@@ -63,6 +63,8 @@ jobs:
         run: |
           pnpm --filter web generate:api
           git diff --exit-code apps/web/src/lib/api/schema.d.ts
+      - name: Kinyarwanda review list is current
+        run: pnpm --filter web exec node scripts/i18n-review.mjs --check
       - run: pnpm --filter web lint
       - run: pnpm --filter web typecheck
       - run: pnpm --filter web test

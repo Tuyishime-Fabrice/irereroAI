@@ -1,7 +1,9 @@
+import { Logo } from "@/components/brand/Logo";
+
 export default function Home() {
   return (
-    <main>
-      <h1>IrereroAI</h1>
+    <main className="p-8">
+      <Logo />
     </main>
   );
 }

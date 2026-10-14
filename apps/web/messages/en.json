@@ -1,0 +1,175 @@
+{
+  "meta": {
+    "description": "Decision support for early childhood development in Rwanda. AI suggests, people decide."
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong. Your data is safe.",
+    "retry": "Try again",
+    "language": "Language",
+    "projector": "Projector",
+    "draftTranslation": "Draft translation",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "back": "Back",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "week": "Week",
+    "skipToContent": "Skip to content"
+  },
+  "months": {
+    "jan": "Jan",
+    "feb": "Feb",
+    "mar": "Mar",
+    "apr": "Apr",
+    "may": "May",
+    "jun": "Jun",
+    "jul": "Jul",
+    "aug": "Aug",
+    "sep": "Sep",
+    "oct": "Oct",
+    "nov": "Nov",
+    "dec": "Dec"
+  },
+  "provenance": {
+    "simulatedPill": "Simulated data",
+    "simulatedShort": "Simulated",
+    "simulatedStamp": "Simulated data · not real figures",
+    "simulatedExplain": "Some numbers on this screen are simulated for the demo. They are not real figures.",
+    "table": "Table",
+    "year": "Year",
+    "origin": {
+      "official": "Official",
+      "public": "Public",
+      "partner": "Partner",
+      "simulated": "Simulated"
+    },
+    "originExplain": {
+      "official": "published by a government institution such as NISR.",
+      "public": "from an open public dataset.",
+      "partner": "shared by a partner such as NCDA or reported by a centre.",
+      "simulated": "made up for the demo. Not a real figure."
+    }
+  },
+  "drivers": {
+    "title": "Main reasons",
+    "none": "No single reason stands out."
+  },
+  "reliability": {
+    "label": "Report reliability",
+    "high": "reliable",
+    "medium": "check",
+    "low": "unreliable"
+  },
+  "impact": {
+    "reached": "Children who gain a place",
+    "uncovered": "Children still without a place",
+    "highRisk": "Of them, at risk of stunting",
+    "mothers": "Mothers of under-3s reached who say childcare keeps them from work",
+    "supported": "Children in centres that get support",
+    "cost": "Cost",
+    "vsBaseline": "vs baseline",
+    "countableOnly": "Countable outcomes only. These numbers count children and mothers reached; they do not predict a change in stunting."
+  },
+  "alerts": {
+    "severity": {
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Note"
+    },
+    "kind": {
+      "attendance_drop": "Attendance drop",
+      "missing_report": "Missing report",
+      "overcrowding": "Overcrowding",
+      "wash": "No water",
+      "closure_risk": "Closure risk"
+    },
+    "status": {
+      "open": "Open",
+      "acknowledged": "Acknowledged",
+      "resolved": "Resolved"
+    },
+    "age": "{weeks, plural, =0 {This week} one {# week ago} other {# weeks ago}}",
+    "assignedTo": "Assigned to {name}"
+  },
+  "sms": {
+    "phoneLabel": "Phone screen showing the message: {message}",
+    "to": "To"
+  },
+  "weeks": {
+    "play": "Replay the weeks",
+    "pause": "Pause",
+    "weekOf": "Week {n} of {total} · {day} {month}"
+  },
+  "decision": {
+    "rank": "Rank {rank}",
+    "suggestion": "Suggestion",
+    "action": {
+      "build": "Build a new centre",
+      "upgrade": "Upgrade a home-based centre",
+      "support": "Quality support"
+    },
+    "status": {
+      "proposed": "waiting for a decision",
+      "approved": "approved",
+      "edited": "approved with edits",
+      "rejected": "rejected"
+    },
+    "verdict": {
+      "approve": "Approved",
+      "edit": "Edited",
+      "reject": "Rejected"
+    },
+    "reached": "Children who gain a place",
+    "highRisk": "At risk of stunting",
+    "mothers": "Mothers held back by childcare",
+    "supported": "Supports a centre where {n} children are enrolled.",
+    "why": "Why this suggestion",
+    "cost": "Cost (range)",
+    "explain": "Read the full explanation",
+    "approve": "Approve",
+    "edit": "Edit",
+    "reject": "Reject",
+    "ask": "Why this suggestion?",
+    "rejectWhy": "Why are you rejecting it?",
+    "note": "Note",
+    "noteRequired": "Required: say what the reason is.",
+    "noteOptional": "Optional.",
+    "rejectEffect": "The next run will take this into account. Your decision is recorded in the audit log.",
+    "confirmReject": "Reject suggestion",
+    "cancel": "Cancel",
+    "editCost": "Cost in RWF",
+    "saveEdit": "Approve with edits",
+    "failed": "The decision was not saved. Try again.",
+    "reason": {
+      "no_land": "No land available",
+      "already_funded": "Already funded",
+      "access_problem": "Hard to reach",
+      "community_objection": "Community objection",
+      "other": "Other reason"
+    }
+  },
+  "map": {
+    "hatchLegend": "Hatching: the estimate has a wide range. Denser means less certain.",
+    "mapLabel": "Map of {count} areas: {title}. A table version follows.",
+    "offlineBasemap": "Basemap unavailable: showing boundaries only",
+    "showTable": "Show as a table",
+    "area": "Area",
+    "uncertainty": "Certainty",
+    "hatchLevel": {
+      "0": "Narrow range",
+      "1": "Some doubt",
+      "2": "Wide range",
+      "3": "Very wide range"
+    }
+  },
+  "design": {
+    "title": "Design system",
+    "lead": "Imigongo tokens and the signature components, rendered with sample values. Development only.",
+    "colours": "Colour tokens",
+    "type": "Type",
+    "components": "Signature components",
+    "sample": "Sample values on this page are illustrative."
+  }
+}

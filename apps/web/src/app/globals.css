@@ -1,1 +1,75 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-clay: var(--clay);
+  --color-ochre: var(--ochre);
+  --color-ochre-text: var(--ochre-text);
+  --color-kivu: var(--kivu);
+  --color-kivu-tint: var(--kivu-tint);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-need-1: var(--need-1);
+  --color-need-2: var(--need-2);
+  --color-need-3: var(--need-3);
+  --color-need-4: var(--need-4);
+  --color-need-5: var(--need-5);
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --radius-DEFAULT: 6px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
+
+@utility tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility zigzag-band {
+  height: 6px;
+  background-color: var(--ink);
+  background-image: var(--zigzag);
+  background-size: 12px 6px;
+  background-repeat: repeat-x;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff;
+  }
+}

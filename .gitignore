@@ -48,3 +48,4 @@ apps/web/coverage/
 .DS_Store
 .idea/
 .vscode/
+apps/web/public/maplibre-gl-worker.mjs

@@ -95,7 +95,47 @@
   },
   "sms": {
     "phoneLabel": "Telefone yerekana ubutumwa: {message}",
-    "to": "Kuri"
+    "to": "Kuri",
+    "title": "Raporo kuri SMS",
+    "lead": "Raporo y'icyumweru imwe mu butumwa bumwe bwanditse mu nyuguti z'ibanga, ku matelefone adafite murandasi. Mu cyiciro cya 1 ubutumwa bwa SMS ni ubw'igerageza.",
+    "message": "Ubutumwa",
+    "send": "Ohereza iyi SMS",
+    "parsed": "Ibyo sisitemu yasomye",
+    "formatTitle": "Uko wandika ubutumwa",
+    "problemCodes": "Ikibazo nyamukuru:",
+    "okNote": "Soza ubutumwa ukoresheje OK kugira ngo wemeze imibare sisitemu igusaba kugenzura.",
+    "reply": {
+      "saved": "Murakoze. Raporo yakiriwe.",
+      "needs_confirmation": "Imibare imwe isa n'idasanzwe. Yigenzure wongere wohereze usoza na OK.",
+      "rejected": "Raporo ntiyemewe. Genzura imibare wongere wohereze.",
+      "duplicate": "Iki cyumweru cyari cyaratangiwe raporo.",
+      "format_error": "Ntibyumvikanye: {problem}"
+    },
+    "formatError": {
+      "missing_keyword": "tangira ubutumwa na IR",
+      "wrong_count": "habonetse imibare {detail}",
+      "not_a_number": "hari agaciro katari umubare",
+      "bad_week": "nimero y'icyumweru si yo",
+      "bad_water": "amazi agomba kuba Y cyangwa N",
+      "bad_problem": "kode y'ikibazo igomba kuba 0 kugeza 6"
+    },
+    "field": {
+      "centre_code": "Kode y'irerero",
+      "week_start": "Icyumweru",
+      "enrolled_0_2_female": "Abakobwa 0–2",
+      "enrolled_0_2_male": "Abahungu 0–2",
+      "enrolled_3_6_female": "Abakobwa 3–6",
+      "enrolled_3_6_male": "Abahungu 3–6",
+      "avg_daily_attendance": "Ubwitabire",
+      "waiting_list": "Abategereje",
+      "caregivers_present": "Abarezi",
+      "days_open": "Iminsi yakoze",
+      "days_meal_served": "Iminsi n'ifunguro",
+      "wash_available": "Amazi icyumweru cyose (Y/N)",
+      "referrals_growth_monitoring": "Aboherejwe gukurikiranirwa imikurire",
+      "children_with_disability": "Abana bafite ubumuga",
+      "main_problem": "Ikibazo nyamukuru (0–6)"
+    }
   },
   "weeks": {
     "play": "Ongera urebe ibyumweru",
@@ -449,5 +489,198 @@
     "deleteAccount": "Siba konti yanjye",
     "deleteConfirm": "Yego, siba byose",
     "cancel": "Reka"
+  },
+  "shell": {
+    "skip": "Jya ku bikubiyemo",
+    "home": "Ahabanza",
+    "nav": "Ibice",
+    "week": "Icyumweru",
+    "weekOption": "Icyumweru {n} · {day} {month}",
+    "thisWeek": "iki cyumweru",
+    "signOut": "Sohoka",
+    "scope": "Reba",
+    "national": "Igihugu",
+    "role": {
+      "parent": "Umubyeyi",
+      "caregiver": "Umurezi",
+      "sector_officer": "Umukozi w'umurenge ushinzwe ECD",
+      "district_planner": "Utegura w'akarere",
+      "national_analyst": "Umusesenguzi w'igihugu",
+      "admin": "Umuyobozi wa sisitemu"
+    },
+    "navItem": {
+      "find": "Shaka irerero",
+      "account": "Konti yanjye",
+      "home": "Ahabanza",
+      "report": "Raporo y'icyumweru",
+      "sms": "Raporo kuri SMS",
+      "overview": "Incamake",
+      "alerts": "Iburira",
+      "centres": "Amarerero",
+      "suggestions": "Inama z'umurenge",
+      "needMap": "Ikarita y'ibikenewe",
+      "plan": "Igenamigambi",
+      "whatIf": "Bigenze bite",
+      "decisions": "Ibyemezo na raporo",
+      "nationalMap": "Uturere",
+      "defaults": "Uburemere busanzwe",
+      "status": "Imiterere n'iyinjiza",
+      "users": "Abakoresha n'inshingano",
+      "pipelines": "Amasoko y'amakuru",
+      "audit": "Igitabo cy'igenzura",
+      "models": "Imiterere y'imibare"
+    }
+  },
+  "caregiver": {
+    "reportedThisWeek": "Raporo y'iki cyumweru yakiriwe. Murakoze.",
+    "notYet": "Raporo y'iki cyumweru ntiraza.",
+    "takesThree": "Ni imibare igera ku icumi. Bitwara munsi y'iminota itatu.",
+    "startReport": "Tangira raporo y'iki cyumweru",
+    "queuedWaiting": "Yabitswe kuri iyi telefone. Izoherezwa nimwongera kubona murandasi.",
+    "queuedProblem": "Raporo yabitswe ikeneye gukosorwa mbere yo koherezwa.",
+    "sendNow": "Ohereza ubu",
+    "discardQueued": "Yisibe utangire bundi bushya",
+    "syncedNow": "{n, plural, one {Raporo # yari yabitswe yoherejwe.} other {Raporo # zari zabitswe zoherejwe.}}",
+    "offlineNote": "Nta murandasi ufite. Ushobora kuzuza raporo.",
+    "alertsTitle": "Umukozi w'umurenge abona ibi",
+    "alertsNote": "Ibi bimenyetso bituruka kuri raporo zanyu. Umukozi w'umurenge azabakurikirana.",
+    "trendsTitle": "Ibyumweru cumi na bibiri bishize",
+    "trendChildren": "Abana",
+    "trendServices": "Amafunguro n'amazi",
+    "enrolled": "Banditswe",
+    "attendance": "Bitabira ku munsi usanzwe",
+    "mealDays": "Iminsi hatanzwe ifunguro",
+    "water": "Amazi icyumweru cyose (1 = yego)",
+    "trendNote": "Ahatari umurongo ni ibyumweru bitatanzwemo raporo.",
+    "statusTitle": "Irerero ryanyu",
+    "verified": "Ryagenzuwe n'umukozi ku wa {date}. Ababyeyi barashobora kuribona.",
+    "notVerified": "Ntiriragenzurwa. Umukozi w'umurenge azabasura; ababyeyi babona amarerero yagenzuwe gusa.",
+    "reliability": "Kwizerwa kwa raporo",
+    "givesBackTitle": "Icyo gutanga raporo bibagarurira",
+    "givesBack": {
+      "parents": "Ababyeyi babona imyanya iboneka bakabona irerero ryanyu.",
+      "officer": "Umukozi wanyu amenya hakiri kare iyo mubuze ibiryo, amazi cyangwa abarezi.",
+      "plan": "Imibare yanyu iritabwaho iyo akarere gafata icyemezo cy'aho gushora imari."
+    }
+  },
+  "report": {
+    "title": "Raporo y'icyumweru · {week}",
+    "weekLabel": "icyumweru cyo ku wa {day} {month}",
+    "thisWeek": "iki cyumweru",
+    "progress": "Ikibazo cya {step} muri {total}",
+    "offline": "Nta murandasi ufite. Uzuza raporo; izabikwa kuri iyi telefone yoherezwe nyuma.",
+    "prefilled": "Twahereye kuri raporo yanyu iheruka. Hindura ibyahindutse gusa.",
+    "enrolledTotal": "Abana banditswe: {n}",
+    "steps": {
+      "week": {
+        "question": "Ni ikihe cyumweru mutangira raporo?"
+      },
+      "young": {
+        "question": "Abana bafite imyaka 0 kugeza 2 banditswe ni bangahe?"
+      },
+      "old": {
+        "question": "Abana bafite imyaka 3 kugeza 6 banditswe ni bangahe?"
+      },
+      "attendance": {
+        "question": "Ku munsi usanzwe w'iki cyumweru, haje abana bangahe?"
+      },
+      "days": {
+        "question": "Mwakoze iminsi ingahe, kandi ifunguro ryatanzwe iminsi ingahe?"
+      },
+      "caregivers": {
+        "question": "Abarezi bari bahari ku munsi usanzwe ni bangahe?"
+      },
+      "waiting": {
+        "question": "Abana bategereje umwanya ni bangahe?"
+      },
+      "water": {
+        "question": "Hari amazi n'aho gukarabira icyumweru cyose?"
+      },
+      "health": {
+        "question": "Abohererejwe n'abafite ubumuga muri iki cyumweru"
+      },
+      "problem": {
+        "question": "Ikibazo nyamukuru cy'iki cyumweru cyari ikihe?"
+      },
+      "review": {
+        "question": "Genzura wohereze"
+      }
+    },
+    "fields": {
+      "enrolled_0_2_female": "Abakobwa",
+      "enrolled_0_2_male": "Abahungu",
+      "enrolled_3_6_female": "Abakobwa",
+      "enrolled_3_6_male": "Abahungu",
+      "avg_daily_attendance": "Abana bitabiriye",
+      "days_open": "Iminsi yakoze",
+      "days_meal_served": "Iminsi hatanzwe ifunguro",
+      "caregivers_present": "Abarezi bari bahari",
+      "waiting_list": "Abana bategereje",
+      "referrals_growth_monitoring": "Abana boherejwe gukurikiranirwa imikurire",
+      "children_with_disability": "Abana banditswe bafite ubumuga"
+    },
+    "problems": {
+      "none": "Nta kibazo",
+      "no_food": "Nta biryo",
+      "no_water": "Nta mazi",
+      "caregiver_absent": "Umurezi ntiyaje",
+      "building_damage": "Inyubako yangiritse",
+      "weather": "Ikirere kibi",
+      "other": "Ikindi kibazo"
+    },
+    "yes": "Yego",
+    "no": "Oya",
+    "back": "Subira inyuma",
+    "send": "Ohereza raporo",
+    "saveOffline": "Bika kuri iyi telefone",
+    "summary": {
+      "young": "Banditswe, imyaka 0–2",
+      "old": "Banditswe, imyaka 3–6",
+      "days": "Iminsi yakoze / n'ifunguro",
+      "water": "Amazi icyumweru cyose",
+      "problem": "Ikibazo nyamukuru"
+    },
+    "checking": "Turagenzura imibare…",
+    "offlineCheck": "Nta murandasi ufite, imibare izagenzurwa igihe raporo yoherejwe.",
+    "looksGood": "Imibare isa neza.",
+    "confirmUnusual": "Iyi mibare ni yo",
+    "jumpNote": "Iyi mibare itandukanye cyane n'iy'ibyumweru bishize. Nta kibazo niba ari yo; umukozi wanyu ashobora kubibabaza.",
+    "issue": {
+      "negative": "Umubare ntushobora kujya munsi ya zeru.",
+      "days_above_six": "Icyumweru gifite iminsi itandatu y'akazi gusa.",
+      "attendance_above_enrolment": "Abitabiriye barusha umubare w'abanditswe. Genzura ubwitabire cyangwa abanditswe.",
+      "meals_above_days_open": "Amafunguro ntashobora gutangwa iminsi irenze iyo irerero ryakoze.",
+      "disability_above_enrolment": "Abana bafite ubumuga ntibashobora kurenga abanditswe.",
+      "attendance_while_closed": "Irerero ryafunze icyumweru cyose, ubwitabire bugomba kuba 0.",
+      "enrolment_far_above_capacity": "Abanditswe barenze cyane imyanya y'irerero ryanyu. Ni byo koko?",
+      "no_caregiver_while_open": "Irerero ryarakoze ariko nta murezi wari uhari. Ni byo koko?",
+      "children_per_caregiver_high": "Ni abana barenga 25 ku murezi umwe. Ni byo koko?",
+      "waiting_list_very_long": "Abategereje ni benshi cyane ku irerero ryanyu. Ni byo koko?"
+    },
+    "done": {
+      "sent": {
+        "title": "Raporo yoherejwe",
+        "text": "Raporo yanyu y'{week} yakiriwe. Murakoze."
+      },
+      "queued": {
+        "title": "Yabitswe kuri iyi telefone",
+        "text": "Raporo yanyu y'{week} yabitswe kandi izoherezwa mukimara kubona murandasi."
+      },
+      "duplicate": {
+        "title": "Yari yaratanzwe",
+        "text": "Raporo y'{week} yari yarakiriwe."
+      }
+    },
+    "tookMinutes": "{minutes, plural, one {Byatwaye nk'umunota #.} other {Byatwaye nk'iminota #.}}",
+    "backHome": "Subira ahabanza",
+    "seeSms": "Yirebe nka SMS",
+    "allDoneTitle": "Muri ku gihe",
+    "allDoneText": "Ibyumweru byose bya vuba byatangiwe raporo. Murakoze.",
+    "afterwards": {
+      "officer": "Umukozi w'umurenge wanyu ayibona uyu munsi.",
+      "parents": "Imyanya iboneka ihita ihinduka ku rupapuro rwo gushaka irerero.",
+      "plan": "Izitabwaho mu igenamigambi rikurikira ry'akarere."
+    },
+    "next": "Komeza"
   }
 }

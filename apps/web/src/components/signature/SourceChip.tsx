@@ -74,7 +74,11 @@ export function SourceChip({ source }: { source: SourceValue }) {
 
 export function SourceChips({ sources }: { sources: SourceValue[] }) {
   const unique = sources.filter(
-    (s, i) => sources.findIndex((o) => o.source === s.source && o.table === s.table) === i,
+    (s, i) =>
+      sources.findIndex(
+        (o) =>
+          o.source === s.source && o.reference_year === s.reference_year && o.origin === s.origin,
+      ) === i,
   );
   return (
     <span className="flex flex-wrap gap-1">

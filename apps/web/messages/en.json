@@ -95,7 +95,47 @@
   },
   "sms": {
     "phoneLabel": "Phone screen showing the message: {message}",
-    "to": "To"
+    "to": "To",
+    "title": "SMS report",
+    "lead": "The same weekly report as one coded message, for phones without internet. Phase 1 simulates the SMS gateway.",
+    "message": "Message",
+    "send": "Send this SMS",
+    "parsed": "What the system read",
+    "formatTitle": "How to write the message",
+    "problemCodes": "Main problem:",
+    "okNote": "End the message with OK to confirm numbers the system asks you to check.",
+    "reply": {
+      "saved": "Murakoze / Thank you. Report received.",
+      "needs_confirmation": "Some numbers look unusual. Check them and send again ending with OK.",
+      "rejected": "Report not accepted. Check the numbers and send again.",
+      "duplicate": "This week was already reported.",
+      "format_error": "Not understood: {problem}"
+    },
+    "formatError": {
+      "missing_keyword": "start the message with IR",
+      "wrong_count": "{detail} values found",
+      "not_a_number": "a value is not a number",
+      "bad_week": "the week number is wrong",
+      "bad_water": "water must be Y or N",
+      "bad_problem": "the problem code must be 0 to 6"
+    },
+    "field": {
+      "centre_code": "Centre code",
+      "week_start": "Week",
+      "enrolled_0_2_female": "Girls 0–2",
+      "enrolled_0_2_male": "Boys 0–2",
+      "enrolled_3_6_female": "Girls 3–6",
+      "enrolled_3_6_male": "Boys 3–6",
+      "avg_daily_attendance": "Attendance",
+      "waiting_list": "Waiting list",
+      "caregivers_present": "Caregivers",
+      "days_open": "Days open",
+      "days_meal_served": "Days with a meal",
+      "wash_available": "Water all week (Y/N)",
+      "referrals_growth_monitoring": "Growth referrals",
+      "children_with_disability": "Children with a disability",
+      "main_problem": "Main problem (0–6)"
+    }
   },
   "weeks": {
     "play": "Replay the weeks",
@@ -449,5 +489,198 @@
     "deleteAccount": "Delete my account",
     "deleteConfirm": "Yes, delete everything",
     "cancel": "Cancel"
+  },
+  "shell": {
+    "skip": "Skip to content",
+    "home": "Home",
+    "nav": "Sections",
+    "week": "Week",
+    "weekOption": "Week {n} · {day} {month}",
+    "thisWeek": "this week",
+    "signOut": "Sign out",
+    "scope": "View",
+    "national": "National",
+    "role": {
+      "parent": "Parent",
+      "caregiver": "Caregiver",
+      "sector_officer": "Sector ECD officer",
+      "district_planner": "District planner",
+      "national_analyst": "National analyst",
+      "admin": "System admin"
+    },
+    "navItem": {
+      "find": "Find a centre",
+      "account": "My account",
+      "home": "Home",
+      "report": "Weekly report",
+      "sms": "SMS report",
+      "overview": "Overview",
+      "alerts": "Alerts",
+      "centres": "Centres",
+      "suggestions": "Local suggestions",
+      "needMap": "Need map",
+      "plan": "Plan",
+      "whatIf": "What-if",
+      "decisions": "Decisions and brief",
+      "nationalMap": "Districts",
+      "defaults": "Default weights",
+      "status": "Models and pipelines",
+      "users": "Users and roles",
+      "pipelines": "Data sources",
+      "audit": "Audit log",
+      "models": "Models"
+    }
+  },
+  "caregiver": {
+    "reportedThisWeek": "This week's report is in. Thank you.",
+    "notYet": "This week's report is not in yet.",
+    "takesThree": "About ten numbers. It takes less than three minutes.",
+    "startReport": "Start this week's report",
+    "queuedWaiting": "Saved on this phone. It will be sent when you are back online.",
+    "queuedProblem": "A saved report needs a correction before it can be sent.",
+    "sendNow": "Send now",
+    "discardQueued": "Discard and start again",
+    "syncedNow": "{n, plural, one {# saved report was sent.} other {# saved reports were sent.}}",
+    "offlineNote": "You are offline. You can still fill in the report.",
+    "alertsTitle": "Your sector officer sees this",
+    "alertsNote": "These signals come from your own reports. Your sector officer will follow up with you.",
+    "trendsTitle": "Your last twelve weeks",
+    "trendChildren": "Children",
+    "trendServices": "Meals and water",
+    "enrolled": "Enrolled",
+    "attendance": "Attending on a typical day",
+    "mealDays": "Days with a meal",
+    "water": "Water all week (1 = yes)",
+    "trendNote": "Gaps are weeks without a report.",
+    "statusTitle": "Your centre",
+    "verified": "Verified in person on {date}. Parents can find your centre.",
+    "notVerified": "Not yet verified. Your sector officer will visit; parents see verified centres only.",
+    "reliability": "Report reliability",
+    "givesBackTitle": "What reporting gives you back",
+    "givesBack": {
+      "parents": "Parents can see your free places and find you.",
+      "officer": "Your officer learns early when you lack food, water or caregivers.",
+      "plan": "Your numbers count when the district decides where to invest."
+    }
+  },
+  "report": {
+    "title": "Weekly report · {week}",
+    "weekLabel": "week of {day} {month}",
+    "thisWeek": "this week",
+    "progress": "Question {step} of {total}",
+    "offline": "You are offline. Fill in the report; it will be saved on this phone and sent later.",
+    "prefilled": "We started from your last report. Change only what is different.",
+    "enrolledTotal": "Children enrolled: {n}",
+    "steps": {
+      "week": {
+        "question": "Which week are you reporting?"
+      },
+      "young": {
+        "question": "How many children aged 0 to 2 are enrolled?"
+      },
+      "old": {
+        "question": "How many children aged 3 to 6 are enrolled?"
+      },
+      "attendance": {
+        "question": "On a typical day this week, how many children came?"
+      },
+      "days": {
+        "question": "How many days did you open, and on how many was a meal served?"
+      },
+      "caregivers": {
+        "question": "How many caregivers were present on a typical day?"
+      },
+      "waiting": {
+        "question": "How many children are waiting for a place?"
+      },
+      "water": {
+        "question": "Was there water and handwashing all week?"
+      },
+      "health": {
+        "question": "Referrals and inclusion this week"
+      },
+      "problem": {
+        "question": "What was the main problem this week?"
+      },
+      "review": {
+        "question": "Check and send"
+      }
+    },
+    "fields": {
+      "enrolled_0_2_female": "Girls",
+      "enrolled_0_2_male": "Boys",
+      "enrolled_3_6_female": "Girls",
+      "enrolled_3_6_male": "Boys",
+      "avg_daily_attendance": "Children attending",
+      "days_open": "Days open",
+      "days_meal_served": "Days with a meal",
+      "caregivers_present": "Caregivers present",
+      "waiting_list": "Children waiting",
+      "referrals_growth_monitoring": "Children referred to growth monitoring",
+      "children_with_disability": "Enrolled children with a disability"
+    },
+    "problems": {
+      "none": "No problem",
+      "no_food": "No food",
+      "no_water": "No water",
+      "caregiver_absent": "A caregiver was absent",
+      "building_damage": "Building damage",
+      "weather": "Bad weather",
+      "other": "Something else"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "send": "Send report",
+    "saveOffline": "Save on this phone",
+    "summary": {
+      "young": "Enrolled, ages 0–2",
+      "old": "Enrolled, ages 3–6",
+      "days": "Days open / with a meal",
+      "water": "Water all week",
+      "problem": "Main problem"
+    },
+    "checking": "Checking the numbers…",
+    "offlineCheck": "You are offline, so the numbers are checked when the report is sent.",
+    "looksGood": "The numbers look right.",
+    "confirmUnusual": "These numbers are correct",
+    "jumpNote": "These numbers are very different from your recent weeks. That is fine if they are right; your officer may ask about them.",
+    "issue": {
+      "negative": "A number cannot be below zero.",
+      "days_above_six": "A week has at most six working days.",
+      "attendance_above_enrolment": "More children attended than are enrolled. Check the attendance or the enrolment.",
+      "meals_above_days_open": "Meals cannot be served on more days than the centre was open.",
+      "disability_above_enrolment": "Children with a disability cannot be more than the children enrolled.",
+      "attendance_while_closed": "The centre was closed all week, so attendance should be 0.",
+      "enrolment_far_above_capacity": "Enrolment is much higher than your centre's places. Is that right?",
+      "no_caregiver_while_open": "The centre was open but no caregiver was present. Is that right?",
+      "children_per_caregiver_high": "That is more than 25 children per caregiver. Is that right?",
+      "waiting_list_very_long": "The waiting list is very long for your centre. Is that right?"
+    },
+    "done": {
+      "sent": {
+        "title": "Report sent",
+        "text": "Your report for the {week} is in. Thank you."
+      },
+      "queued": {
+        "title": "Saved on this phone",
+        "text": "Your report for the {week} is saved and will be sent as soon as you are online."
+      },
+      "duplicate": {
+        "title": "Already reported",
+        "text": "A report for the {week} was already received."
+      }
+    },
+    "tookMinutes": "{minutes, plural, one {That took about # minute.} other {That took about # minutes.}}",
+    "backHome": "Back to home",
+    "seeSms": "See it as an SMS",
+    "allDoneTitle": "You are up to date",
+    "allDoneText": "Every recent week is reported. Thank you.",
+    "afterwards": {
+      "officer": "Your sector officer sees it today.",
+      "parents": "Free places update for parents on the Find page.",
+      "plan": "It counts in the district's next plan."
+    },
+    "next": "Next"
   }
 }

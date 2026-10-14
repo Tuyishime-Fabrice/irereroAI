@@ -12,7 +12,7 @@ Kinyarwanda text also comes from the API: alert reasons and suggestion explanati
 (`packages/engine/src/irerero_engine/features.py`) and assistant answers
 (`packages/engine/src/irerero_engine/assistant.py`). Those templates need the same review.
 
-Status: 0 of 329 strings reviewed.
+Status: 0 of 502 strings reviewed.
 
 | Key | English | Kinyarwanda draft | Reviewed |
 | --- | --- | --- | --- |
@@ -86,6 +86,40 @@ Status: 0 of 329 strings reviewed.
 | `alerts.assignedTo` | Assigned to {name} | Cyahawe {name} | no |
 | `sms.phoneLabel` | Phone screen showing the message: {message} | Telefone yerekana ubutumwa: {message} | no |
 | `sms.to` | To | Kuri | no |
+| `sms.title` | SMS report | Raporo kuri SMS | no |
+| `sms.lead` | The same weekly report as one coded message, for phones without internet. Phase 1 simulates the SMS gateway. | Raporo y'icyumweru imwe mu butumwa bumwe bwanditse mu nyuguti z'ibanga, ku matelefone adafite murandasi. Mu cyiciro cya 1 ubutumwa bwa SMS ni ubw'igerageza. | no |
+| `sms.message` | Message | Ubutumwa | no |
+| `sms.send` | Send this SMS | Ohereza iyi SMS | no |
+| `sms.parsed` | What the system read | Ibyo sisitemu yasomye | no |
+| `sms.formatTitle` | How to write the message | Uko wandika ubutumwa | no |
+| `sms.problemCodes` | Main problem: | Ikibazo nyamukuru: | no |
+| `sms.okNote` | End the message with OK to confirm numbers the system asks you to check. | Soza ubutumwa ukoresheje OK kugira ngo wemeze imibare sisitemu igusaba kugenzura. | no |
+| `sms.reply.saved` | Murakoze / Thank you. Report received. | Murakoze. Raporo yakiriwe. | no |
+| `sms.reply.needs_confirmation` | Some numbers look unusual. Check them and send again ending with OK. | Imibare imwe isa n'idasanzwe. Yigenzure wongere wohereze usoza na OK. | no |
+| `sms.reply.rejected` | Report not accepted. Check the numbers and send again. | Raporo ntiyemewe. Genzura imibare wongere wohereze. | no |
+| `sms.reply.duplicate` | This week was already reported. | Iki cyumweru cyari cyaratangiwe raporo. | no |
+| `sms.reply.format_error` | Not understood: {problem} | Ntibyumvikanye: {problem} | no |
+| `sms.formatError.missing_keyword` | start the message with IR | tangira ubutumwa na IR | no |
+| `sms.formatError.wrong_count` | {detail} values found | habonetse imibare {detail} | no |
+| `sms.formatError.not_a_number` | a value is not a number | hari agaciro katari umubare | no |
+| `sms.formatError.bad_week` | the week number is wrong | nimero y'icyumweru si yo | no |
+| `sms.formatError.bad_water` | water must be Y or N | amazi agomba kuba Y cyangwa N | no |
+| `sms.formatError.bad_problem` | the problem code must be 0 to 6 | kode y'ikibazo igomba kuba 0 kugeza 6 | no |
+| `sms.field.centre_code` | Centre code | Kode y'irerero | no |
+| `sms.field.week_start` | Week | Icyumweru | no |
+| `sms.field.enrolled_0_2_female` | Girls 0–2 | Abakobwa 0–2 | no |
+| `sms.field.enrolled_0_2_male` | Boys 0–2 | Abahungu 0–2 | no |
+| `sms.field.enrolled_3_6_female` | Girls 3–6 | Abakobwa 3–6 | no |
+| `sms.field.enrolled_3_6_male` | Boys 3–6 | Abahungu 3–6 | no |
+| `sms.field.avg_daily_attendance` | Attendance | Ubwitabire | no |
+| `sms.field.waiting_list` | Waiting list | Abategereje | no |
+| `sms.field.caregivers_present` | Caregivers | Abarezi | no |
+| `sms.field.days_open` | Days open | Iminsi yakoze | no |
+| `sms.field.days_meal_served` | Days with a meal | Iminsi n'ifunguro | no |
+| `sms.field.wash_available` | Water all week (Y/N) | Amazi icyumweru cyose (Y/N) | no |
+| `sms.field.referrals_growth_monitoring` | Growth referrals | Aboherejwe gukurikiranirwa imikurire | no |
+| `sms.field.children_with_disability` | Children with a disability | Abana bafite ubumuga | no |
+| `sms.field.main_problem` | Main problem (0–6) | Ikibazo nyamukuru (0–6) | no |
 | `weeks.play` | Replay the weeks | Ongera urebe ibyumweru | no |
 | `weeks.pause` | Pause | Hagarika | no |
 | `weeks.weekOf` | Week {n} of {total} · {day} {month} | Icyumweru cya {n} muri {total} · {day} {month} | no |
@@ -345,3 +379,142 @@ Status: 0 of 329 strings reviewed.
 | `account.deleteAccount` | Delete my account | Siba konti yanjye | no |
 | `account.deleteConfirm` | Yes, delete everything | Yego, siba byose | no |
 | `account.cancel` | Cancel | Reka | no |
+| `shell.skip` | Skip to content | Jya ku bikubiyemo | no |
+| `shell.home` | Home | Ahabanza | no |
+| `shell.nav` | Sections | Ibice | no |
+| `shell.week` | Week | Icyumweru | no |
+| `shell.weekOption` | Week {n} · {day} {month} | Icyumweru {n} · {day} {month} | no |
+| `shell.thisWeek` | this week | iki cyumweru | no |
+| `shell.signOut` | Sign out | Sohoka | no |
+| `shell.scope` | View | Reba | no |
+| `shell.national` | National | Igihugu | no |
+| `shell.role.parent` | Parent | Umubyeyi | no |
+| `shell.role.caregiver` | Caregiver | Umurezi | no |
+| `shell.role.sector_officer` | Sector ECD officer | Umukozi w'umurenge ushinzwe ECD | no |
+| `shell.role.district_planner` | District planner | Utegura w'akarere | no |
+| `shell.role.national_analyst` | National analyst | Umusesenguzi w'igihugu | no |
+| `shell.role.admin` | System admin | Umuyobozi wa sisitemu | no |
+| `shell.navItem.find` | Find a centre | Shaka irerero | no |
+| `shell.navItem.account` | My account | Konti yanjye | no |
+| `shell.navItem.home` | Home | Ahabanza | no |
+| `shell.navItem.report` | Weekly report | Raporo y'icyumweru | no |
+| `shell.navItem.sms` | SMS report | Raporo kuri SMS | no |
+| `shell.navItem.overview` | Overview | Incamake | no |
+| `shell.navItem.alerts` | Alerts | Iburira | no |
+| `shell.navItem.centres` | Centres | Amarerero | no |
+| `shell.navItem.suggestions` | Local suggestions | Inama z'umurenge | no |
+| `shell.navItem.needMap` | Need map | Ikarita y'ibikenewe | no |
+| `shell.navItem.plan` | Plan | Igenamigambi | no |
+| `shell.navItem.whatIf` | What-if | Bigenze bite | no |
+| `shell.navItem.decisions` | Decisions and brief | Ibyemezo na raporo | no |
+| `shell.navItem.nationalMap` | Districts | Uturere | no |
+| `shell.navItem.defaults` | Default weights | Uburemere busanzwe | no |
+| `shell.navItem.status` | Models and pipelines | Imiterere n'iyinjiza | no |
+| `shell.navItem.users` | Users and roles | Abakoresha n'inshingano | no |
+| `shell.navItem.pipelines` | Data sources | Amasoko y'amakuru | no |
+| `shell.navItem.audit` | Audit log | Igitabo cy'igenzura | no |
+| `shell.navItem.models` | Models | Imiterere y'imibare | no |
+| `caregiver.reportedThisWeek` | This week's report is in. Thank you. | Raporo y'iki cyumweru yakiriwe. Murakoze. | no |
+| `caregiver.notYet` | This week's report is not in yet. | Raporo y'iki cyumweru ntiraza. | no |
+| `caregiver.takesThree` | About ten numbers. It takes less than three minutes. | Ni imibare igera ku icumi. Bitwara munsi y'iminota itatu. | no |
+| `caregiver.startReport` | Start this week's report | Tangira raporo y'iki cyumweru | no |
+| `caregiver.queuedWaiting` | Saved on this phone. It will be sent when you are back online. | Yabitswe kuri iyi telefone. Izoherezwa nimwongera kubona murandasi. | no |
+| `caregiver.queuedProblem` | A saved report needs a correction before it can be sent. | Raporo yabitswe ikeneye gukosorwa mbere yo koherezwa. | no |
+| `caregiver.sendNow` | Send now | Ohereza ubu | no |
+| `caregiver.discardQueued` | Discard and start again | Yisibe utangire bundi bushya | no |
+| `caregiver.syncedNow` | {n, plural, one {# saved report was sent.} other {# saved reports were sent.}} | {n, plural, one {Raporo # yari yabitswe yoherejwe.} other {Raporo # zari zabitswe zoherejwe.}} | no |
+| `caregiver.offlineNote` | You are offline. You can still fill in the report. | Nta murandasi ufite. Ushobora kuzuza raporo. | no |
+| `caregiver.alertsTitle` | Your sector officer sees this | Umukozi w'umurenge abona ibi | no |
+| `caregiver.alertsNote` | These signals come from your own reports. Your sector officer will follow up with you. | Ibi bimenyetso bituruka kuri raporo zanyu. Umukozi w'umurenge azabakurikirana. | no |
+| `caregiver.trendsTitle` | Your last twelve weeks | Ibyumweru cumi na bibiri bishize | no |
+| `caregiver.trendChildren` | Children | Abana | no |
+| `caregiver.trendServices` | Meals and water | Amafunguro n'amazi | no |
+| `caregiver.enrolled` | Enrolled | Banditswe | no |
+| `caregiver.attendance` | Attending on a typical day | Bitabira ku munsi usanzwe | no |
+| `caregiver.mealDays` | Days with a meal | Iminsi hatanzwe ifunguro | no |
+| `caregiver.water` | Water all week (1 = yes) | Amazi icyumweru cyose (1 = yego) | no |
+| `caregiver.trendNote` | Gaps are weeks without a report. | Ahatari umurongo ni ibyumweru bitatanzwemo raporo. | no |
+| `caregiver.statusTitle` | Your centre | Irerero ryanyu | no |
+| `caregiver.verified` | Verified in person on {date}. Parents can find your centre. | Ryagenzuwe n'umukozi ku wa {date}. Ababyeyi barashobora kuribona. | no |
+| `caregiver.notVerified` | Not yet verified. Your sector officer will visit; parents see verified centres only. | Ntiriragenzurwa. Umukozi w'umurenge azabasura; ababyeyi babona amarerero yagenzuwe gusa. | no |
+| `caregiver.reliability` | Report reliability | Kwizerwa kwa raporo | no |
+| `caregiver.givesBackTitle` | What reporting gives you back | Icyo gutanga raporo bibagarurira | no |
+| `caregiver.givesBack.parents` | Parents can see your free places and find you. | Ababyeyi babona imyanya iboneka bakabona irerero ryanyu. | no |
+| `caregiver.givesBack.officer` | Your officer learns early when you lack food, water or caregivers. | Umukozi wanyu amenya hakiri kare iyo mubuze ibiryo, amazi cyangwa abarezi. | no |
+| `caregiver.givesBack.plan` | Your numbers count when the district decides where to invest. | Imibare yanyu iritabwaho iyo akarere gafata icyemezo cy'aho gushora imari. | no |
+| `report.title` | Weekly report · {week} | Raporo y'icyumweru · {week} | no |
+| `report.weekLabel` | week of {day} {month} | icyumweru cyo ku wa {day} {month} | no |
+| `report.thisWeek` | this week | iki cyumweru | no |
+| `report.progress` | Question {step} of {total} | Ikibazo cya {step} muri {total} | no |
+| `report.offline` | You are offline. Fill in the report; it will be saved on this phone and sent later. | Nta murandasi ufite. Uzuza raporo; izabikwa kuri iyi telefone yoherezwe nyuma. | no |
+| `report.prefilled` | We started from your last report. Change only what is different. | Twahereye kuri raporo yanyu iheruka. Hindura ibyahindutse gusa. | no |
+| `report.enrolledTotal` | Children enrolled: {n} | Abana banditswe: {n} | no |
+| `report.steps.week.question` | Which week are you reporting? | Ni ikihe cyumweru mutangira raporo? | no |
+| `report.steps.young.question` | How many children aged 0 to 2 are enrolled? | Abana bafite imyaka 0 kugeza 2 banditswe ni bangahe? | no |
+| `report.steps.old.question` | How many children aged 3 to 6 are enrolled? | Abana bafite imyaka 3 kugeza 6 banditswe ni bangahe? | no |
+| `report.steps.attendance.question` | On a typical day this week, how many children came? | Ku munsi usanzwe w'iki cyumweru, haje abana bangahe? | no |
+| `report.steps.days.question` | How many days did you open, and on how many was a meal served? | Mwakoze iminsi ingahe, kandi ifunguro ryatanzwe iminsi ingahe? | no |
+| `report.steps.caregivers.question` | How many caregivers were present on a typical day? | Abarezi bari bahari ku munsi usanzwe ni bangahe? | no |
+| `report.steps.waiting.question` | How many children are waiting for a place? | Abana bategereje umwanya ni bangahe? | no |
+| `report.steps.water.question` | Was there water and handwashing all week? | Hari amazi n'aho gukarabira icyumweru cyose? | no |
+| `report.steps.health.question` | Referrals and inclusion this week | Abohererejwe n'abafite ubumuga muri iki cyumweru | no |
+| `report.steps.problem.question` | What was the main problem this week? | Ikibazo nyamukuru cy'iki cyumweru cyari ikihe? | no |
+| `report.steps.review.question` | Check and send | Genzura wohereze | no |
+| `report.fields.enrolled_0_2_female` | Girls | Abakobwa | no |
+| `report.fields.enrolled_0_2_male` | Boys | Abahungu | no |
+| `report.fields.enrolled_3_6_female` | Girls | Abakobwa | no |
+| `report.fields.enrolled_3_6_male` | Boys | Abahungu | no |
+| `report.fields.avg_daily_attendance` | Children attending | Abana bitabiriye | no |
+| `report.fields.days_open` | Days open | Iminsi yakoze | no |
+| `report.fields.days_meal_served` | Days with a meal | Iminsi hatanzwe ifunguro | no |
+| `report.fields.caregivers_present` | Caregivers present | Abarezi bari bahari | no |
+| `report.fields.waiting_list` | Children waiting | Abana bategereje | no |
+| `report.fields.referrals_growth_monitoring` | Children referred to growth monitoring | Abana boherejwe gukurikiranirwa imikurire | no |
+| `report.fields.children_with_disability` | Enrolled children with a disability | Abana banditswe bafite ubumuga | no |
+| `report.problems.none` | No problem | Nta kibazo | no |
+| `report.problems.no_food` | No food | Nta biryo | no |
+| `report.problems.no_water` | No water | Nta mazi | no |
+| `report.problems.caregiver_absent` | A caregiver was absent | Umurezi ntiyaje | no |
+| `report.problems.building_damage` | Building damage | Inyubako yangiritse | no |
+| `report.problems.weather` | Bad weather | Ikirere kibi | no |
+| `report.problems.other` | Something else | Ikindi kibazo | no |
+| `report.yes` | Yes | Yego | no |
+| `report.no` | No | Oya | no |
+| `report.back` | Back | Subira inyuma | no |
+| `report.send` | Send report | Ohereza raporo | no |
+| `report.saveOffline` | Save on this phone | Bika kuri iyi telefone | no |
+| `report.summary.young` | Enrolled, ages 0–2 | Banditswe, imyaka 0–2 | no |
+| `report.summary.old` | Enrolled, ages 3–6 | Banditswe, imyaka 3–6 | no |
+| `report.summary.days` | Days open / with a meal | Iminsi yakoze / n'ifunguro | no |
+| `report.summary.water` | Water all week | Amazi icyumweru cyose | no |
+| `report.summary.problem` | Main problem | Ikibazo nyamukuru | no |
+| `report.checking` | Checking the numbers… | Turagenzura imibare… | no |
+| `report.offlineCheck` | You are offline, so the numbers are checked when the report is sent. | Nta murandasi ufite, imibare izagenzurwa igihe raporo yoherejwe. | no |
+| `report.looksGood` | The numbers look right. | Imibare isa neza. | no |
+| `report.confirmUnusual` | These numbers are correct | Iyi mibare ni yo | no |
+| `report.jumpNote` | These numbers are very different from your recent weeks. That is fine if they are right; your officer may ask about them. | Iyi mibare itandukanye cyane n'iy'ibyumweru bishize. Nta kibazo niba ari yo; umukozi wanyu ashobora kubibabaza. | no |
+| `report.issue.negative` | A number cannot be below zero. | Umubare ntushobora kujya munsi ya zeru. | no |
+| `report.issue.days_above_six` | A week has at most six working days. | Icyumweru gifite iminsi itandatu y'akazi gusa. | no |
+| `report.issue.attendance_above_enrolment` | More children attended than are enrolled. Check the attendance or the enrolment. | Abitabiriye barusha umubare w'abanditswe. Genzura ubwitabire cyangwa abanditswe. | no |
+| `report.issue.meals_above_days_open` | Meals cannot be served on more days than the centre was open. | Amafunguro ntashobora gutangwa iminsi irenze iyo irerero ryakoze. | no |
+| `report.issue.disability_above_enrolment` | Children with a disability cannot be more than the children enrolled. | Abana bafite ubumuga ntibashobora kurenga abanditswe. | no |
+| `report.issue.attendance_while_closed` | The centre was closed all week, so attendance should be 0. | Irerero ryafunze icyumweru cyose, ubwitabire bugomba kuba 0. | no |
+| `report.issue.enrolment_far_above_capacity` | Enrolment is much higher than your centre's places. Is that right? | Abanditswe barenze cyane imyanya y'irerero ryanyu. Ni byo koko? | no |
+| `report.issue.no_caregiver_while_open` | The centre was open but no caregiver was present. Is that right? | Irerero ryarakoze ariko nta murezi wari uhari. Ni byo koko? | no |
+| `report.issue.children_per_caregiver_high` | That is more than 25 children per caregiver. Is that right? | Ni abana barenga 25 ku murezi umwe. Ni byo koko? | no |
+| `report.issue.waiting_list_very_long` | The waiting list is very long for your centre. Is that right? | Abategereje ni benshi cyane ku irerero ryanyu. Ni byo koko? | no |
+| `report.done.sent.title` | Report sent | Raporo yoherejwe | no |
+| `report.done.sent.text` | Your report for the {week} is in. Thank you. | Raporo yanyu y'{week} yakiriwe. Murakoze. | no |
+| `report.done.queued.title` | Saved on this phone | Yabitswe kuri iyi telefone | no |
+| `report.done.queued.text` | Your report for the {week} is saved and will be sent as soon as you are online. | Raporo yanyu y'{week} yabitswe kandi izoherezwa mukimara kubona murandasi. | no |
+| `report.done.duplicate.title` | Already reported | Yari yaratanzwe | no |
+| `report.done.duplicate.text` | A report for the {week} was already received. | Raporo y'{week} yari yarakiriwe. | no |
+| `report.tookMinutes` | {minutes, plural, one {That took about # minute.} other {That took about # minutes.}} | {minutes, plural, one {Byatwaye nk'umunota #.} other {Byatwaye nk'iminota #.}} | no |
+| `report.backHome` | Back to home | Subira ahabanza | no |
+| `report.seeSms` | See it as an SMS | Yirebe nka SMS | no |
+| `report.allDoneTitle` | You are up to date | Muri ku gihe | no |
+| `report.allDoneText` | Every recent week is reported. Thank you. | Ibyumweru byose bya vuba byatangiwe raporo. Murakoze. | no |
+| `report.afterwards.officer` | Your sector officer sees it today. | Umukozi w'umurenge wanyu ayibona uyu munsi. | no |
+| `report.afterwards.parents` | Free places update for parents on the Find page. | Imyanya iboneka ihita ihinduka ku rupapuro rwo gushaka irerero. | no |
+| `report.afterwards.plan` | It counts in the district's next plan. | Izitabwaho mu igenamigambi rikurikira ry'akarere. | no |
+| `report.next` | Next | Komeza | no |

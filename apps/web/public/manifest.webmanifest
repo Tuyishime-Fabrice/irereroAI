@@ -1,0 +1,11 @@
+{
+  "name": "IrereroAI weekly report",
+  "short_name": "Irerero",
+  "description": "Send your ECD centre's weekly report, even without a connection.",
+  "start_url": "/caregiver",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F1E9",
+  "theme_color": "#1E1B18",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

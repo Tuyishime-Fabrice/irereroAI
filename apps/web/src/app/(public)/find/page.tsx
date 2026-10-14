@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
 import { FindCentres } from "@/components/public/FindCentres";
 import { PageTitle } from "@/components/ui/PageTitle";
@@ -13,7 +14,9 @@ export default async function FindPage() {
   return (
     <>
       <PageTitle title={t("title")} lead={t("lead")} />
-      <FindCentres />
+      <Suspense>
+        <FindCentres />
+      </Suspense>
     </>
   );
 }

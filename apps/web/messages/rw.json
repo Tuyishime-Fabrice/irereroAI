@@ -895,5 +895,155 @@
     "decidedBy": "Byemejwe na: {names}",
     "humans": "Buri gikorwa kiri hano cyemejwe n'umuntu. IrereroAI yatanze inama gusa.",
     "sources": "Amasoko"
+  },
+  "national": {
+    "title": "Uturere",
+    "lead": "Uturere 30 twose n'intera. Gicumbi yonyine ifite amakuru y'imirenge muri iri gerageza; utundi dufite imibare y'akarere.",
+    "download": "Kuramo CSV",
+    "tableCaption": "Imibare n'intera. Uturere dusizwe imirongo ku ikarita ni two dufite intera nini.",
+    "district": "Akarere",
+    "children": "Abana 0–6",
+    "stunting": "Ibyago byo kugwingira",
+    "certainty": "Ukwizerwa",
+    "covered": "Bafite umwanya",
+    "noDeepData": "Nta makuru y'imirenge",
+    "note": "CSV itanga imibare y'uturere gusa; imibare iri munsi ya 5 yandikwa <5 kandi buri murongo ugaragaza inkomoko yawo."
+  },
+  "defaults": {
+    "title": "Uburemere n'ingengo y'imari bisanzwe",
+    "lead": "Imibare paji z'igenamigambi zifunguraho. Abategura bashobora kuyihindura kuri buri genamigambi.",
+    "area": "Bireba",
+    "national": "Uturere twose (ibisanzwe by'igihugu)",
+    "inherited": "Aka karere ntikaragira ibyako; gakoresha iby'igihugu kugeza ubibitse.",
+    "budget": "Ingengo y'imari isanzwe (RWF)",
+    "save": "Bika ibisanzwe",
+    "saved": "Byabitswe. Impinduka iri mu gitabo cy'igenzura."
+  },
+  "status": {
+    "title": "Imiterere y'imibare n'iyinjiza",
+    "lead": "Verisiyo ya buri gice cya moteri ikora, na buri gihe amakuru yinjijwe n'igenzura ryakozwe.",
+    "models": "Verisiyo z'imiterere",
+    "runs": "Inshuro amakuru yinjijwe",
+    "noMetrics": "Uburyo bushingiye ku mategeko: nta bipimo by'isuzuma biraboneka. Imiterere y'icyiciro cya 2 izabigaragaza hano.",
+    "component": {
+      "need": "Igereranya ry'ibikenewe",
+      "coverage": "Ahagerwa",
+      "optimizer": "Gushaka igisubizo cyiza",
+      "early_warning": "Kuburira hakiri kare",
+      "explainer": "Ibisobanuro"
+    }
+  },
+  "admin": {
+    "usersTitle": "Abakoresha n'inshingano",
+    "usersLead": "Buri konti y'umukozi n'umurezi n'inshingano zayo n'aho ireba. Impinduka zirandikwa kandi zisoza imikoreshereze ifunguye.",
+    "name": "Izina",
+    "role": "Inshingano",
+    "scope": "Aho ireba",
+    "login": "Kwinjira",
+    "state": "Uburenganzira",
+    "twoFactor": "intambwe ebyiri",
+    "level": {
+      "none": "nta na hamwe",
+      "centre": "irerero",
+      "sector": "umurenge",
+      "district": "akarere",
+      "national": "igihugu"
+    },
+    "deactivate": "Hagarika",
+    "activate": "Fungura",
+    "newUser": "Konti nshya",
+    "scopeHint": "Kode y'irerero, y'umurenge (S-…) cyangwa y'akarere (D-…). Siga ubusa ku nshingano z'igihugu.",
+    "email": "Imeyili",
+    "phone": "Nimero ya telefone",
+    "password": "Ijambo ry'ibanga",
+    "passwordHint": "Abakozi gusa, nibura inyuguti 12.",
+    "create": "Fungura konti",
+    "created": "Konti yafunguwe.",
+    "createdAdmin": "Konti yafunguwe. Ibanga ry'intambwe ebyiri, rigaragara rimwe: {secret}",
+    "createFailed": "Konti ntiyashoboye gufungurwa.",
+    "pipelinesTitle": "Amasoko y'amakuru n'iyinjiza",
+    "pipelinesLead": "Ibyinjijwe, biturutse muri dosiye zihe (n'ibimenyetso byazo), imirongo ingahe, n'igenzura ryatsinze.",
+    "inputs": "Dosiye zinjijwe",
+    "rows": "Imirongo yanditswe",
+    "checks": "Igenzura",
+    "auditTitle": "Igitabo cy'igenzura",
+    "auditLead": "Buri cyemezo cy'umuntu, cyongerwaho gusa. Itegeko ry'ububiko ribuza guhindura cyangwa gusiba.",
+    "action": "Igikorwa",
+    "all": "Byose",
+    "actions": {
+      "recommendation": "Ibyemezo ku nama",
+      "scenario": "Igenamigambi ryakozwe",
+      "alert": "Gukurikirana iburira",
+      "centre": "Igenzura ry'amarerero",
+      "user": "Konti n'inshingano",
+      "planning_defaults": "Uburemere busanzwe"
+    },
+    "noEntries": "Nta byanditswe bihuye.",
+    "when": "Igihe",
+    "who": "Nde",
+    "change": "Impinduka",
+    "reason": "Impamvu"
+  },
+  "tour": {
+    "title": "Urugendo rw'iminota itanu",
+    "lead": "Urugendo ruyobowe muri iki kiganiro. Buri ntambwe yinjira na konti y'igerageza ikwiye kandi yerekana icyo kureba. Rukoresha amakuru y'igerageza gusa.",
+    "start": "Tangira urugendo",
+    "label": "Urugendo ruyobowe",
+    "progress": "Intambwe ya {n} muri {total}",
+    "back": "Subira inyuma",
+    "next": "Komeza",
+    "finish": "Soza",
+    "exit": "Va mu rugendo",
+    "offline": "Urugendo ntirukenera murandasi: buri ntambwe ikoresha ububiko bw'igerageza buri hano. Niba ikarita fatizo idafunguka, amakarita yerekana imbibi gusa.",
+    "as": {
+      "parent": "nk'umubyeyi",
+      "caregiver": "nk'umurezi",
+      "sector_officer": "nk'umukozi wa Byumba",
+      "district_planner": "nk'utegura wa Gicumbi",
+      "national_analyst": "nk'umusesenguzi w'igihugu",
+      "admin": "nk'umuyobozi"
+    },
+    "steps": {
+      "welcome": {
+        "title": "Ikibazo",
+        "text": "Abana bari mu mashuri y'incuke bagomba kwikuba hafi kabiri bitarenze 2029, kandi igwingira i Gicumbi rigeze kuri 38.8%. Uturere tugomba guhitamo aho gushora imari, amakuru adahwanye.",
+        "say": "Vuga: IrereroAI ifasha gufata ibyemezo, gukurikirana no kwiga, kandi umuntu ni we ufata icyemezo buri ntambwe."
+      },
+      "needMap": {
+        "title": "Ibikenewe, n'intera zivugisha ukuri",
+        "text": "Imirenge ya Gicumbi isize amabara hakurikijwe ibyago byo kugwingira. Imirenge isizwe imirongo ni yo igereranya ryayo ritizewe cyane. Utudomo dutukura ni amarerero afite ikibazo; uruziga ni ibyifuzo by'ababyeyi.",
+        "say": "Vuga: twerekana gushidikanya aho kuguhisha. Byose hano byanditseho ko ari igerageza."
+      },
+      "reject": {
+        "title": "Inama, hanyuma icyemezo",
+        "text": "Kanda \"Habwa inama\". Ahantu ha Cyumba A haza imbere kuko ababyeyi basabye irerero aho. Hange ukoresheje \"Nta butaka buhari\" urebe urutonde rwuzurwa hatarimo.",
+        "say": "Vuga: impamvu yo kwanga iba itegeko ku igenamigambi ryose rikurikira, kandi iri mu gitabo cy'igenzura."
+      },
+      "caregiver": {
+        "title": "Raporo y'icyumweru mu minota itatu",
+        "text": "Umurezi w'Irerero Ineza yohereza raporo y'iki cyumweru: imibare igera ku icumi, ikibazo kimwe ku kindi, n'iyo nta murandasi cyangwa kuri SMS.",
+        "say": "Vuga: nta mazina y'abana, imibare gusa. Imyanya iboneka ihita igaragara ku babyeyi."
+      },
+      "alert": {
+        "title": "Iburira n'impamvu yaryo",
+        "text": "Umukozi wa Byumba abona Irerero Umucyo: ubwitabire bwagabanutse mu byumweru bitatu kandi raporo zivuga ko nta mazi.",
+        "say": "Vuga: itegeko rigereranya irerero n'amateka yaryo, kandi rivuga imibare ryakoresheje."
+      },
+      "parent": {
+        "title": "Umubyeyi asaba irerero",
+        "text": "Nta rerero ryagenzuwe riri muri km 2 hano. Kanda \"Saba irerero hano\". Habikwa kare ya metero 500 gusa.",
+        "say": "Vuga: gushakisha kutagize icyo kubona ni ikimenyetso, si iherezo."
+      },
+      "replay": {
+        "title": "Ibyumweru cumi na bibiri byo kwiga",
+        "text": "Ku ikarita y'utegura, icyifuzo gishya cyabaruwe. Kanda gukina ku kanyerera k'ibyumweru urebe icyumweru cya 1 kugeza ku cya 12: raporo ziraza, iburira rigaragara, ibyifuzo byiyongera.",
+        "say": "Vuga: ibyo amarerero atangaza n'ibyo ababyeyi basaba bihindura igenamigambi rikurikira."
+      },
+      "promise": {
+        "title": "Isezerano ryacu",
+        "text": "AI itanga inama, abantu bafata ibyemezo. Buri nama ifite impamvu, intera n'amasoko yayo; nta kintu gikorwa mu buryo bwikora; kandi buri mubare uri kuri ecran uvuga niba ari ukuri cyangwa igerageza.",
+        "say": "Vuga: icyiciro cya 2 kizashyira amakuru nyayo y'ibarura rusange, DHS, EICV na NCDA muri izi nzego zimwe."
+      }
+    }
   }
 }

@@ -146,7 +146,9 @@ export function NeedMap() {
           ))}
         </SelectField>
         <div className="flex flex-col gap-2">
-          <WeekScrubber weeks={weeks} value={week} onChange={setWeek} />
+          <div data-tour="week-scrubber">
+            <WeekScrubber weeks={weeks} value={week} onChange={setWeek} />
+          </div>
           <fieldset className="flex flex-wrap gap-4 text-sm">
             <legend className="sr-only">{t("layers")}</legend>
             {LAYERS.map((layer) => (
@@ -169,7 +171,7 @@ export function NeedMap() {
           </fieldset>
         </div>
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_340px]" data-tour="need-map">
         <HatchedChoropleth
           areas={features}
           title={t(`metric.${metric}`)}

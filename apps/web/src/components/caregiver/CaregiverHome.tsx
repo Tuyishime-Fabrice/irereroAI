@@ -80,6 +80,7 @@ export function CaregiverHome() {
             <p className="text-lg font-semibold text-ink">{t("notYet")}</p>
             <p className="text-sm text-ink-muted">{t("takesThree")}</p>
             <Link
+              data-tour="start-report"
               href="/caregiver/report"
               className="inline-flex min-h-12 items-center justify-center self-start rounded-md bg-kivu px-6 text-base font-medium text-white"
             >

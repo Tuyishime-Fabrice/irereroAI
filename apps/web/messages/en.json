@@ -895,5 +895,155 @@
     "decidedBy": "Decided by: {names}",
     "humans": "Every action here was approved by a person. IrereroAI only suggested.",
     "sources": "Sources"
+  },
+  "national": {
+    "title": "Districts",
+    "lead": "All 30 districts with ranges. Only Gicumbi has sector detail in this demo; the others carry district-level values.",
+    "download": "Download CSV",
+    "tableCaption": "Values with ranges. Hatched districts on the map have the widest ranges.",
+    "district": "District",
+    "children": "Children 0–6",
+    "stunting": "Stunting risk",
+    "certainty": "Certainty",
+    "covered": "With a place",
+    "noDeepData": "No sector data",
+    "note": "The CSV export gives district aggregates only; counts below 5 are written as <5 and every row states its origin."
+  },
+  "defaults": {
+    "title": "Default weights and budgets",
+    "lead": "The values plan screens open with. Planners can still change them for each plan.",
+    "area": "Applies to",
+    "national": "All districts (national default)",
+    "inherited": "This district has no default of its own yet; it uses the national one until you save.",
+    "budget": "Default budget (RWF)",
+    "save": "Save defaults",
+    "saved": "Saved. The change is in the audit log."
+  },
+  "status": {
+    "title": "Models and pipelines",
+    "lead": "Which version of each engine component is running, and every data load with its checks.",
+    "models": "Model versions",
+    "runs": "Pipeline runs",
+    "noMetrics": "Rule-based baseline: no evaluation metrics yet. Phase 2 models report theirs here.",
+    "component": {
+      "need": "Need estimate",
+      "coverage": "Coverage",
+      "optimizer": "Optimizer",
+      "early_warning": "Early warning",
+      "explainer": "Explainer"
+    }
+  },
+  "admin": {
+    "usersTitle": "Users and roles",
+    "usersLead": "Every staff and caregiver account with its role and scope. Changes are audited and end the user's open sessions.",
+    "name": "Name",
+    "role": "Role",
+    "scope": "Scope",
+    "login": "Sign-in",
+    "state": "Access",
+    "twoFactor": "two-factor",
+    "level": {
+      "none": "none",
+      "centre": "centre",
+      "sector": "sector",
+      "district": "district",
+      "national": "national"
+    },
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "newUser": "New account",
+    "scopeHint": "Centre code, sector code (S-…) or district code (D-…). Leave empty for national roles.",
+    "email": "Email",
+    "phone": "Mobile number",
+    "password": "Password",
+    "passwordHint": "Staff only, at least 12 characters.",
+    "create": "Create account",
+    "created": "Account created.",
+    "createdAdmin": "Account created. Two-factor secret, shown once: {secret}",
+    "createFailed": "The account could not be created.",
+    "pipelinesTitle": "Data sources and pipeline runs",
+    "pipelinesLead": "What was loaded, from which files (with checksums), how many rows, and which checks passed.",
+    "inputs": "Input files",
+    "rows": "Rows written",
+    "checks": "Checks",
+    "auditTitle": "Audit log",
+    "auditLead": "Every human decision, append-only. A database rule blocks any edit or deletion.",
+    "action": "Action",
+    "all": "All",
+    "actions": {
+      "recommendation": "Suggestion decisions",
+      "scenario": "Plan runs",
+      "alert": "Alert follow-up",
+      "centre": "Centre verification",
+      "user": "Accounts and roles",
+      "planning_defaults": "Default weights"
+    },
+    "noEntries": "No entries match.",
+    "when": "When",
+    "who": "Who",
+    "change": "Change",
+    "reason": "Reason"
+  },
+  "tour": {
+    "title": "Five-minute tour",
+    "lead": "A guided walk through the pitch. Each step signs in as the right demo account and points at what to look at. It runs entirely on the seeded demo data.",
+    "start": "Start the tour",
+    "label": "Guided tour",
+    "progress": "Step {n} of {total}",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "exit": "Exit tour",
+    "offline": "The tour needs no internet connection: every step uses the local demo database. If the map basemap cannot load, maps show the boundaries only.",
+    "as": {
+      "parent": "as a parent",
+      "caregiver": "as a caregiver",
+      "sector_officer": "as the Byumba officer",
+      "district_planner": "as the Gicumbi planner",
+      "national_analyst": "as a national analyst",
+      "admin": "as an admin"
+    },
+    "steps": {
+      "welcome": {
+        "title": "The problem",
+        "text": "Pre-primary enrolment must nearly double by 2029, and stunting in Gicumbi stands at 38.8%. Districts must decide where to invest, with uneven data.",
+        "say": "Say: IrereroAI helps decide, track and learn, and a person decides every step."
+      },
+      "needMap": {
+        "title": "Need, with honest ranges",
+        "text": "Gicumbi's sectors coloured by stunting risk. Hatched sectors have the least certain estimates. Red dots are centres with a problem; rings are parent requests.",
+        "say": "Say: we show uncertainty instead of hiding it. Everything here is labelled simulated."
+      },
+      "reject": {
+        "title": "Suggest, then decide",
+        "text": "Press \"Get suggestions\". Cyumba village site A ranks high because parents asked for a centre there. Reject it with \"No land available\" and watch the list refill without it.",
+        "say": "Say: the rejection reason becomes a rule for every later plan, and it is in the audit log."
+      },
+      "caregiver": {
+        "title": "A weekly report in three minutes",
+        "text": "The caregiver at Irerero Ineza sends this week's report: about ten numbers, one question at a time, even offline or by SMS.",
+        "say": "Say: no child names, only counts. Free places update for parents straight away."
+      },
+      "alert": {
+        "title": "An early warning with a reason",
+        "text": "The Byumba officer sees Irerero Umucyo: attendance has fallen for three weeks and the reports say there is no water.",
+        "say": "Say: the rule compares the centre with its own history, and states its numbers."
+      },
+      "parent": {
+        "title": "A parent asks for a centre",
+        "text": "No verified centre within 2 km here. Press \"Request a centre here\". Only a 500 m square is stored.",
+        "say": "Say: an empty search is a signal, not a dead end."
+      },
+      "replay": {
+        "title": "Twelve weeks of learning",
+        "text": "Back on the planner's map, the new request is counted. Press play on the week slider to replay weeks 1 to 12: reports arrive, alerts appear, requests build up.",
+        "say": "Say: what centres report and what parents ask for shapes the next plan."
+      },
+      "promise": {
+        "title": "Our promise",
+        "text": "AI suggests, people decide. Every suggestion has reasons, a range and its sources; nothing happens automatically; and every number on screen says whether it is real or simulated.",
+        "say": "Say: Phase 2 loads the real Census, DHS, EICV and NCDA data into the same structures."
+      }
+    }
   }
 }

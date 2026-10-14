@@ -41,7 +41,7 @@ export default async function Landing() {
         <CycleDiagram />
       </section>
 
-      <section aria-labelledby="numbers">
+      <section aria-labelledby="numbers" data-tour="numbers">
         <h2 id="numbers" className="mb-4 font-display text-2xl text-ink">
           {t("numbersTitle")}
         </h2>
@@ -49,7 +49,7 @@ export default async function Landing() {
       </section>
 
       <section aria-labelledby="promise" className="grid gap-6 lg:grid-cols-2">
-        <Panel className="p-6">
+        <Panel className="p-6" data-tour="promise">
           <h2 id="promise" className="mb-3 font-display text-2xl text-ink">
             {t("promiseTitle")}
           </h2>

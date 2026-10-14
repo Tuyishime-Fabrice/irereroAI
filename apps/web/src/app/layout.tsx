@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { ProvenanceProvider } from "@/components/shell/ProvenanceProvider";
 import { SessionProvider } from "@/components/shell/SessionProvider";
+import { TourOverlay } from "@/components/tour/TourOverlay";
 
 import "./globals.css";
 
@@ -51,7 +52,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body className="min-h-screen bg-paper">
         <NextIntlClientProvider>
           <SessionProvider>
-            <ProvenanceProvider>{children}</ProvenanceProvider>
+            <ProvenanceProvider>
+              {children}
+              <TourOverlay />
+            </ProvenanceProvider>
           </SessionProvider>
         </NextIntlClientProvider>
       </body>

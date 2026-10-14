@@ -3,6 +3,7 @@
 import type { FeatureCollection } from "geojson";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { PointMap } from "@/components/map/PointMap";
@@ -29,13 +30,24 @@ const FEES: Schemas["FeeBand"][] = ["free", "under_1000", "from_1000_to_5000", "
 
 export function FindCentres() {
   const t = useTranslations("find");
+  const params = useSearchParams();
+  const linkedSector = params.get("sector");
+  const linkedRadius = Number(params.get("radius")) || 5;
   const { user } = useSession();
   const [districts, setDistricts] = useState<Schemas["District"][]>([]);
-  const [district, setDistrict] = useState(DEFAULT_DISTRICT);
-  const [sector, setSector] = useState("");
+  // A link can open Find on a sector, e.g. /find?sector=S-GICUMBI-MIYOVE&radius=2.
+  const [district, setDistrict] = useState(
+    linkedSector ? `D-${linkedSector.split("-")[1]}` : DEFAULT_DISTRICT,
+  );
+  const [sector, setSector] = useState(linkedSector ?? "");
   const [outlines, setOutlines] = useState<FeatureCollection | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
-  const [filters, setFilters] = useState<Filters>({ age: "", meals: false, fee: "", radius: 5 });
+  const [filters, setFilters] = useState<Filters>({
+    age: "",
+    meals: false,
+    fee: "",
+    radius: linkedRadius,
+  });
   const [response, setResponse] = useState<{
     key: string;
     data: Schemas["Envelope_FindResult_"] | null;
@@ -54,8 +66,13 @@ export function FindCentres() {
   useProvenance(result?.provenance);
 
   useEffect(() => {
-    api.GET("/public/places").then(({ data }) => data && setDistricts(data));
-  }, []);
+    api.GET("/public/places").then(({ data }) => {
+      if (!data) return;
+      setDistricts(data);
+      const linked = data.flatMap((d) => d.sectors).find((s) => s.code === linkedSector);
+      if (linked) setPlace({ lon: linked.lon, lat: linked.lat });
+    });
+  }, [linkedSector]);
   useEffect(() => {
     api
       .GET("/public/outlines", { params: { query: { district } } })
@@ -260,7 +277,12 @@ export function FindCentres() {
                       {t("requested", { sector: requested.data.sector_name })}
                     </p>
                   ) : (
-                    <Button variant="primary" size="lg" onClick={requestCentre}>
+                    <Button
+                      data-tour="request-centre"
+                      variant="primary"
+                      size="lg"
+                      onClick={requestCentre}
+                    >
                       {t("request")}
                     </Button>
                   )}

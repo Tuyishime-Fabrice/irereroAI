@@ -64,6 +64,26 @@
   background-repeat: repeat-x;
 }
 
+/* The judge tour points at one element at a time. */
+[data-tour-active] {
+  outline: 3px solid var(--clay);
+  outline-offset: 4px;
+  border-radius: 6px;
+  animation: tour-pulse 1.6s ease-in-out 3;
+}
+
+@keyframes tour-pulse {
+  50% {
+    outline-offset: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tour-active] {
+    animation: none;
+  }
+}
+
 @media print {
   .no-print {
     display: none !important;

@@ -81,6 +81,7 @@ export function DecisionCard({
 
   return (
     <article
+      data-tour={`site-${rec.site_id}`}
       aria-labelledby={headingId}
       className={`flex flex-col gap-4 rounded-md border bg-surface p-4 ${STATUS_STYLE[rec.status]} border-l-4`}
     >

@@ -40,7 +40,7 @@ export function AlertsQueue() {
           </button>
         ))}
       </div>
-      <Panel>
+      <Panel data-tour="alert-list">
         {shown.length === 0 ? (
           <EmptyState title={t("noAlerts")} />
         ) : (

@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import { HatchedChoropleth, type AreaFeature } from "@/components/map/HatchedChoropleth";
 import { hatchLevel } from "@/components/map/hatch";
 import { useProvenance } from "@/components/shell/ProvenanceProvider";
-import { useWorkspace } from "@/components/shell/Workspace";
+import { useSession } from "@/components/shell/SessionProvider";
 import { SourceChips } from "@/components/signature/SourceChip";
 import { PageTitle } from "@/components/ui/PageTitle";
 import { Panel } from "@/components/ui/Panel";
@@ -20,7 +20,7 @@ export function NationalOverview() {
   const t = useTranslations("national");
   const map = useTranslations("needMap");
   const router = useRouter();
-  const { setArea } = useWorkspace();
+  const { user } = useSession();
   const areas = useApi(
     "national:areas",
     async () =>
@@ -57,9 +57,9 @@ export function NationalOverview() {
         }}
       />
     );
+  // Sector detail and planning exist only for the planner's own district.
   const open = (code: string) => {
-    setArea(code);
-    router.push("/district");
+    if (code === user?.district_code) router.push("/district");
   };
 
   return (
@@ -112,13 +112,17 @@ export function NationalOverview() {
               {table.data.data.map((d) => (
                 <tr key={d.code} className="border-t border-line">
                   <th scope="row" className="px-3 py-1.5 font-normal">
-                    <button
-                      type="button"
-                      onClick={() => open(d.code)}
-                      className="text-left text-kivu underline"
-                    >
-                      {d.name}
-                    </button>
+                    {d.code === user?.district_code ? (
+                      <button
+                        type="button"
+                        onClick={() => open(d.code)}
+                        className="text-left text-kivu underline"
+                      >
+                        {d.name}
+                      </button>
+                    ) : (
+                      d.name
+                    )}
                     <span className="block text-xs text-ink-muted">{d.province}</span>
                   </th>
                   <td className="tabular px-3 py-1.5 text-xs">{formatRange(d.children)}</td>

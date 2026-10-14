@@ -12,7 +12,6 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
 from irerero_api.auth.principal import Principal
-from irerero_api.calendar import current_week
 from irerero_api.config import Settings
 from irerero_api.schemas.common import DriverOut, RangeOut, SourceOut
 from irerero_api.schemas.plan import (
@@ -82,7 +81,6 @@ def build_input(
     data = planning_input(
         session.connection(),
         district,
-        current_week(settings),
         budget,
         weights_of(weights),
         coverage_model(settings),

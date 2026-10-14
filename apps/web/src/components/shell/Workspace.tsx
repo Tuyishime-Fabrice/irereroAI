@@ -2,49 +2,35 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { api } from "@/lib/api/client";
+import { api, type Schemas } from "@/lib/api/client";
 
 type Workspace = {
-  weeks: string[];
-  currentWeek: string;
-  week: string;
-  setWeek: (week: string) => void;
-  area: string | null;
-  setArea: (area: string | null) => void;
   demoMode: boolean;
+  catchmentSteps: number[];
+  catchment: number;
+  setCatchment: (minutes: number) => void;
 };
 
 const WorkspaceContext = createContext<Workspace | null>(null);
 
-/** The reporting calendar and the area being looked at, shared by every staff page. */
+/** Settings every planner page shares, including the walking-time catchment being looked at. */
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const [calendar, setCalendar] = useState<{
-    weeks: string[];
-    current: string;
-    demo: boolean;
-  } | null>(null);
-  const [chosenWeek, setWeek] = useState<string | null>(null);
-  const [area, setArea] = useState<string | null>(null);
+  const [settings, setSettings] = useState<Schemas["AppSettings"] | null>(null);
+  const [chosen, setCatchment] = useState<number | null>(null);
 
   useEffect(() => {
-    api.GET("/calendar").then(({ data }) => {
-      if (data)
-        setCalendar({ weeks: data.weeks, current: data.current_week, demo: data.demo_mode });
-    });
+    api.GET("/settings").then(({ data }) => data && setSettings(data));
   }, []);
 
   const value = useMemo<Workspace | null>(
     () =>
-      calendar && {
-        weeks: calendar.weeks,
-        currentWeek: calendar.current,
-        week: chosenWeek ?? calendar.current,
-        setWeek,
-        area,
-        setArea,
-        demoMode: calendar.demo,
+      settings && {
+        demoMode: settings.demo_mode,
+        catchmentSteps: settings.catchment_steps,
+        catchment: chosen ?? settings.catchment_minutes,
+        setCatchment,
       },
-    [calendar, chosenWeek, area],
+    [settings, chosen],
   );
   if (!value) return null;
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

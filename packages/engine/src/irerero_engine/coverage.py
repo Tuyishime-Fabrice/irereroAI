@@ -13,6 +13,8 @@ from irerero_engine.types import Position
 
 DEFAULT_METRES_PER_MINUTE = 67.0  # about 4 km/h on rural paths
 DEFAULT_CATCHMENT_MINUTES = 30
+# Catchments precomputed by the build, so the planner's slider answers instantly.
+CATCHMENT_STEPS = (15, 20, 30, 45, 60)
 
 
 @dataclass(frozen=True)

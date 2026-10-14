@@ -1,8 +1,7 @@
-import uuid
-from datetime import datetime
+from datetime import date
 from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, String
+from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from irerero_contract.base import Base, Provenance, count, enum_type, point
@@ -14,8 +13,8 @@ class Centre(Provenance, Base):
 
     __tablename__ = "centre"
     __table_args__ = (
-        CheckConstraint("reliability_score BETWEEN 0 AND 1", name="reliability_range"),
         CheckConstraint("serves_0_2 OR serves_3_6", name="serves_an_age_band"),
+        CheckConstraint("enrolment >= 0", name="enrolment_min"),
     )
 
     code: Mapped[str] = mapped_column(String(32), primary_key=True, comment="IrereroAI centre code")
@@ -49,19 +48,14 @@ class Centre(Provenance, Base):
         Boolean, comment="Has adapted space and trained caregivers for children with disabilities"
     )
     verified: Mapped[bool] = mapped_column(
-        Boolean, default=False, comment="A sector officer has checked the centre in person"
+        Boolean, default=False, comment="Marked verified in the NCDA ECD Mapping System"
     )
-    verified_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), comment="When the last verification happened"
+    water_available: Mapped[bool] = mapped_column(
+        Boolean, comment="Has safe drinking water and handwashing on site"
     )
-    verified_by: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("user_account.id"), nullable=True, comment="Officer who verified the centre"
-    )
-    reliability_score: Mapped[float] = mapped_column(
-        Float,
-        default=0.0,
-        comment="0 to 1. Share of the last 12 weeks reported on time without quality flags",
-        info={"minimum": 0, "maximum": 1},
+    enrolment: Mapped[int] = count("Children enrolled, from the latest attendance feed record")
+    enrolment_as_of: Mapped[date] = mapped_column(
+        Date, comment="Date of the attendance feed record the enrolment comes from"
     )
     ncda_ref: Mapped[str | None] = mapped_column(
         String(64), unique=True, comment="Record identifier in the NCDA ECD Mapping System"

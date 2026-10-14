@@ -1,4 +1,4 @@
-"""National view: all districts with ranges, model and pipeline status, aggregate export."""
+"""National overview: every district with ranges, and an aggregate export."""
 
 import csv
 import io
@@ -7,23 +7,19 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from sqlalchemy import select, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from irerero_api.auth.deps import require_roles
-from irerero_api.auth.principal import Principal
-from irerero_api.calendar import current_week
+from irerero_api.auth.deps import Planner
 from irerero_api.config import get_settings
 from irerero_api.db import get_session
 from irerero_api.schemas.common import Envelope, RangeOut, wrap
 from irerero_api.suppression import suppress_csv
-from irerero_contract.enums import EngineComponent, Origin, Role
-from irerero_contract.tables import ModelVersion
+from irerero_contract.enums import Origin
 from irerero_engine.types import SourceRef
 
 router = APIRouter(prefix="/national", tags=["national"])
 SessionDep = Annotated[Session, Depends(get_session)]
-Analyst = Annotated[Principal, Depends(require_roles(Role.NATIONAL_ANALYST, Role.ADMIN))]
 
 DISTRICTS = text(
     """
@@ -38,7 +34,7 @@ DISTRICTS = text(
         SELECT sum(c.children_covered) AS children_covered,
             sum(c.children_uncovered) AS children_uncovered
         FROM coverage_snapshot c JOIN admin_unit s ON s.code = c.area_code
-        WHERE s.parent_code = a.code AND c.week_start = :week
+        WHERE s.parent_code = a.code AND c.catchment_minutes = :minutes
     ) cs ON true
     WHERE a.level = 'district' ORDER BY a.name
     """
@@ -62,7 +58,7 @@ class DistrictRow(BaseModel):
 
 def _rows(session: Session) -> list[DistrictRow]:
     out = []
-    for r in session.execute(DISTRICTS, {"week": current_week(get_settings())}):
+    for r in session.execute(DISTRICTS, {"minutes": get_settings().catchment_minutes}):
         children = RangeOut(
             estimate=r.children_0_2_estimate + r.children_3_6_estimate,
             low=r.children_0_2_low + r.children_3_6_low,
@@ -106,12 +102,12 @@ def _sources(session: Session) -> list[SourceRef]:
 
 
 @router.get("/districts", response_model=Envelope[list[DistrictRow]])
-def districts(session: SessionDep, principal: Analyst) -> Envelope[list[DistrictRow]]:
+def districts(session: SessionDep, principal: Planner) -> Envelope[list[DistrictRow]]:
     return wrap(_rows(session), _sources(session))
 
 
 @router.get("/export.csv", response_class=StreamingResponse)
-def export_csv(session: SessionDep, principal: Analyst) -> StreamingResponse:
+def export_csv(session: SessionDep, principal: Planner) -> StreamingResponse:
     """District aggregates. Counts below 5 are written as <5. Every row states its origin."""
     buffer = io.StringIO()
     writer = csv.writer(buffer)
@@ -155,17 +151,3 @@ def export_csv(session: SessionDep, principal: Analyst) -> StreamingResponse:
         media_type="text/csv",
         headers={"Content-Disposition": 'attachment; filename="irereroai-districts.csv"'},
     )
-
-
-class ModelVersionOut(BaseModel):
-    id: str
-    component: EngineComponent
-    description: str
-    params: dict[str, object]
-    metrics: dict[str, object]
-
-
-@router.get("/models", response_model=list[ModelVersionOut])
-def models(session: SessionDep, principal: Analyst) -> list[ModelVersionOut]:
-    rows = session.scalars(select(ModelVersion).order_by(ModelVersion.component)).all()
-    return [ModelVersionOut.model_validate(r, from_attributes=True) for r in rows]

@@ -45,7 +45,6 @@ LOADABLE = (
     "need_estimate",
     "pipeline_run",
     "unit_cost",
-    "weekly_report",
 )
 
 # Rwanda's bounding box, so a file with swapped or projected coordinates fails validation.

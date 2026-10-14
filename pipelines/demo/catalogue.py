@@ -13,7 +13,7 @@ STOOD_IN = {
     "census_2022": "child counts per sector",
     "rdhs_2025": "stunting risk per sector, around the published Gicumbi value",
     "lfs_2025": "mothers' childcare barrier share",
-    "ncda_mapping": "centres and twelve weeks of weekly reports",
+    "ncda_mapping": "centres with capacity and latest enrolment",
     "education_yearbook": "school candidate sites",
 }
 
@@ -42,7 +42,6 @@ def load_catalogue(conn: Connection) -> int:
             "url": None,
             "feeds": [
                 "centre",
-                "weekly_report",
                 "need_estimate",
                 "candidate_site",
                 "unit_cost",

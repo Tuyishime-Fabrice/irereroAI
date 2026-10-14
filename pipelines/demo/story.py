@@ -13,18 +13,22 @@ class StoryCentre:
     sector_code: str
     type: CentreType
     capacity: int
+    enrolment: int
+    water_available: bool
     note: str
 
 
 STORY_CENTRES = (
     StoryCentre(
-        "caregiver_home",
+        "steady",
         "ECD-GIC-001",
         "Irerero Ineza",
         "S-GICUMBI-BYUMBA",
         CentreType.COMMUNITY_BASED,
         60,
-        "The demo caregiver's centre. Clean history; this week's report is not in yet.",
+        52,
+        True,
+        "A well-run centre with a few free places.",
     ),
     StoryCentre(
         "no_water",
@@ -33,7 +37,9 @@ STORY_CENTRES = (
         "S-GICUMBI-BYUMBA",
         CentreType.COMMUNITY_BASED,
         50,
-        "Attendance drops for the last three weeks; the reports say there is no water.",
+        44,
+        False,
+        "No safe water on site: a support candidate.",
     ),
     StoryCentre(
         "overcrowded",
@@ -42,25 +48,31 @@ STORY_CENTRES = (
         "S-GICUMBI-BYUMBA",
         CentreType.CENTRE_BASED,
         60,
-        "Enrolment well above capacity and a long, growing waiting list.",
+        81,
+        True,
+        "Enrolment well above capacity: highlighted on the coverage gap view.",
     ),
     StoryCentre(
-        "stopped_reporting",
+        "outgrown_home",
         "ECD-GIC-004",
         "Irerero Amahoro",
         "S-GICUMBI-RUKOMO",
         CentreType.HOME_BASED,
         25,
-        "Reports stop after week 9.",
+        33,
+        True,
+        "A home-based centre that has outgrown its space: an upgrade candidate.",
     ),
     StoryCentre(
-        "implausible_jump",
+        "steady_rural",
         "ECD-GIC-005",
         "Irerero Ubumwe",
         "S-GICUMBI-MUKARANGE",
         CentreType.COMMUNITY_BASED,
         45,
-        "Week 9 enrolment more than doubles, then returns; the quality check flags it.",
+        38,
+        True,
+        "A steady rural centre.",
     ),
     StoryCentre(
         "underserved",
@@ -69,8 +81,10 @@ STORY_CENTRES = (
         "S-GICUMBI-CYUMBA",
         CentreType.HOME_BASED,
         20,
+        22,
+        True,
         "The only centre in the under-served sector where parents ask for more.",
     ),
 )
 
-STORY_BY_ROLE = {c.role: c for c in STORY_CENTRES}
+STORY_BY_CODE = {c.code: c for c in STORY_CENTRES}

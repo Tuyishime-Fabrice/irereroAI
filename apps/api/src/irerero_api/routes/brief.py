@@ -8,35 +8,30 @@ from pydantic import BaseModel
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from irerero_api.auth.deps import require_roles
-from irerero_api.auth.principal import Principal
-from irerero_api.auth.scope import require_area
-from irerero_api.calendar import current_week
+from irerero_api.auth.deps import Planner
+from irerero_api.auth.scope import require_district
 from irerero_api.config import get_settings
 from irerero_api.db import get_session
 from irerero_api.schemas.common import Envelope, RangeOut, wrap
 from irerero_api.schemas.plan import OutcomesOut, RecommendationOut
 from irerero_api.services import plan as plan_service
-from irerero_contract.enums import RecommendationStatus, Role
+from irerero_contract.enums import RecommendationStatus
 from irerero_contract.tables import AdminUnit, Scenario
 from irerero_engine.types import SourceRef
 
 router = APIRouter(tags=["plan"])
 SessionDep = Annotated[Session, Depends(get_session)]
-Planner = Annotated[
-    Principal, Depends(require_roles(Role.DISTRICT_PLANNER, Role.NATIONAL_ANALYST, Role.ADMIN))
-]
 
 
 class Brief(BaseModel):
     district_code: str
     district_name: str
-    week: date
+    as_of: date
     scenario_name: str
     budget_rwf: int
     children: RangeOut
     stunting_risk: RangeOut
-    open_alerts: int
+    overcrowded_centres: int
     demand_signals: int
     approved: list[RecommendationOut]
     outcomes: OutcomesOut
@@ -45,7 +40,7 @@ class Brief(BaseModel):
 
 @router.get("/brief", response_model=Envelope[Brief])
 def brief(district: str, session: SessionDep, principal: Planner) -> Envelope[Brief]:
-    require_area(session, principal, district)
+    require_district(session, principal, district)
     scenario = session.scalars(
         select(Scenario)
         .where(Scenario.district_code == district)
@@ -68,10 +63,10 @@ def brief(district: str, session: SessionDep, principal: Planner) -> Envelope[Br
     ).one()
     counts = session.execute(
         text(
-            "SELECT (SELECT count(*) FROM alert a JOIN centre c ON c.code = a.centre_code "
-            "JOIN admin_unit s ON s.code = c.sector_code WHERE s.parent_code = :d "
-            "AND a.status <> 'resolved') AS alerts, (SELECT count(*) FROM demand_signal d "
-            "JOIN admin_unit s ON s.code = d.sector_code WHERE s.parent_code = :d) AS demand"
+            "SELECT (SELECT count(*) FROM centre c JOIN admin_unit s ON s.code = c.sector_code "
+            "WHERE s.parent_code = :d AND c.enrolment > c.capacity) AS crowded, "
+            "(SELECT count(*) FROM demand_signal d JOIN admin_unit s ON s.code = d.sector_code "
+            "WHERE s.parent_code = :d) AS demand"
         ),
         {"d": district},
     ).one()
@@ -79,7 +74,7 @@ def brief(district: str, session: SessionDep, principal: Planner) -> Envelope[Br
     data = Brief(
         district_code=district,
         district_name=district_unit.name if district_unit else district,
-        week=current_week(settings),
+        as_of=scenario.created_at.date(),
         scenario_name=scenario.name,
         budget_rwf=scenario.budget_rwf,
         children=RangeOut(
@@ -92,7 +87,7 @@ def brief(district: str, session: SessionDep, principal: Planner) -> Envelope[Br
             low=need.stunting_risk_low,
             high=need.stunting_risk_high,
         ),
-        open_alerts=counts.alerts,
+        overcrowded_centres=counts.crowded,
         demand_signals=counts.demand,
         approved=approved,
         outcomes=plan_service.outcomes_out_for(session, settings, scenario, approved),

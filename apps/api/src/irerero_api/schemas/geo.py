@@ -3,7 +3,7 @@ from typing import Any, Literal, TypeVar
 from pydantic import BaseModel
 
 from irerero_api.schemas.common import RangeOut
-from irerero_contract.enums import AlertSeverity, CandidateKind, CentreType, Origin
+from irerero_contract.enums import CandidateKind, CentreType, Origin
 
 P = TypeVar("P")
 Detail = Literal["full", "medium", "coarse"]
@@ -44,17 +44,16 @@ class CentreProperties(BaseModel):
     type: CentreType
     capacity: int
     verified: bool
-    reliability_score: float
-    latest_attendance: int | None
+    enrolment: int
     overcrowded: bool
-    alert_severity: AlertSeverity | None
+    water_available: bool
+    offers_meals: bool
     origin: Origin
 
 
 class DemandProperties(BaseModel):
     grid_cell: str
     sector_code: str
-    empty_searches: int
     centre_requests: int
 
 

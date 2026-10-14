@@ -18,20 +18,6 @@
     "week": "Week",
     "skipToContent": "Skip to content"
   },
-  "months": {
-    "jan": "Jan",
-    "feb": "Feb",
-    "mar": "Mar",
-    "apr": "Apr",
-    "may": "May",
-    "jun": "Jun",
-    "jul": "Jul",
-    "aug": "Aug",
-    "sep": "Sep",
-    "oct": "Oct",
-    "nov": "Nov",
-    "dec": "Dec"
-  },
   "provenance": {
     "simulatedPill": "Simulated data",
     "simulatedShort": "Simulated",
@@ -56,12 +42,6 @@
     "title": "Main reasons",
     "none": "No single reason stands out."
   },
-  "reliability": {
-    "label": "Report reliability",
-    "high": "reliable",
-    "medium": "check",
-    "low": "unreliable"
-  },
   "impact": {
     "reached": "Children who gain a place",
     "uncovered": "Children still without a place",
@@ -71,76 +51,6 @@
     "cost": "Cost",
     "vsBaseline": "vs baseline",
     "countableOnly": "Countable outcomes only. These numbers count children and mothers reached; they do not predict a change in stunting."
-  },
-  "alerts": {
-    "severity": {
-      "critical": "Critical",
-      "warning": "Warning",
-      "info": "Note"
-    },
-    "kind": {
-      "attendance_drop": "Attendance drop",
-      "missing_report": "Missing report",
-      "overcrowding": "Overcrowding",
-      "wash": "No water",
-      "closure_risk": "Closure risk"
-    },
-    "status": {
-      "open": "Open",
-      "acknowledged": "Acknowledged",
-      "resolved": "Resolved"
-    },
-    "age": "{weeks, plural, =0 {This week} one {# week ago} other {# weeks ago}}",
-    "assignedTo": "Assigned to {name}"
-  },
-  "sms": {
-    "phoneLabel": "Phone screen showing the message: {message}",
-    "to": "To",
-    "title": "SMS report",
-    "lead": "The same weekly report as one coded message, for phones without internet. Phase 1 simulates the SMS gateway.",
-    "message": "Message",
-    "send": "Send this SMS",
-    "parsed": "What the system read",
-    "formatTitle": "How to write the message",
-    "problemCodes": "Main problem:",
-    "okNote": "End the message with OK to confirm numbers the system asks you to check.",
-    "reply": {
-      "saved": "Murakoze / Thank you. Report received.",
-      "needs_confirmation": "Some numbers look unusual. Check them and send again ending with OK.",
-      "rejected": "Report not accepted. Check the numbers and send again.",
-      "duplicate": "This week was already reported.",
-      "format_error": "Not understood: {problem}"
-    },
-    "formatError": {
-      "missing_keyword": "start the message with IR",
-      "wrong_count": "{detail} values found",
-      "not_a_number": "a value is not a number",
-      "bad_week": "the week number is wrong",
-      "bad_water": "water must be Y or N",
-      "bad_problem": "the problem code must be 0 to 6"
-    },
-    "field": {
-      "centre_code": "Centre code",
-      "week_start": "Week",
-      "enrolled_0_2_female": "Girls 0–2",
-      "enrolled_0_2_male": "Boys 0–2",
-      "enrolled_3_6_female": "Girls 3–6",
-      "enrolled_3_6_male": "Boys 3–6",
-      "avg_daily_attendance": "Attendance",
-      "waiting_list": "Waiting list",
-      "caregivers_present": "Caregivers",
-      "days_open": "Days open",
-      "days_meal_served": "Days with a meal",
-      "wash_available": "Water all week (Y/N)",
-      "referrals_growth_monitoring": "Growth referrals",
-      "children_with_disability": "Children with a disability",
-      "main_problem": "Main problem (0–6)"
-    }
-  },
-  "weeks": {
-    "play": "Replay the weeks",
-    "pause": "Pause",
-    "weekOf": "Week {n} of {total} · {day} {month}"
   },
   "decision": {
     "rank": "Rank {rank}",
@@ -171,7 +81,6 @@
     "approve": "Approve",
     "edit": "Edit",
     "reject": "Reject",
-    "ask": "Why this suggestion?",
     "rejectWhy": "Why are you rejecting it?",
     "note": "Note",
     "noteRequired": "Required: say what the reason is.",
@@ -218,10 +127,10 @@
     "home": "IrereroAI home",
     "navLabel": "Main",
     "nav": {
-      "find": "Find a centre",
       "methodology": "How it works",
       "signIn": "Sign in",
-      "myWork": "My work"
+      "request": "Request a centre",
+      "planner": "Planner workspace"
     },
     "footer": {
       "honesty": "Data honesty: in this demo every centre, report and estimate is simulated and labelled as such. Only the district and sector boundaries are real public data.",
@@ -308,74 +217,6 @@
     },
     "ncda": "IrereroAI is designed to sit on top of NCDA's ECD Mapping System and the digitised ECD book, not to replace them."
   },
-  "find": {
-    "title": "Find a centre",
-    "lead": "Verified ECD centres near a place you choose. Your exact location is never stored.",
-    "where": "Where",
-    "district": "District",
-    "sector": "Sector",
-    "chooseSector": "Choose a sector",
-    "useLocation": "Use my location",
-    "locating": "Finding you…",
-    "mapHint": "Or tap the map to choose a place.",
-    "myPlace": "My place",
-    "filters": "Filters",
-    "age": "Age of the child",
-    "anyAge": "Any age",
-    "maxFee": "Monthly fee up to",
-    "anyFee": "Any fee",
-    "distance": "Distance",
-    "withinKm": "Within {km} km",
-    "mealsOnly": "Serves meals",
-    "results": "Results",
-    "pickFirst": "Choose a sector or tap the map to see centres nearby.",
-    "found": "{count, plural, one {# centre found} other {# centres found}}",
-    "save": "Save this search",
-    "saved": "Saved",
-    "signInToSave": "Sign in to save this search",
-    "noneTitle": "No verified centre here yet",
-    "noneText": "There is no verified centre within this distance that matches your filters.",
-    "counted": "This search was counted as a need for a centre in this area.",
-    "request": "Request a centre here",
-    "requested": "Thank you. Your request was counted for the {sector} area.",
-    "privacy": "Only a 500 m square around the place is recorded, never the exact point or your phone number.",
-    "km": "{km} km",
-    "type": {
-      "home_based": "Home-based",
-      "community_based": "Community-based",
-      "school_based": "School-based",
-      "centre_based": "Centre-based"
-    },
-    "fee": {
-      "free": "Free",
-      "under_1000": "Under 1,000 RWF a month",
-      "from_1000_to_5000": "1,000–5,000 RWF a month",
-      "over_5000": "Over 5,000 RWF a month"
-    },
-    "ages": {
-      "both": "Ages 0–6",
-      "young": "Ages 0–2",
-      "old": "Ages 3–6"
-    },
-    "meals": "Meals",
-    "freePlaces": "Free places",
-    "notReported": "Not reported",
-    "fewerThanFive": "Fewer than 5",
-    "backToFind": "Back to search",
-    "typeLabel": "Type",
-    "agesLabel": "Ages",
-    "hours": "Opening hours",
-    "feeLabel": "Fees",
-    "capacity": "Places",
-    "mealsLabel": "Meals",
-    "growth": "Growth monitoring",
-    "inclusive": "Disability inclusive",
-    "lastVerified": "Last verified in person",
-    "notVerified": "Not yet",
-    "yes": "Yes",
-    "no": "No",
-    "freePlacesNote": "Free places come from the centre's latest weekly report. Numbers below 5 are not shown."
-  },
   "methodology": {
     "title": "How it works",
     "lead": "The full data process, from sources to the decision a person takes, and what is real today versus simulated.",
@@ -439,357 +280,30 @@
   },
   "signIn": {
     "title": "Sign in",
-    "lead": "Staff, caregivers and parents each sign in their own way.",
-    "who": "Who are you?",
-    "mode": {
-      "staff": "Staff",
-      "caregiver": "Caregiver",
-      "parent": "Parent"
-    },
+    "lead": "For district planners. Parents can request a centre without an account.",
     "email": "Email",
     "password": "Password",
-    "totp": "Six-digit code",
-    "totpHint": "Needed for system administrators.",
-    "phone": "Mobile number",
-    "phoneHint": "For example 078 123 4567.",
-    "centreCode": "Centre code",
-    "centreHint": "Printed on your centre's registration, for example ECD-GIC-001.",
-    "code": "Code from the SMS",
-    "demoCode": "Demo mode: no SMS is sent. Your code is",
-    "parentPrivacy": "We keep only your phone number and the searches you save. You can delete them at any time.",
-    "sendCode": "Send me a code",
     "submit": "Sign in",
     "failed": "Those details did not match. Check them and try again.",
-    "badPhone": "Enter a Rwandan mobile number.",
     "demoTitle": "Demo accounts",
-    "demoLead": "Shown in demo mode only. One account per role, all on simulated data.",
+    "demoLead": "Shown in demo mode only. The demo planner for Gicumbi, on simulated data.",
     "demoPassword": "Password:",
-    "demoAdminCode": "admin code now:",
     "demoUse": "Use",
-    "roles": {
-      "parent": "Parent",
-      "caregiver": "Caregiver",
-      "sector_officer": "Sector ECD officer",
-      "district_planner": "District planner",
-      "national_analyst": "National analyst",
-      "admin": "System admin"
-    }
-  },
-  "account": {
-    "title": "My account",
-    "lead": "Your saved searches, and deleting your account.",
-    "signInFirst": "Sign in with your phone to see your saved searches.",
-    "signIn": "Sign in",
-    "searches": "Saved searches",
-    "noSearches": "No saved searches yet.",
-    "goFind": "Find a centre",
-    "delete": "Delete",
-    "deleteTitle": "Delete my account",
-    "deleteText": "This removes your phone number and saved searches. Requests you made for a centre stay counted, but they were never linked to you.",
-    "deleteAccount": "Delete my account",
-    "deleteConfirm": "Yes, delete everything",
-    "cancel": "Cancel"
+    "parentsNote": "Parents do not need an account: use Request a centre."
   },
   "shell": {
     "skip": "Skip to content",
     "home": "Home",
     "nav": "Sections",
-    "week": "Week",
-    "weekOption": "Week {n} · {day} {month}",
-    "thisWeek": "this week",
     "signOut": "Sign out",
-    "scope": "View",
-    "national": "National",
-    "role": {
-      "parent": "Parent",
-      "caregiver": "Caregiver",
-      "sector_officer": "Sector ECD officer",
-      "district_planner": "District planner",
-      "national_analyst": "National analyst",
-      "admin": "System admin"
-    },
+    "role": "District planner",
     "navItem": {
-      "find": "Find a centre",
-      "account": "My account",
-      "home": "Home",
-      "report": "Weekly report",
-      "sms": "SMS report",
-      "overview": "Overview",
-      "alerts": "Alerts",
-      "centres": "Centres",
-      "suggestions": "Local suggestions",
       "needMap": "Need map",
       "plan": "Plan",
       "whatIf": "What-if",
       "decisions": "Decisions and brief",
-      "nationalMap": "Districts",
-      "defaults": "Default weights",
-      "status": "Models and pipelines",
-      "users": "Users and roles",
-      "pipelines": "Data sources",
-      "audit": "Audit log",
-      "models": "Models"
+      "national": "National overview"
     }
-  },
-  "caregiver": {
-    "reportedThisWeek": "This week's report is in. Thank you.",
-    "notYet": "This week's report is not in yet.",
-    "takesThree": "About ten numbers. It takes less than three minutes.",
-    "startReport": "Start this week's report",
-    "queuedWaiting": "Saved on this phone. It will be sent when you are back online.",
-    "queuedProblem": "A saved report needs a correction before it can be sent.",
-    "sendNow": "Send now",
-    "discardQueued": "Discard and start again",
-    "syncedNow": "{n, plural, one {# saved report was sent.} other {# saved reports were sent.}}",
-    "offlineNote": "You are offline. You can still fill in the report.",
-    "alertsTitle": "Your sector officer sees this",
-    "alertsNote": "These signals come from your own reports. Your sector officer will follow up with you.",
-    "trendsTitle": "Your last twelve weeks",
-    "trendChildren": "Children",
-    "trendServices": "Meals and water",
-    "enrolled": "Enrolled",
-    "attendance": "Attending on a typical day",
-    "mealDays": "Days with a meal",
-    "water": "Water all week (1 = yes)",
-    "trendNote": "Gaps are weeks without a report.",
-    "statusTitle": "Your centre",
-    "verified": "Verified in person on {date}. Parents can find your centre.",
-    "notVerified": "Not yet verified. Your sector officer will visit; parents see verified centres only.",
-    "reliability": "Report reliability",
-    "givesBackTitle": "What reporting gives you back",
-    "givesBack": {
-      "parents": "Parents can see your free places and find you.",
-      "officer": "Your officer learns early when you lack food, water or caregivers.",
-      "plan": "Your numbers count when the district decides where to invest."
-    }
-  },
-  "report": {
-    "title": "Weekly report · {week}",
-    "weekLabel": "week of {day} {month}",
-    "thisWeek": "this week",
-    "progress": "Question {step} of {total}",
-    "offline": "You are offline. Fill in the report; it will be saved on this phone and sent later.",
-    "prefilled": "We started from your last report. Change only what is different.",
-    "enrolledTotal": "Children enrolled: {n}",
-    "steps": {
-      "week": {
-        "question": "Which week are you reporting?"
-      },
-      "young": {
-        "question": "How many children aged 0 to 2 are enrolled?"
-      },
-      "old": {
-        "question": "How many children aged 3 to 6 are enrolled?"
-      },
-      "attendance": {
-        "question": "On a typical day this week, how many children came?"
-      },
-      "days": {
-        "question": "How many days did you open, and on how many was a meal served?"
-      },
-      "caregivers": {
-        "question": "How many caregivers were present on a typical day?"
-      },
-      "waiting": {
-        "question": "How many children are waiting for a place?"
-      },
-      "water": {
-        "question": "Was there water and handwashing all week?"
-      },
-      "health": {
-        "question": "Referrals and inclusion this week"
-      },
-      "problem": {
-        "question": "What was the main problem this week?"
-      },
-      "review": {
-        "question": "Check and send"
-      }
-    },
-    "fields": {
-      "enrolled_0_2_female": "Girls",
-      "enrolled_0_2_male": "Boys",
-      "enrolled_3_6_female": "Girls",
-      "enrolled_3_6_male": "Boys",
-      "avg_daily_attendance": "Children attending",
-      "days_open": "Days open",
-      "days_meal_served": "Days with a meal",
-      "caregivers_present": "Caregivers present",
-      "waiting_list": "Children waiting",
-      "referrals_growth_monitoring": "Children referred to growth monitoring",
-      "children_with_disability": "Enrolled children with a disability"
-    },
-    "problems": {
-      "none": "No problem",
-      "no_food": "No food",
-      "no_water": "No water",
-      "caregiver_absent": "A caregiver was absent",
-      "building_damage": "Building damage",
-      "weather": "Bad weather",
-      "other": "Something else"
-    },
-    "yes": "Yes",
-    "no": "No",
-    "back": "Back",
-    "send": "Send report",
-    "saveOffline": "Save on this phone",
-    "summary": {
-      "young": "Enrolled, ages 0–2",
-      "old": "Enrolled, ages 3–6",
-      "days": "Days open / with a meal",
-      "water": "Water all week",
-      "problem": "Main problem"
-    },
-    "checking": "Checking the numbers…",
-    "offlineCheck": "You are offline, so the numbers are checked when the report is sent.",
-    "looksGood": "The numbers look right.",
-    "confirmUnusual": "These numbers are correct",
-    "jumpNote": "These numbers are very different from your recent weeks. That is fine if they are right; your officer may ask about them.",
-    "issue": {
-      "negative": "A number cannot be below zero.",
-      "days_above_six": "A week has at most six working days.",
-      "attendance_above_enrolment": "More children attended than are enrolled. Check the attendance or the enrolment.",
-      "meals_above_days_open": "Meals cannot be served on more days than the centre was open.",
-      "disability_above_enrolment": "Children with a disability cannot be more than the children enrolled.",
-      "attendance_while_closed": "The centre was closed all week, so attendance should be 0.",
-      "enrolment_far_above_capacity": "Enrolment is much higher than your centre's places. Is that right?",
-      "no_caregiver_while_open": "The centre was open but no caregiver was present. Is that right?",
-      "children_per_caregiver_high": "That is more than 25 children per caregiver. Is that right?",
-      "waiting_list_very_long": "The waiting list is very long for your centre. Is that right?"
-    },
-    "done": {
-      "sent": {
-        "title": "Report sent",
-        "text": "Your report for the {week} is in. Thank you."
-      },
-      "queued": {
-        "title": "Saved on this phone",
-        "text": "Your report for the {week} is saved and will be sent as soon as you are online."
-      },
-      "duplicate": {
-        "title": "Already reported",
-        "text": "A report for the {week} was already received."
-      }
-    },
-    "tookMinutes": "{minutes, plural, one {That took about # minute.} other {That took about # minutes.}}",
-    "backHome": "Back to home",
-    "seeSms": "See it as an SMS",
-    "allDoneTitle": "You are up to date",
-    "allDoneText": "Every recent week is reported. Thank you.",
-    "afterwards": {
-      "officer": "Your sector officer sees it today.",
-      "parents": "Free places update for parents on the Find page.",
-      "plan": "It counts in the district's next plan."
-    },
-    "next": "Next",
-    "assisted": "entered by the sector officer"
-  },
-  "assistant": {
-    "label": "Ask about this",
-    "close": "Close",
-    "intro": "Answers use only the records in IrereroAI and name the tables they come from.",
-    "questions": {
-      "why": "Why this?",
-      "sources": "Which data?",
-      "uncertainty": "How sure is it?",
-      "who_decides": "Who decides?",
-      "unknown": "Your question"
-    },
-    "from": "From:",
-    "ask": "Ask",
-    "placeholder": "Type a question",
-    "templatesNote": "Phase 1 answers come from fixed templates. No language model is used."
-  },
-  "sector": {
-    "pickSector": "Choose a sector in the top bar.",
-    "overviewTitle": "{sector} sector",
-    "overviewLead": "Centres in your sector this week: who has reported, which need help and why.",
-    "stats": {
-      "centres": "Centres",
-      "reported": "Reported this week",
-      "openAlerts": "Open alerts",
-      "missing": "Missing reports"
-    },
-    "centresTitle": "Centres",
-    "centresLead": "Every centre in your sector with its latest report and how much its reports can be relied on.",
-    "seeAll": "See all",
-    "centre": "Centre",
-    "thisWeek": "This week",
-    "reliability": "Reliability",
-    "reported": "Reported",
-    "notReported": "Not yet",
-    "openAlerts": "Open alerts",
-    "queue": "Alert queue",
-    "noAlerts": "No alerts to show.",
-    "open": "Open",
-    "alertsTitle": "Alerts",
-    "alertsLead": "Early warnings from weekly reports, most urgent first. Each says why it fired.",
-    "filter": "Show",
-    "filters": {
-      "active": "Open and acknowledged",
-      "open": "Open",
-      "acknowledged": "Acknowledged",
-      "resolved": "Resolved"
-    },
-    "kindLead": {
-      "attendance_drop": "Fewer children are coming than usual.",
-      "missing_report": "The centre has stopped reporting.",
-      "overcrowding": "More children attend than the centre has places for.",
-      "wash": "No water or handwashing.",
-      "closure_risk": "The centre may close."
-    },
-    "why": "Why this alert?",
-    "trend": "Twelve-week trend",
-    "enrolled": "Enrolled",
-    "attendance": "Attending",
-    "capacity": "Places",
-    "recentReports": "Recent reports",
-    "weekCol": "Week",
-    "followUp": "Follow up",
-    "resolvedWith": "Resolved: {note}",
-    "acknowledge": "Acknowledge",
-    "assign": "Assign to",
-    "chooseOfficer": "Choose an officer",
-    "assignButton": "Assign",
-    "resolveNote": "What was done?",
-    "resolveHint": "Required to resolve, for example \"water tank repaired on 23 Sep\".",
-    "resolve": "Mark as resolved",
-    "auditNote": "Every change is recorded in the audit log with your name.",
-    "type": "Type",
-    "lastReport": "Last report",
-    "verifiedCol": "Verified",
-    "yes": "Yes",
-    "no": "No",
-    "assistedReport": "Enter this week's report for the centre",
-    "allReports": "All reports",
-    "channel": "How sent",
-    "flags": "Quality flags",
-    "channels": {
-      "web": "App",
-      "offline": "App (offline)",
-      "sms": "SMS",
-      "assisted": "Entered by officer"
-    },
-    "flag": {
-      "enrolment_jump": "Enrolment jump",
-      "attendance_jump": "Attendance jump",
-      "out_of_range_confirmed": "Unusual, confirmed",
-      "late_submission": "Late"
-    },
-    "verification": "Verification",
-    "verifiedOn": "Verified in person on {date}.",
-    "notVerifiedYet": "Not verified yet. Parents do not see this centre until it is.",
-    "visitNote": "Visit note",
-    "visitHint": "Optional, for example what you checked.",
-    "verifyButton": "Record verification visit",
-    "facts": "Centre facts",
-    "hours": "Hours",
-    "ncdaLinked": "Linked to NCDA record {ref}.",
-    "ncdaNotLinked": "Not yet linked to an NCDA ECD Mapping System record.",
-    "suggestionsTitle": "Local suggestions",
-    "suggestionsLead": "Suggestions from the latest district plan that fall in your sector.",
-    "noSuggestions": "The district plan has no suggestions in your sector yet.",
-    "suggestionsNote": "You can decide quality-support suggestions here. Building and upgrading stay with the district planner; you can read the reasons and ask why."
   },
   "needMap": {
     "title": "Need map",
@@ -807,7 +321,7 @@
       "demand": "Parent requests",
       "sites": "Candidate sites"
     },
-    "demandCount": "{n} parent requests and empty searches so far",
+    "demandCount": "{n} parent requests so far",
     "pickSector": "Sector details",
     "pickHint": "Choose a sector on the map or in the table.",
     "covered": "Children with a place",
@@ -819,8 +333,7 @@
       "1": "Some doubt",
       "2": "Wide range",
       "3": "Very wide range"
-    },
-    "replayNote": "Use the week slider to replay how coverage, alerts and parent requests built up week by week."
+    }
   },
   "plan": {
     "title": "Plan",
@@ -883,22 +396,22 @@
   "brief": {
     "noPlan": "Run a plan first to produce a brief.",
     "print": "Print or save as PDF",
-    "kicker": "District brief · week of {week}",
+    "kicker": "District brief · {date}",
     "title": "{district}: early childhood development plan",
     "children": "Children 0–6",
     "stunting": "Stunting risk",
-    "alerts": "Open alerts",
     "demand": "Parent requests",
     "approvedTitle": "Approved actions in \"{plan}\" (budget {budget})",
     "noneApproved": "No action has been approved yet.",
     "outcomes": "What the approved actions would change",
     "decidedBy": "Decided by: {names}",
     "humans": "Every action here was approved by a person. IrereroAI only suggested.",
-    "sources": "Sources"
+    "sources": "Sources",
+    "overcrowded": "Overcrowded centres"
   },
   "national": {
-    "title": "Districts",
-    "lead": "All 30 districts with ranges. Only Gicumbi has sector detail in this demo; the others carry district-level values.",
+    "title": "National overview",
+    "lead": "All 30 districts at district level, with ranges. Sector detail and planning are open for your own district.",
     "download": "Download CSV",
     "tableCaption": "Values with ranges. Hatched districts on the map have the widest ranges.",
     "district": "District",
@@ -909,84 +422,9 @@
     "noDeepData": "No sector data",
     "note": "The CSV export gives district aggregates only; counts below 5 are written as <5 and every row states its origin."
   },
-  "defaults": {
-    "title": "Default weights and budgets",
-    "lead": "The values plan screens open with. Planners can still change them for each plan.",
-    "area": "Applies to",
-    "national": "All districts (national default)",
-    "inherited": "This district has no default of its own yet; it uses the national one until you save.",
-    "budget": "Default budget (RWF)",
-    "save": "Save defaults",
-    "saved": "Saved. The change is in the audit log."
-  },
-  "status": {
-    "title": "Models and pipelines",
-    "lead": "Which version of each engine component is running, and every data load with its checks.",
-    "models": "Model versions",
-    "runs": "Pipeline runs",
-    "noMetrics": "Rule-based baseline: no evaluation metrics yet. Phase 2 models report theirs here.",
-    "component": {
-      "need": "Need estimate",
-      "coverage": "Coverage",
-      "optimizer": "Optimizer",
-      "early_warning": "Early warning",
-      "explainer": "Explainer"
-    }
-  },
-  "admin": {
-    "usersTitle": "Users and roles",
-    "usersLead": "Every staff and caregiver account with its role and scope. Changes are audited and end the user's open sessions.",
-    "name": "Name",
-    "role": "Role",
-    "scope": "Scope",
-    "login": "Sign-in",
-    "state": "Access",
-    "twoFactor": "two-factor",
-    "level": {
-      "none": "none",
-      "centre": "centre",
-      "sector": "sector",
-      "district": "district",
-      "national": "national"
-    },
-    "deactivate": "Deactivate",
-    "activate": "Activate",
-    "newUser": "New account",
-    "scopeHint": "Centre code, sector code (S-…) or district code (D-…). Leave empty for national roles.",
-    "email": "Email",
-    "phone": "Mobile number",
-    "password": "Password",
-    "passwordHint": "Staff only, at least 12 characters.",
-    "create": "Create account",
-    "created": "Account created.",
-    "createdAdmin": "Account created. Two-factor secret, shown once: {secret}",
-    "createFailed": "The account could not be created.",
-    "pipelinesTitle": "Data sources and pipeline runs",
-    "pipelinesLead": "What was loaded, from which files (with checksums), how many rows, and which checks passed.",
-    "inputs": "Input files",
-    "rows": "Rows written",
-    "checks": "Checks",
-    "auditTitle": "Audit log",
-    "auditLead": "Every human decision, append-only. A database rule blocks any edit or deletion.",
-    "action": "Action",
-    "all": "All",
-    "actions": {
-      "recommendation": "Suggestion decisions",
-      "scenario": "Plan runs",
-      "alert": "Alert follow-up",
-      "centre": "Centre verification",
-      "user": "Accounts and roles",
-      "planning_defaults": "Default weights"
-    },
-    "noEntries": "No entries match.",
-    "when": "When",
-    "who": "Who",
-    "change": "Change",
-    "reason": "Reason"
-  },
   "tour": {
     "title": "Five-minute tour",
-    "lead": "A guided walk through the pitch. Each step signs in as the right demo account and points at what to look at. It runs entirely on the seeded demo data.",
+    "lead": "A guided walk through the pitch. Each step opens the right page, signs in as the demo planner when needed, and points at what to look at. It runs entirely on the seeded demo data.",
     "start": "Start the tour",
     "label": "Guided tour",
     "progress": "Step {n} of {total}",
@@ -996,22 +434,18 @@
     "exit": "Exit tour",
     "offline": "The tour needs no internet connection: every step uses the local demo database. If the map basemap cannot load, maps show the boundaries only.",
     "as": {
-      "parent": "as a parent",
-      "caregiver": "as a caregiver",
-      "sector_officer": "as the Byumba officer",
-      "district_planner": "as the Gicumbi planner",
-      "national_analyst": "as a national analyst",
-      "admin": "as an admin"
+      "planner": "as the Gicumbi planner",
+      "parent": "as a parent"
     },
     "steps": {
       "welcome": {
         "title": "The problem",
         "text": "Pre-primary enrolment must nearly double by 2029, and stunting in Gicumbi stands at 38.8%. Districts must decide where to invest, with uneven data.",
-        "say": "Say: IrereroAI helps decide, track and learn, and a person decides every step."
+        "say": "Say: the map shows what exists. IrereroAI shows what to do next."
       },
       "needMap": {
         "title": "Need, with honest ranges",
-        "text": "Gicumbi's sectors coloured by stunting risk. Hatched sectors have the least certain estimates. Red dots are centres with a problem; rings are parent requests.",
+        "text": "Gicumbi's sectors coloured by need. Hatched sectors have the least certain estimates. Red dots are centres that are overcrowded or have no water; rings are parent requests.",
         "say": "Say: we show uncertainty instead of hiding it. Everything here is labelled simulated."
       },
       "reject": {
@@ -1019,25 +453,15 @@
         "text": "Press \"Get suggestions\". Cyumba village site A ranks high because parents asked for a centre there. Reject it with \"No land available\" and watch the list refill without it.",
         "say": "Say: the rejection reason becomes a rule for every later plan, and it is in the audit log."
       },
-      "caregiver": {
-        "title": "A weekly report in three minutes",
-        "text": "The caregiver at Irerero Ineza sends this week's report: about ten numbers, one question at a time, even offline or by SMS.",
-        "say": "Say: no child names, only counts. Free places update for parents straight away."
-      },
-      "alert": {
-        "title": "An early warning with a reason",
-        "text": "The Byumba officer sees Irerero Umucyo: attendance has fallen for three weeks and the reports say there is no water.",
-        "say": "Say: the rule compares the centre with its own history, and states its numbers."
+      "whatIf": {
+        "title": "Our plan against population alone",
+        "text": "Compare up to three budgets and weightings with placing centres where the most children live. The plan reaches more high-risk children for the same money.",
+        "say": "Say: these are children and mothers reached, never a predicted fall in stunting."
       },
       "parent": {
         "title": "A parent asks for a centre",
-        "text": "No verified centre within 2 km here. Press \"Request a centre here\". Only a 500 m square is stored.",
-        "say": "Say: an empty search is a signal, not a dead end."
-      },
-      "replay": {
-        "title": "Twelve weeks of learning",
-        "text": "Back on the planner's map, the new request is counted. Press play on the week slider to replay weeks 1 to 12: reports arrive, alerts appear, requests build up.",
-        "say": "Say: what centres report and what parents ask for shapes the next plan."
+        "text": "In Cyumba the nearest centre is a long walk away. Press \"Request a centre here\". Only a 500 m square is stored, with no name or phone number.",
+        "say": "Say: requests appear on the planner's map and raise the value of sites near them."
       },
       "promise": {
         "title": "Our promise",
@@ -1045,5 +469,40 @@
         "say": "Say: Phase 2 loads the real Census, DHS, EICV and NCDA data into the same structures."
       }
     }
+  },
+  "request": {
+    "where": "Where",
+    "district": "District",
+    "sector": "Sector",
+    "chooseSector": "Choose a sector",
+    "useLocation": "Use my location",
+    "locating": "Finding you…",
+    "mapHint": "Or tap the map to choose a place.",
+    "results": "Results",
+    "age": "Age of the child",
+    "anyAge": "Any age",
+    "ages": {
+      "young": "Ages 0–2",
+      "old": "Ages 3–6"
+    },
+    "type": {
+      "home_based": "Home-based",
+      "community_based": "Community-based",
+      "school_based": "School-based",
+      "centre_based": "Centre-based"
+    },
+    "request": "Request a centre here",
+    "privacy": "Only a 500 m square around the place is recorded. No name, phone number or account is needed.",
+    "title": "Request a centre here",
+    "lead": "See the nearest verified centres, then ask for one closer. Your request appears on the district planner's map; your exact location is never stored.",
+    "pickFirst": "Choose a sector or tap the map to see the nearest centres.",
+    "nearestTitle": "Nearest verified centres",
+    "noneNearby": "No verified centre is recorded near here.",
+    "walk": "About {minutes} min walk ({km} km)",
+    "free": "Free places: {places}",
+    "fewPlaces": "fewer than 5",
+    "askTitle": "Need a centre closer to here?",
+    "askLead": "Your request is counted as a point on the district's planning map, next to other parents' requests.",
+    "requested": "Thank you. Your request was counted for the {sector} area."
   }
 }

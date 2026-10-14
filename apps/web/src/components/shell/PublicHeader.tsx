@@ -9,7 +9,7 @@ import { SimulatedWatermark } from "@/components/signature/SimulatedWatermark";
 
 import { DraftTranslationNote } from "./DraftTranslationNote";
 import { LocaleToggle } from "./LocaleToggle";
-import { homeFor } from "./roles";
+import { HOME } from "./nav";
 import { useSession } from "./SessionProvider";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -30,17 +30,17 @@ export function PublicHeader() {
           <Logo />
         </Link>
         <nav aria-label={t("navLabel")} className="flex flex-wrap items-center gap-4 text-sm">
-          <Link href="/find" className="text-ink hover:text-kivu">
-            {t("nav.find")}
+          <Link href="/request" className="text-ink hover:text-kivu">
+            {t("nav.request")}
           </Link>
           <Link href="/methodology" className="text-ink hover:text-kivu">
             {t("nav.methodology")}
           </Link>
           <Link
-            href={user ? (user.role === "parent" ? "/account" : homeFor(user.role)) : "/sign-in"}
+            href={user ? HOME : "/sign-in"}
             className="rounded-md border border-kivu px-3 py-1.5 font-medium text-kivu hover:bg-kivu-tint"
           >
-            {user ? t("nav.myWork") : t("nav.signIn")}
+            {user ? t("nav.planner") : t("nav.signIn")}
           </Link>
         </nav>
         <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -22,20 +22,10 @@ def current_principal(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expired") from error
 
 
-def require_roles(*roles: Role) -> Callable[[Principal], Principal]:
-    """Dependency factory: the endpoint is reachable only by these roles."""
-
-    def check(principal: Principal = Depends(current_principal)) -> Principal:  # noqa: B008
-        if principal.role not in roles:
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "Your role cannot use this")
-        return principal
-
-    return check
+def require_planner(principal: Principal = Depends(current_principal)) -> Principal:  # noqa: B008
+    if principal.role is not Role.DISTRICT_PLANNER:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Your role cannot use this")
+    return principal
 
 
-STAFF = (
-    Role.SECTOR_OFFICER,
-    Role.DISTRICT_PLANNER,
-    Role.NATIONAL_ANALYST,
-    Role.ADMIN,
-)
+Planner = Annotated[Principal, Depends(require_planner)]

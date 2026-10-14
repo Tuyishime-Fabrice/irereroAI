@@ -1,5 +1,3 @@
-from datetime import date
-
 from sqlalchemy import Connection
 
 from irerero_api.engine_io.candidates import candidates, rejection_constraints
@@ -12,14 +10,13 @@ from irerero_engine.optimizer import PlanningInput, Weights
 def planning_input(
     conn: Connection,
     district: str,
-    week: date,
     budget: float,
     weights: Weights,
     model: StraightLineCoverage,
     excluded_by_user: frozenset[str] = frozenset(),
 ) -> PlanningInput:
     points, bounds = demand_points(conn, district)
-    base = cover(model, seats(conn, district, week), points)
+    base = cover(model, seats(conn, district), points)
     return PlanningInput(
         points=points,
         base_state=base,

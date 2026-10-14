@@ -1,22 +1,10 @@
 import { expect, type Page } from "@playwright/test";
 
-export const roles = {
-  caregiver: "Caregiver",
-  sector_officer: "Sector ECD officer",
-  district_planner: "District planner",
-  national_analyst: "National analyst",
-  admin: "System admin",
-} as const;
-
-/** Signs in through the demo accounts list, the way a judge would. */
-export async function signInAs(page: Page, role: keyof typeof roles) {
+/** Signs in through the demo account on the sign-in page, the way a judge would. */
+export async function signInAsPlanner(page: Page) {
   await page.goto("/sign-in");
-  await page
-    .getByRole("listitem")
-    .filter({ has: page.getByText(roles[role], { exact: true }) })
-    .getByRole("button", { name: "Use" })
-    .click();
-  await expect(page).not.toHaveURL(/sign-in/);
+  await page.getByRole("button", { name: "Use" }).click();
+  await expect(page).toHaveURL(/\/district/);
 }
 
 /** Fails the test on any uncaught error or console error. */

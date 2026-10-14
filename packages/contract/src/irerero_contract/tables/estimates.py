@@ -2,7 +2,16 @@ import uuid
 from datetime import date
 from typing import Any
 
-from sqlalchemy import CheckConstraint, Date, Float, ForeignKey, Integer, SmallInteger, String
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    Float,
+    ForeignKey,
+    Integer,
+    SmallInteger,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -62,21 +71,21 @@ class NeedEstimate(Provenance, Base):
 
 
 class CoverageSnapshot(Provenance, Base):
-    """Weekly coverage per sector. Produced by CoverageModel from centres and need."""
+    """Coverage per sector for each catchment step. Precomputed by CoverageModel."""
 
     __tablename__ = "coverage_snapshot"
+    __table_args__ = (UniqueConstraint("area_code", "catchment_minutes"),)
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=new_uuid, comment="Row id")
     area_code: Mapped[str] = mapped_column(
         ForeignKey("admin_unit.code"), index=True, comment="Sector"
     )
-    week_start: Mapped[date] = mapped_column(Date, index=True, comment="Monday of the week")
     model_version_id: Mapped[str] = mapped_column(
         ForeignKey("model_version.id"), comment="Coverage model that produced the row"
     )
     children_covered: Mapped[int] = count("Children 0 to 6 with a place within the catchment")
     children_uncovered: Mapped[int] = count("Children 0 to 6 without a reachable place")
-    overcrowded_centres: Mapped[int] = count("Centres with attendance above capacity")
+    overcrowded_centres: Mapped[int] = count("Centres with enrolment above capacity")
     catchment_minutes: Mapped[int] = mapped_column(
         SmallInteger, comment="Walking time used for the catchment", info={"minimum": 1}
     )

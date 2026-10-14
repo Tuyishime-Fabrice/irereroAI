@@ -2,39 +2,22 @@
 
 import uuid
 
-from sqlalchemy import Engine, insert, text
+from sqlalchemy import Engine, insert
 
 from irerero_api.services.planning import planning_input
 from irerero_contract.tables import Decision, Recommendation, Scenario
 from irerero_engine.coverage import StraightLineCoverage
 from irerero_engine.optimizer import GreedyOptimizer, Weights, largest_population_first
-from pipelines.demo.accounts import account_id
-from pipelines.demo.config import CURRENT_WEEK, DEMO_DISTRICT
-from pipelines.demo.story import STORY_BY_ROLE
+from pipelines.demo.config import DEMO_DISTRICT, stable_id
 
 BUDGET = 120_000_000
 WEIGHTS = Weights(stunting=0.4, readiness=0.4, jobs=0.2)
 MODEL = StraightLineCoverage()
 
 
-def test_early_warning_flags_each_planted_problem_and_nothing_else(demo_engine: Engine) -> None:
-    with demo_engine.connect() as conn:
-        alerts = {
-            (r.centre_code, r.kind)
-            for r in conn.execute(text("SELECT centre_code, kind FROM alert"))
-        }
-    expected = {
-        (STORY_BY_ROLE["no_water"].code, "attendance_drop"),
-        (STORY_BY_ROLE["no_water"].code, "wash"),
-        (STORY_BY_ROLE["overcrowded"].code, "overcrowding"),
-        (STORY_BY_ROLE["stopped_reporting"].code, "missing_report"),
-    }
-    assert alerts == expected
-
-
 def test_optimizer_respects_budget_and_beats_population_baseline(demo_engine: Engine) -> None:
     with demo_engine.connect() as conn:
-        data = planning_input(conn, DEMO_DISTRICT, CURRENT_WEEK, BUDGET, WEIGHTS, MODEL)
+        data = planning_input(conn, DEMO_DISTRICT, BUDGET, WEIGHTS, MODEL)
     plan = GreedyOptimizer(MODEL).plan(data)
     baseline = largest_population_first(MODEL, data)
     assert plan.outcomes.cost <= BUDGET
@@ -47,7 +30,7 @@ def test_weights_are_the_policy_lever(demo_engine: Engine) -> None:
     """Raising the jobs weight reaches more mothers of under-3s than the population baseline."""
     jobs_first = Weights(stunting=0.1, readiness=0.1, jobs=0.8)
     with demo_engine.connect() as conn:
-        data = planning_input(conn, DEMO_DISTRICT, CURRENT_WEEK, BUDGET, jobs_first, MODEL)
+        data = planning_input(conn, DEMO_DISTRICT, BUDGET, jobs_first, MODEL)
     plan = GreedyOptimizer(MODEL).plan(data)
     baseline = largest_population_first(MODEL, data)
     assert (
@@ -58,19 +41,19 @@ def test_weights_are_the_policy_lever(demo_engine: Engine) -> None:
 
 def test_support_goes_to_centres_with_problems(demo_engine: Engine) -> None:
     with demo_engine.connect() as conn:
-        data = planning_input(conn, DEMO_DISTRICT, CURRENT_WEEK, BUDGET, WEIGHTS, MODEL)
+        data = planning_input(conn, DEMO_DISTRICT, BUDGET, WEIGHTS, MODEL)
     supported = {
         s.candidate.centre_code
         for s in GreedyOptimizer(MODEL).plan(data).suggestions
         if s.candidate.action == "support"
     }
-    assert STORY_BY_ROLE["no_water"].code in supported
-    assert STORY_BY_ROLE["caregiver_home"].code not in supported
+    assert "ECD-GIC-002" in supported  # no safe water
+    assert "ECD-GIC-001" not in supported  # well run, free places
 
 
 def test_rejection_with_no_land_removes_the_site_from_the_next_run(demo_engine: Engine) -> None:
     with demo_engine.begin() as conn:
-        data = planning_input(conn, DEMO_DISTRICT, CURRENT_WEEK, BUDGET, WEIGHTS, MODEL)
+        data = planning_input(conn, DEMO_DISTRICT, BUDGET, WEIGHTS, MODEL)
         top = GreedyOptimizer(MODEL).plan(data).suggestions[0]
         scenario_id, recommendation_id = uuid.uuid4(), uuid.uuid4()
         conn.execute(
@@ -85,7 +68,7 @@ def test_rejection_with_no_land_removes_the_site_from_the_next_run(demo_engine: 
                 constraints={},
                 model_version_id=GreedyOptimizer.version,
                 origin="simulated",
-                created_by=account_id("district_planner"),
+                created_by=stable_id("account", "district_planner"),
             )
         )
         conn.execute(
@@ -109,12 +92,12 @@ def test_rejection_with_no_land_removes_the_site_from_the_next_run(demo_engine: 
         conn.execute(
             insert(Decision).values(
                 recommendation_id=recommendation_id,
-                user_id=account_id("district_planner"),
+                user_id=stable_id("account", "district_planner"),
                 verdict="reject",
                 reason_code="no_land",
             )
         )
-        rerun = planning_input(conn, DEMO_DISTRICT, CURRENT_WEEK, BUDGET, WEIGHTS, MODEL)
+        rerun = planning_input(conn, DEMO_DISTRICT, BUDGET, WEIGHTS, MODEL)
         assert top.candidate.id in rerun.constraints.excluded
         ids = {s.candidate.id for s in GreedyOptimizer(MODEL).plan(rerun).suggestions}
         assert top.candidate.id not in ids

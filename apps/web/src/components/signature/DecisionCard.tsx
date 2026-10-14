@@ -10,7 +10,6 @@ import {
   CheckIcon,
   CloseIcon,
   EditIcon,
-  QuestionIcon,
   SupportIcon,
   UpgradeIcon,
 } from "@/components/ui/icons";
@@ -45,13 +44,11 @@ export function DecisionCard({
   maxReached,
   canDecide,
   onDecide,
-  onAsk,
 }: {
   recommendation: Recommendation;
   maxReached: number;
   canDecide: boolean;
   onDecide: (decision: Decision) => Promise<void>;
-  onAsk?: () => void;
 }) {
   const t = useTranslations("decision");
   const pick = useLocalized();
@@ -171,17 +168,7 @@ export function DecisionCard({
           <Button variant="danger" disabled={busy} onClick={() => setMode("reject")}>
             <CloseIcon /> {t("reject")}
           </Button>
-          {onAsk && (
-            <Button variant="ghost" onClick={onAsk} className="ml-auto">
-              <QuestionIcon /> {t("ask")}
-            </Button>
-          )}
         </div>
-      )}
-      {!(canDecide && !decided && mode === "idle") && onAsk && mode === "idle" && (
-        <Button variant="ghost" onClick={onAsk} className="self-start">
-          <QuestionIcon /> {t("ask")}
-        </Button>
       )}
 
       {mode === "reject" && (

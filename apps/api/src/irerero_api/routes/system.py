@@ -1,18 +1,16 @@
-from datetime import date
-
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from irerero_api.calendar import current_week, weeks_until
 from irerero_api.config import get_settings
+from irerero_engine.coverage import CATCHMENT_STEPS
 
 router = APIRouter(tags=["system"])
 
 
-class Calendar(BaseModel):
-    current_week: date
-    weeks: list[date]
+class AppSettings(BaseModel):
     demo_mode: bool
+    catchment_minutes: int
+    catchment_steps: list[int]
 
 
 @router.get("/health")
@@ -20,11 +18,11 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.get("/calendar", response_model=Calendar)
-def calendar() -> Calendar:
+@router.get("/settings", response_model=AppSettings)
+def app_settings() -> AppSettings:
     settings = get_settings()
-    return Calendar(
-        current_week=current_week(settings),
-        weeks=weeks_until(settings),
+    return AppSettings(
         demo_mode=settings.demo_mode,
+        catchment_minutes=settings.catchment_minutes,
+        catchment_steps=list(CATCHMENT_STEPS),
     )

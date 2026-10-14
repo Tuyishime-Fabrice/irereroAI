@@ -11,7 +11,7 @@ How to implement an adapter is in [PHASE2_HANDOFF.md](PHASE2_HANDOFF.md).
 | [`rdhs_2019_gps`](#rdhs_2019_gps) | Rwanda DHS 2019-20 cluster locations | official | `area_indicator` |
 | [`lfs_2025`](#lfs_2025) | Labour Force Survey 2025 | official | `area_indicator` |
 | [`education_yearbook`](#education_yearbook) | Education Statistical Yearbook | official | `area_indicator`, `candidate_site` |
-| [`ncda_mapping`](#ncda_mapping) | NCDA ECD Mapping System and digitised ECD book | partner | `centre`, `weekly_report` |
+| [`ncda_mapping`](#ncda_mapping) | NCDA ECD Mapping System and digitised ECD book | partner | `centre` |
 | [`worldpop`](#worldpop) | WorldPop age and sex structures, constrained, 100 m | public | `area_indicator` |
 | [`osm`](#osm) | OpenStreetMap Rwanda extract | public | `area_indicator`, `candidate_site` |
 | [`boundaries`](#boundaries) | Official administrative boundaries, province to village | official | `admin_unit` |
@@ -193,20 +193,19 @@ Schools become candidate_site rows of kind 'school' for school-based ECD.
 
 Expected files (never committed):
 
-- `data/raw/ncda_mapping/centres.csv`: Centre register export with NCDA ids
-- `data/raw/ncda_mapping/ecd_book_*.csv`: Digitised weekly ECD book entries
+- `data/raw/ncda_mapping/centres.csv`: Centre register export with NCDA ids, capacity and latest enrolment
 
-Writes to: `centre`, `weekly_report`
+Writes to: `centre`
 
 Checks (loading stops if any fails):
 
 - `ncda_ref_unique`: NCDA ids are unique and stored in centre.ncda_ref
 - `point_in_sector`: Each centre point falls in its declared sector
 - `near_duplicates`: Centres within 50 m with similar names are listed
-- `report_rules`: Book entries pass irerero_contract.validation; flagged rows keep their flags
+- `enrolment_plausible`: Enrolment is between 0 and three times capacity
 - `no_child_data`: No column holds child names, photos or ids
 
-IrereroAI is a layer on the NCDA system: match on ncda_ref first, then on location and name, and never overwrite a verification done in IrereroAI.
+IrereroAI is a planning layer on the NCDA system: it reads centres, never edits them. Match on ncda_ref first, then on location and name.
 
 <a id="worldpop"></a>
 

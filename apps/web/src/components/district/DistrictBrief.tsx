@@ -40,7 +40,7 @@ export function DistrictBrief() {
       {simulated && <SimulatedWatermark force variant="stamp" />}
       <header className="mt-4 flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-ink-muted">{t("kicker", { week: b.week })}</p>
+          <p className="text-sm text-ink-muted">{t("kicker", { date: b.as_of })}</p>
           <h1 className="font-display text-3xl text-ink">
             {t("title", { district: b.district_name })}
           </h1>
@@ -57,8 +57,8 @@ export function DistrictBrief() {
           <p className="tabular">{formatRange(b.stunting_risk, formatShare)}</p>
         </div>
         <div>
-          <p className="text-xs text-ink-muted">{t("alerts")}</p>
-          <p className="tabular">{b.open_alerts}</p>
+          <p className="text-xs text-ink-muted">{t("overcrowded")}</p>
+          <p className="tabular">{b.overcrowded_centres}</p>
         </div>
         <div>
           <p className="text-xs text-ink-muted">{t("demand")}</p>

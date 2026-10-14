@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from irerero_api.schemas.common import PublicCount
-from irerero_contract.enums import CentreType, FeeBand, Origin, RunStatus, SourceStatus
+from irerero_contract.enums import CentreType, Origin, RunStatus, SourceStatus
 
 AgeBand = Literal["0_2", "3_6"]
 
@@ -16,27 +16,14 @@ class PublicCentre(BaseModel):
     sector_name: str
     lon: float
     lat: float
-    distance_km: float | None
+    distance_km: float
+    walking_minutes: int = Field(description="Estimated from straight-line distance")
     serves_0_2: bool
     serves_3_6: bool
-    opening_hours: str
-    fee_band: FeeBand
     offers_meals: bool
-    offers_growth_monitoring: bool
-    disability_inclusive: bool
     capacity: PublicCount
-    free_places: PublicCount | None = Field(
-        description="From the latest weekly report; null when the centre has not reported"
-    )
-    verified_at: datetime | None
+    free_places: PublicCount = Field(description="Capacity minus enrolment from the centre feed")
     origin: Origin
-
-
-class FindResult(BaseModel):
-    centres: list[PublicCentre]
-    demand_recorded: bool = Field(
-        description="True when the search found nothing and was counted as unmet demand"
-    )
 
 
 class DemandRequest(BaseModel):

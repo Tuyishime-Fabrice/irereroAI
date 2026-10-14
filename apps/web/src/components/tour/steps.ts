@@ -1,9 +1,7 @@
-import type { Schemas } from "@/lib/api/client";
-
 export type TourStep = {
   key: string;
-  /** Demo account to switch to, or null to stay as you are. */
-  role: Schemas["Role"] | null;
+  /** "planner" signs in as the demo planner first; "parent" is a public page; null stays put. */
+  as: "planner" | "parent" | null;
   path: string;
   /** data-tour attribute of the element to highlight. */
   target: string;
@@ -11,22 +9,15 @@ export type TourStep = {
 
 /** The five-minute pitch, step by step. Runs on the seeded demo database, offline. */
 export const TOUR: TourStep[] = [
-  { key: "welcome", role: null, path: "/", target: "numbers" },
-  { key: "needMap", role: "district_planner", path: "/district", target: "need-map" },
-  {
-    key: "reject",
-    role: "district_planner",
-    path: "/district/plan",
-    target: "site-SITE-CYUMBA-V1",
-  },
-  { key: "caregiver", role: "caregiver", path: "/caregiver", target: "start-report" },
-  { key: "alert", role: "sector_officer", path: "/sector/alerts", target: "alert-list" },
+  { key: "welcome", as: null, path: "/", target: "numbers" },
+  { key: "needMap", as: "planner", path: "/district", target: "need-map" },
+  { key: "reject", as: "planner", path: "/district/plan", target: "site-SITE-CYUMBA-V1" },
+  { key: "whatIf", as: "planner", path: "/district/what-if", target: "what-if" },
   {
     key: "parent",
-    role: "parent",
-    path: "/find?sector=S-GICUMBI-MIYOVE&radius=2",
+    as: "parent",
+    path: "/request?sector=S-GICUMBI-CYUMBA",
     target: "request-centre",
   },
-  { key: "replay", role: "district_planner", path: "/district", target: "week-scrubber" },
-  { key: "promise", role: null, path: "/", target: "promise" },
+  { key: "promise", as: null, path: "/", target: "promise" },
 ];

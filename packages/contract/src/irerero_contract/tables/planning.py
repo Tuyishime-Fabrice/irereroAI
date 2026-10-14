@@ -202,7 +202,7 @@ class Decision(Base):
 
 
 class PlanningDefault(Base):
-    """Default budget and policy weights for an area, set by national analysts."""
+    """Default budget and policy weights the plan screen opens with, per district or national."""
 
     __tablename__ = "planning_default"
 
@@ -215,7 +215,4 @@ class PlanningDefault(Base):
     weight_stunting: Mapped[float] = mapped_column(Float, comment="Default stunting weight")
     weight_readiness: Mapped[float] = mapped_column(Float, comment="Default readiness weight")
     weight_jobs: Mapped[float] = mapped_column(Float, comment="Default jobs weight")
-    updated_by: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("user_account.id"), comment="Analyst who last changed it"
-    )
     updated_at: Mapped[datetime] = created_at_column()

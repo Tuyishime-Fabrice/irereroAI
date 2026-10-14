@@ -4,194 +4,6 @@
  */
 
 export interface paths {
-    "/admin/audit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Audit Log */
-        get: operations["audit_log_admin_audit_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/pipeline-runs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Pipeline Runs */
-        get: operations["pipeline_runs_admin_pipeline_runs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Users */
-        get: operations["list_users_admin_users_get"];
-        put?: never;
-        /** Create User */
-        post: operations["create_user_admin_users_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/users/{user_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update User */
-        patch: operations["update_user_admin_users__user_id__patch"];
-        trace?: never;
-    };
-    "/alerts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Alerts */
-        get: operations["list_alerts_alerts_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/alerts/{alert_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Alert Detail */
-        get: operations["alert_detail_alerts__alert_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/alerts/{alert_id}/acknowledge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Acknowledge */
-        post: operations["acknowledge_alerts__alert_id__acknowledge_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/alerts/{alert_id}/assign": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Assign */
-        post: operations["assign_alerts__alert_id__assign_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/alerts/{alert_id}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Resolve Alert */
-        post: operations["resolve_alert_alerts__alert_id__resolve_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/assistant/ask": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Ask */
-        post: operations["ask_assistant_ask_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/caregiver": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Caregiver Login */
-        post: operations["caregiver_login_auth_caregiver_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/auth/login": {
         parameters: {
             query?: never;
@@ -201,8 +13,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Staff Login */
-        post: operations["staff_login_auth_login_post"];
+        /** Login */
+        post: operations["login_auth_login_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -243,40 +55,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/otp/request": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Request Code */
-        post: operations["request_code_auth_otp_request_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/otp/verify": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Verify Code */
-        post: operations["verify_code_auth_otp_verify_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/auth/refresh": {
         parameters: {
             query?: never;
@@ -311,77 +89,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/calendar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Calendar */
-        get: operations["calendar_calendar_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/centres": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Centres */
-        get: operations["list_centres_centres_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/centres/{code}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Centre Detail */
-        get: operations["centre_detail_centres__code__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/centres/{code}/verify": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Verify Centre
-         * @description Record that an officer checked the centre in person.
-         */
-        post: operations["verify_centre_centres__code__verify_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/decisions": {
         parameters: {
             query?: never;
@@ -399,15 +106,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/demo/config": {
+    "/demo/account": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Demo Config */
-        get: operations["demo_config_demo_config_get"];
+        /** Demo Account */
+        get: operations["demo_account_demo_account_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -416,7 +123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/demo/login/{role}": {
+    "/demo/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -426,7 +133,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Demo Login */
-        post: operations["demo_login_demo_login__role__post"];
+        post: operations["demo_login_demo_login_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -443,8 +150,8 @@ export interface paths {
         /**
          * Areas
          * @description Areas inside `parent` with need, uncertainty, coverage and demand: its direct children,
-         *     or, with `level`, its descendants at that level (parent=RW, level=district for the
-         *     national map).
+         *     or, with `level`, its descendants at that level. Every planner can read the national map
+         *     (parent=RW, level=district); sector detail is limited to the planner's own district.
          */
         get: operations["areas_geo_areas_get"];
         put?: never;
@@ -481,7 +188,7 @@ export interface paths {
         };
         /**
          * Demand
-         * @description Parent demand per 500 m cell, up to the end of the given week.
+         * @description Parents' centre requests per 500 m cell.
          */
         get: operations["demand_geo_demand_get"];
         put?: never;
@@ -518,26 +225,6 @@ export interface paths {
         };
         /** Health */
         get: operations["health_health_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/local-suggestions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Local Suggestions
-         * @description The latest district plan, for a sector officer to review the suggestions in their sector.
-         */
-        get: operations["local_suggestions_local_suggestions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -583,98 +270,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/national/models": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Models */
-        get: operations["models_national_models_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/officers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Officers
-         * @description Officers who may be assigned an alert at this centre.
-         */
-        get: operations["list_officers_officers_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/parent/account": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete Account
-         * @description Deletes the parent's phone number and saved searches. Demand signals were never linked.
-         */
-        delete: operations["delete_account_parent_account_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/parent/searches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Searches */
-        get: operations["list_searches_parent_searches_get"];
-        put?: never;
-        /** Save Search */
-        post: operations["save_search_parent_searches_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/parent/searches/{search_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Search */
-        delete: operations["delete_search_parent_searches__search_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/planning-defaults/{area}": {
         parameters: {
             query?: never;
@@ -684,41 +279,6 @@ export interface paths {
         };
         /** Get Defaults */
         get: operations["get_defaults_planning_defaults__area__get"];
-        /** Set Defaults */
-        put: operations["set_defaults_planning_defaults__area__put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/public/centres": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Find Centres */
-        get: operations["find_centres_public_centres_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/public/centres/{code}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Centre Detail */
-        get: operations["centre_detail_public_centres__code__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -753,6 +313,26 @@ export interface paths {
         };
         /** Methodology */
         get: operations["methodology_public_methodology_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/nearby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Nearby
+         * @description The nearest verified centres to a place, so a parent sees what exists before asking.
+         */
+        get: operations["nearby_public_nearby_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -818,44 +398,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/reports": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Reports */
-        get: operations["list_reports_reports_get"];
-        put?: never;
-        /** Submit Report */
-        post: operations["submit_report_reports_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/reports/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Check Report
-         * @description Validate without saving, so the form can explain problems step by step.
-         */
-        post: operations["check_report_reports_check_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/scenarios": {
         parameters: {
             query?: never;
@@ -891,6 +433,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** App Settings */
+        get: operations["app_settings_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/simulate": {
         parameters: {
             query?: never;
@@ -911,40 +470,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/sms/format": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Sms Format */
-        get: operations["sms_format_sms_format_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/sms/simulate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Simulate */
-        post: operations["simulate_sms_simulate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -954,130 +479,14 @@ export interface components {
          * @enum {string}
          */
         Action: "build" | "upgrade" | "support";
-        /** AlertAssign */
-        AlertAssign: {
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
-        };
-        /** AlertDetail */
-        AlertDetail: {
-            /** Age Weeks */
-            age_weeks: number;
-            /** Assigned Name */
-            assigned_name: string | null;
-            /** Assigned To */
-            assigned_to: string | null;
-            /** Capacity */
-            capacity: number;
-            /** Centre Code */
-            centre_code: string;
-            /** Centre Name */
-            centre_name: string;
-            /** Evidence */
-            evidence: {
-                [key: string]: number | string;
-            };
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            kind: components["schemas"]["AlertKind"];
-            origin: components["schemas"]["Origin"];
-            /** Reason En */
-            reason_en: string;
-            /** Reason Rw */
-            reason_rw: string;
-            /** Reports */
-            reports: components["schemas"]["ReportOut"][];
-            /** Resolution Note */
-            resolution_note: string | null;
-            /** Sector Code */
-            sector_code: string;
-            /** Sector Name */
-            sector_name: string;
-            severity: components["schemas"]["AlertSeverity"];
-            status: components["schemas"]["AlertStatus"];
-            /**
-             * Week Start
-             * Format: date
-             */
-            week_start: string;
-        };
-        /**
-         * AlertKind
-         * @enum {string}
-         */
-        AlertKind: "attendance_drop" | "missing_report" | "overcrowding" | "wash" | "closure_risk";
-        /** AlertOut */
-        AlertOut: {
-            /** Age Weeks */
-            age_weeks: number;
-            /** Assigned Name */
-            assigned_name: string | null;
-            /** Assigned To */
-            assigned_to: string | null;
-            /** Centre Code */
-            centre_code: string;
-            /** Centre Name */
-            centre_name: string;
-            /** Evidence */
-            evidence: {
-                [key: string]: number | string;
-            };
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            kind: components["schemas"]["AlertKind"];
-            origin: components["schemas"]["Origin"];
-            /** Reason En */
-            reason_en: string;
-            /** Reason Rw */
-            reason_rw: string;
-            /** Resolution Note */
-            resolution_note: string | null;
-            /** Sector Code */
-            sector_code: string;
-            /** Sector Name */
-            sector_name: string;
-            severity: components["schemas"]["AlertSeverity"];
-            status: components["schemas"]["AlertStatus"];
-            /**
-             * Week Start
-             * Format: date
-             */
-            week_start: string;
-        };
-        /** AlertResolve */
-        AlertResolve: {
-            /** Note */
-            note: string;
-        };
-        /**
-         * AlertSeverity
-         * @enum {string}
-         */
-        AlertSeverity: "info" | "warning" | "critical";
-        /**
-         * AlertStatus
-         * @enum {string}
-         */
-        AlertStatus: "open" | "acknowledged" | "resolved";
-        /** AnswerOut */
-        AnswerOut: {
-            /** Provider */
-            provider: string;
-            /** Question */
-            question: string;
-            /** Tables */
-            tables: string[];
-            /** Text */
-            text: string;
+        /** AppSettings */
+        AppSettings: {
+            /** Catchment Minutes */
+            catchment_minutes: number;
+            /** Catchment Steps */
+            catchment_steps: number[];
+            /** Demo Mode */
+            demo_mode: boolean;
         };
         /** AreaProperties */
         AreaProperties: {
@@ -1104,62 +513,15 @@ export interface components {
             /** Uncertainty */
             uncertainty: number | null;
         };
-        /** AskIn */
-        AskIn: {
-            /**
-             * Language
-             * @default en
-             * @enum {string}
-             */
-            language: "en" | "rw";
-            /** Question */
-            question: string;
-            /**
-             * Subject
-             * @enum {string}
-             */
-            subject: "recommendation" | "alert";
-            /**
-             * Subject Id
-             * Format: uuid
-             */
-            subject_id: string;
-        };
-        /** AuditOut */
-        AuditOut: {
-            /** Action */
-            action: string;
-            /** Actor Id */
-            actor_id: string | null;
-            /** Actor Name */
-            actor_name: string | null;
-            actor_role: components["schemas"]["Role"];
-            /** After */
-            after: {
-                [key: string]: unknown;
-            } | null;
-            /** Before */
-            before: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Entity Id */
-            entity_id: string;
-            /** Entity Type */
-            entity_type: string;
-            /** Id */
-            id: number;
-            /** Reason */
-            reason: string | null;
-        };
         /** Brief */
         Brief: {
             /** Approved */
             approved: components["schemas"]["RecommendationOut"][];
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
             /** Budget Rwf */
             budget_rwf: number;
             children: components["schemas"]["RangeOut"];
@@ -1171,158 +533,39 @@ export interface components {
             district_code: string;
             /** District Name */
             district_name: string;
-            /** Open Alerts */
-            open_alerts: number;
             outcomes: components["schemas"]["OutcomesOut"];
+            /** Overcrowded Centres */
+            overcrowded_centres: number;
             /** Scenario Name */
             scenario_name: string;
             stunting_risk: components["schemas"]["RangeOut"];
-            /**
-             * Week
-             * Format: date
-             */
-            week: string;
-        };
-        /** Calendar */
-        Calendar: {
-            /**
-             * Current Week
-             * Format: date
-             */
-            current_week: string;
-            /** Demo Mode */
-            demo_mode: boolean;
-            /** Weeks */
-            weeks: string[];
         };
         /**
          * CandidateKind
          * @enum {string}
          */
         CandidateKind: "village" | "school" | "centre_upgrade" | "centre_support";
-        /** CaregiverLogin */
-        CaregiverLogin: {
-            /** Centre Code */
-            centre_code: string;
-            /** Phone */
-            phone: string;
-        };
-        /** CentreDetail */
-        CentreDetail: {
-            /** Alerts */
-            alerts: components["schemas"]["AlertOut"][];
-            /** Capacity */
-            capacity: number;
-            /** Code */
-            code: string;
-            /** Disability Inclusive */
-            disability_inclusive: boolean;
-            fee_band: components["schemas"]["FeeBand"];
-            /** Last Report Week */
-            last_report_week: string | null;
-            /** Lat */
-            lat: number;
-            /** Latest Attendance */
-            latest_attendance: number | null;
-            /** Latest Enrolled */
-            latest_enrolled: number | null;
-            /** Lon */
-            lon: number;
-            /** Name */
-            name: string;
-            /** Ncda Ref */
-            ncda_ref: string | null;
-            /** Offers Growth Monitoring */
-            offers_growth_monitoring: boolean;
-            /** Offers Meals */
-            offers_meals: boolean;
-            /** Open Alerts */
-            open_alerts: number;
-            /** Opening Hours */
-            opening_hours: string;
-            origin: components["schemas"]["Origin"];
-            /** Reliability Score */
-            reliability_score: number;
-            /** Reported This Week */
-            reported_this_week: boolean;
-            /** Reports */
-            reports: components["schemas"]["ReportOut"][];
-            /** Sector Code */
-            sector_code: string;
-            /** Sector Name */
-            sector_name: string;
-            /** Serves 0 2 */
-            serves_0_2: boolean;
-            /** Serves 3 6 */
-            serves_3_6: boolean;
-            status: components["schemas"]["CentreStatus"];
-            type: components["schemas"]["CentreType"];
-            /** Verified */
-            verified: boolean;
-            /** Verified At */
-            verified_at: string | null;
-        };
         /** CentreProperties */
         CentreProperties: {
-            alert_severity: components["schemas"]["AlertSeverity"] | null;
             /** Capacity */
             capacity: number;
             /** Code */
             code: string;
-            /** Latest Attendance */
-            latest_attendance: number | null;
+            /** Enrolment */
+            enrolment: number;
             /** Name */
             name: string;
+            /** Offers Meals */
+            offers_meals: boolean;
             origin: components["schemas"]["Origin"];
             /** Overcrowded */
             overcrowded: boolean;
-            /** Reliability Score */
-            reliability_score: number;
             type: components["schemas"]["CentreType"];
             /** Verified */
             verified: boolean;
+            /** Water Available */
+            water_available: boolean;
         };
-        /** CentreRow */
-        CentreRow: {
-            /** Capacity */
-            capacity: number;
-            /** Code */
-            code: string;
-            /** Last Report Week */
-            last_report_week: string | null;
-            /** Lat */
-            lat: number;
-            /** Latest Attendance */
-            latest_attendance: number | null;
-            /** Latest Enrolled */
-            latest_enrolled: number | null;
-            /** Lon */
-            lon: number;
-            /** Name */
-            name: string;
-            /** Open Alerts */
-            open_alerts: number;
-            origin: components["schemas"]["Origin"];
-            /** Reliability Score */
-            reliability_score: number;
-            /** Reported This Week */
-            reported_this_week: boolean;
-            /** Sector Code */
-            sector_code: string;
-            /** Sector Name */
-            sector_name: string;
-            status: components["schemas"]["CentreStatus"];
-            type: components["schemas"]["CentreType"];
-            /** Verified */
-            verified: boolean;
-            /** Verified At */
-            verified_at: string | null;
-        };
-        /**
-         * CentreStatus
-         * @enum {string}
-         */
-        CentreStatus: "active" | "closed";
         /**
          * CentreType
          * @enum {string}
@@ -1410,8 +653,6 @@ export interface components {
         DemandProperties: {
             /** Centre Requests */
             centre_requests: number;
-            /** Empty Searches */
-            empty_searches: number;
             /** Grid Cell */
             grid_cell: string;
             /** Sector Code */
@@ -1433,29 +674,12 @@ export interface components {
             /** Lon */
             lon: number;
         };
-        /** DemoAccountOut */
-        DemoAccountOut: {
-            /** Centre Code */
-            centre_code: string | null;
+        /** DemoAccount */
+        DemoAccount: {
             /** Display Name */
             display_name: string;
             /** Email */
-            email: string | null;
-            /** Phone */
-            phone: string | null;
-            role: components["schemas"]["Role"];
-        };
-        /** DemoConfig */
-        DemoConfig: {
-            /** Accounts */
-            accounts: components["schemas"]["DemoAccountOut"][];
-            /** Admin Totp Code */
-            admin_totp_code: string;
-            /**
-             * Current Week
-             * Format: date
-             */
-            current_week: string;
+            email: string;
             /** Password */
             password: string;
         };
@@ -1506,24 +730,9 @@ export interface components {
             /** Label Rw */
             label_rw: string;
         };
-        /**
-         * EngineComponent
-         * @enum {string}
-         */
-        EngineComponent: "need" | "coverage" | "optimizer" | "early_warning" | "explainer";
-        /** Envelope[AlertDetail] */
-        Envelope_AlertDetail_: {
-            data: components["schemas"]["AlertDetail"];
-            provenance: components["schemas"]["Provenance"];
-        };
         /** Envelope[Brief] */
         Envelope_Brief_: {
             data: components["schemas"]["Brief"];
-            provenance: components["schemas"]["Provenance"];
-        };
-        /** Envelope[CentreDetail] */
-        Envelope_CentreDetail_: {
-            data: components["schemas"]["CentreDetail"];
             provenance: components["schemas"]["Provenance"];
         };
         /** Envelope[FeatureCollection[AreaProperties]] */
@@ -1546,31 +755,9 @@ export interface components {
             data: components["schemas"]["FeatureCollection_SiteProperties_"];
             provenance: components["schemas"]["Provenance"];
         };
-        /** Envelope[FindResult] */
-        Envelope_FindResult_: {
-            data: components["schemas"]["FindResult"];
-            provenance: components["schemas"]["Provenance"];
-        };
-        /** Envelope[PublicCentre] */
-        Envelope_PublicCentre_: {
-            data: components["schemas"]["PublicCentre"];
-            provenance: components["schemas"]["Provenance"];
-        };
         /** Envelope[ScenarioOut] */
         Envelope_ScenarioOut_: {
             data: components["schemas"]["ScenarioOut"];
-            provenance: components["schemas"]["Provenance"];
-        };
-        /** Envelope[list[AlertOut]] */
-        Envelope_list_AlertOut__: {
-            /** Data */
-            data: components["schemas"]["AlertOut"][];
-            provenance: components["schemas"]["Provenance"];
-        };
-        /** Envelope[list[CentreRow]] */
-        Envelope_list_CentreRow__: {
-            /** Data */
-            data: components["schemas"]["CentreRow"][];
             provenance: components["schemas"]["Provenance"];
         };
         /** Envelope[list[DistrictRow]] */
@@ -1579,10 +766,10 @@ export interface components {
             data: components["schemas"]["DistrictRow"][];
             provenance: components["schemas"]["Provenance"];
         };
-        /** Envelope[list[ReportOut]] */
-        Envelope_list_ReportOut__: {
+        /** Envelope[list[PublicCentre]] */
+        Envelope_list_PublicCentre__: {
             /** Data */
-            data: components["schemas"]["ReportOut"][];
+            data: components["schemas"]["PublicCentre"][];
             provenance: components["schemas"]["Provenance"];
         };
         /** FeatureCollection[AreaProperties] */
@@ -1720,58 +907,32 @@ export interface components {
              */
             type: "Feature";
         };
-        /**
-         * FeeBand
-         * @description Monthly fee per child in Rwandan francs.
-         * @enum {string}
-         */
-        FeeBand: "free" | "under_1000" | "from_1000_to_5000" | "over_5000";
-        /** FindResult */
-        FindResult: {
-            /** Centres */
-            centres: components["schemas"]["PublicCentre"][];
-            /**
-             * Demand Recorded
-             * @description True when the search found nothing and was counted as unmet demand
-             */
-            demand_recorded: boolean;
-        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** Issue */
-        Issue: {
-            /** Code */
-            code: string;
-            /** Field */
-            field: string;
-            /** Params */
-            params?: {
-                [key: string]: number;
-            };
+        /** Login */
+        Login: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
         };
-        /**
-         * MainProblem
-         * @enum {string}
-         */
-        MainProblem: "none" | "no_food" | "no_water" | "caregiver_absent" | "building_damage" | "weather" | "other";
         /** Me */
         Me: {
             /** Display Name */
             display_name: string;
+            /** District Code */
+            district_code: string;
+            /** District Name */
+            district_name: string;
             /**
              * Id
              * Format: uuid
              */
             id: string;
             role: components["schemas"]["Role"];
-            /** Scope Code */
-            scope_code: string | null;
-            scope_level: components["schemas"]["ScopeLevel"];
-            /** Scope Name */
-            scope_name: string | null;
         };
         /** Methodology */
         Methodology: {
@@ -1780,62 +941,12 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["DataSourceOut"][];
         };
-        /** ModelVersionOut */
-        ModelVersionOut: {
-            component: components["schemas"]["EngineComponent"];
-            /** Description */
-            description: string;
-            /** Id */
-            id: string;
-            /** Metrics */
-            metrics: {
-                [key: string]: unknown;
-            };
-            /** Params */
-            params: {
-                [key: string]: unknown;
-            };
-        };
-        /** OfficerOut */
-        OfficerOut: {
-            /** Display Name */
-            display_name: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Scope Code */
-            scope_code: string | null;
-        };
         /**
          * Origin
          * @description Where a record comes from. The UI reads this to show badges and the simulated label.
          * @enum {string}
          */
         Origin: "official" | "public" | "partner" | "simulated";
-        /** OtpRequest */
-        OtpRequest: {
-            /** Phone */
-            phone: string;
-        };
-        /** OtpRequested */
-        OtpRequested: {
-            /**
-             * Demo Code
-             * @description Shown only in demo mode, where no SMS is sent
-             */
-            demo_code?: string | null;
-            /** Expires In Seconds */
-            expires_in_seconds: number;
-        };
-        /** OtpVerify */
-        OtpVerify: {
-            /** Code */
-            code: string;
-            /** Phone */
-            phone: string;
-        };
         /**
          * OutcomesOut
          * @description Countable outcomes only. No stunting reduction is estimated or implied.
@@ -1920,25 +1031,18 @@ export interface components {
             capacity: components["schemas"]["PublicCount"];
             /** Code */
             code: string;
-            /** Disability Inclusive */
-            disability_inclusive: boolean;
             /** Distance Km */
-            distance_km: number | null;
-            fee_band: components["schemas"]["FeeBand"];
-            /** @description From the latest weekly report; null when the centre has not reported */
-            free_places: components["schemas"]["PublicCount"] | null;
+            distance_km: number;
+            /** @description Capacity minus enrolment from the centre feed */
+            free_places: components["schemas"]["PublicCount"];
             /** Lat */
             lat: number;
             /** Lon */
             lon: number;
             /** Name */
             name: string;
-            /** Offers Growth Monitoring */
-            offers_growth_monitoring: boolean;
             /** Offers Meals */
             offers_meals: boolean;
-            /** Opening Hours */
-            opening_hours: string;
             origin: components["schemas"]["Origin"];
             /** Sector Name */
             sector_name: string;
@@ -1947,8 +1051,11 @@ export interface components {
             /** Serves 3 6 */
             serves_3_6: boolean;
             type: components["schemas"]["CentreType"];
-            /** Verified At */
-            verified_at: string | null;
+            /**
+             * Walking Minutes
+             * @description Estimated from straight-line distance
+             */
+            walking_minutes: number;
         };
         /**
          * PublicCount
@@ -1960,12 +1067,6 @@ export interface components {
             /** Value */
             value: number | null;
         };
-        /**
-         * QualityFlag
-         * @description Set by validation. A flagged report is stored, shown to the officer, never dropped.
-         * @enum {string}
-         */
-        QualityFlag: "out_of_range_confirmed" | "enrolment_jump" | "attendance_jump" | "late_submission";
         /** RangeOut */
         RangeOut: {
             /** Estimate */
@@ -2034,177 +1135,16 @@ export interface components {
          */
         RejectionReason: "no_land" | "already_funded" | "access_problem" | "community_objection" | "other";
         /**
-         * ReportChannel
-         * @enum {string}
-         */
-        ReportChannel: "web" | "offline" | "sms" | "assisted";
-        /** ReportIn */
-        ReportIn: {
-            /** Avg Daily Attendance */
-            avg_daily_attendance: number;
-            /** Caregivers Present */
-            caregivers_present: number;
-            /** Centre Code */
-            centre_code: string;
-            channel: components["schemas"]["ReportChannel"];
-            /** Children With Disability */
-            children_with_disability: number;
-            /**
-             * Confirmed
-             * @description The reporter has seen the warnings and confirms the values
-             * @default false
-             */
-            confirmed: boolean;
-            /** Days Meal Served */
-            days_meal_served: number;
-            /** Days Open */
-            days_open: number;
-            /** Enrolled 0 2 Female */
-            enrolled_0_2_female: number;
-            /** Enrolled 0 2 Male */
-            enrolled_0_2_male: number;
-            /** Enrolled 3 6 Female */
-            enrolled_3_6_female: number;
-            /** Enrolled 3 6 Male */
-            enrolled_3_6_male: number;
-            main_problem: components["schemas"]["MainProblem"];
-            /** Referrals Growth Monitoring */
-            referrals_growth_monitoring: number;
-            /** Waiting List */
-            waiting_list: number;
-            /** Wash Available */
-            wash_available: boolean;
-            /**
-             * Week Start
-             * Format: date
-             */
-            week_start: string;
-        };
-        /** ReportOut */
-        ReportOut: {
-            /** Avg Daily Attendance */
-            avg_daily_attendance: number;
-            /** Caregivers Present */
-            caregivers_present: number;
-            /** Centre Code */
-            centre_code: string;
-            channel: components["schemas"]["ReportChannel"];
-            /** Children With Disability */
-            children_with_disability: number;
-            /** Days Meal Served */
-            days_meal_served: number;
-            /** Days Open */
-            days_open: number;
-            /** Enrolled 0 2 Female */
-            enrolled_0_2_female: number;
-            /** Enrolled 0 2 Male */
-            enrolled_0_2_male: number;
-            /** Enrolled 3 6 Female */
-            enrolled_3_6_female: number;
-            /** Enrolled 3 6 Male */
-            enrolled_3_6_male: number;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            main_problem: components["schemas"]["MainProblem"];
-            origin: components["schemas"]["Origin"];
-            /** Quality Flags */
-            quality_flags: components["schemas"]["QualityFlag"][];
-            /** Referrals Growth Monitoring */
-            referrals_growth_monitoring: number;
-            /**
-             * Submitted At
-             * Format: date-time
-             */
-            submitted_at: string;
-            /** Waiting List */
-            waiting_list: number;
-            /** Wash Available */
-            wash_available: boolean;
-            /**
-             * Week Start
-             * Format: date
-             */
-            week_start: string;
-        };
-        /**
          * Role
+         * @description Signed-in roles. Parents use the public pages and never need an account.
          * @enum {string}
          */
-        Role: "parent" | "caregiver" | "sector_officer" | "district_planner" | "national_analyst" | "admin";
-        /** RunDetail */
-        RunDetail: {
-            /** Checks */
-            checks: {
-                [key: string]: unknown;
-            }[];
-            /** Code Version */
-            code_version: string;
-            /** Finished At */
-            finished_at: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Inputs */
-            inputs: {
-                [key: string]: unknown;
-            }[];
-            /** Origin */
-            origin: string;
-            /** Pipeline */
-            pipeline: string;
-            /** Row Counts */
-            row_counts: {
-                [key: string]: number;
-            };
-            /**
-             * Started At
-             * Format: date-time
-             */
-            started_at: string;
-            /** Status */
-            status: string;
-        };
+        Role: "district_planner";
         /**
          * RunStatus
          * @enum {string}
          */
         RunStatus: "running" | "succeeded" | "failed";
-        /** SavedSearchIn */
-        SavedSearchIn: {
-            /** Filters */
-            filters?: {
-                [key: string]: unknown;
-            };
-            /** Label */
-            label: string;
-            /** Lat */
-            lat: number;
-            /** Lon */
-            lon: number;
-        };
-        /** SavedSearchOut */
-        SavedSearchOut: {
-            /** Filters */
-            filters: {
-                [key: string]: unknown;
-            };
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Label */
-            label: string;
-            /** Lat */
-            lat: number;
-            /** Lon */
-            lon: number;
-        };
         /** ScenarioIn */
         ScenarioIn: {
             /** Budget Rwf */
@@ -2278,11 +1218,6 @@ export interface components {
             rejected: number;
             weights: components["schemas"]["WeightsIn"];
         };
-        /**
-         * ScopeLevel
-         * @enum {string}
-         */
-        ScopeLevel: "none" | "centre" | "sector" | "district" | "national";
         /** SimulateIn */
         SimulateIn: {
             /** Budget Rwf */
@@ -2311,34 +1246,6 @@ export interface components {
             /** Sector Code */
             sector_code: string;
         };
-        /** SmsFormat */
-        SmsFormat: {
-            /** Example */
-            example: string;
-            /** Fields */
-            fields: string[];
-            /** Problems */
-            problems: string[];
-        };
-        /** SmsIn */
-        SmsIn: {
-            /** Text */
-            text: string;
-        };
-        /** SmsResult */
-        SmsResult: {
-            /** Format Detail */
-            format_detail?: string | null;
-            /** Format Error */
-            format_error?: string | null;
-            parsed?: components["schemas"]["ReportIn"] | null;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "saved" | "needs_confirmation" | "rejected" | "duplicate" | "format_error";
-            validation?: components["schemas"]["ValidationOut"] | null;
-        };
         /** SourceOut */
         SourceOut: {
             origin: components["schemas"]["Origin"];
@@ -2355,15 +1262,6 @@ export interface components {
          * @enum {string}
          */
         SourceStatus: "loaded" | "simulated_stand_in" | "planned";
-        /** StaffLogin */
-        StaffLogin: {
-            /** Email */
-            email: string;
-            /** Password */
-            password: string;
-            /** Totp Code */
-            totp_code?: string | null;
-        };
         /** TokenResponse */
         TokenResponse: {
             /** Access Token */
@@ -2371,66 +1269,6 @@ export interface components {
             /** Refresh Token */
             refresh_token: string;
             user: components["schemas"]["Me"];
-        };
-        /** UserCreated */
-        UserCreated: {
-            /**
-             * Totp Secret
-             * @description Shown once, for admins to add to their app
-             */
-            totp_secret: string | null;
-            user: components["schemas"]["UserOut"];
-        };
-        /** UserIn */
-        UserIn: {
-            /** Display Name */
-            display_name: string;
-            /** Email */
-            email?: string | null;
-            /** Password */
-            password?: string | null;
-            /** Phone */
-            phone?: string | null;
-            role: components["schemas"]["Role"];
-            /** Scope Code */
-            scope_code?: string | null;
-        };
-        /** UserOut */
-        UserOut: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Display Name */
-            display_name: string;
-            /** Email */
-            email: string | null;
-            /** Has Totp */
-            has_totp: boolean;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Is Active */
-            is_active: boolean;
-            /** Phone */
-            phone: string | null;
-            role: components["schemas"]["Role"];
-            /** Scope Code */
-            scope_code: string | null;
-            scope_level: components["schemas"]["ScopeLevel"];
-        };
-        /** UserPatch */
-        UserPatch: {
-            /** Display Name */
-            display_name?: string | null;
-            /** Is Active */
-            is_active?: boolean | null;
-            role?: components["schemas"]["Role"] | null;
-            /** Scope Code */
-            scope_code?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -2445,27 +1283,11 @@ export interface components {
             /** Error Type */
             type: string;
         };
-        /** ValidationOut */
-        ValidationOut: {
-            /** Accepted */
-            accepted: boolean;
-            /** Errors */
-            errors: components["schemas"]["Issue"][];
-            /** Flags */
-            flags: components["schemas"]["QualityFlag"][];
-            /** Warnings */
-            warnings: components["schemas"]["Issue"][];
-        };
         /**
          * Verdict
          * @enum {string}
          */
         Verdict: "approve" | "edit" | "reject";
-        /** VerifyIn */
-        VerifyIn: {
-            /** Note */
-            note?: string | null;
-        };
         /**
          * WeightsIn
          * @description Policy weights. Choosing them is a policy decision, not a technical one.
@@ -2487,82 +1309,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    audit_log_admin_audit_get: {
-        parameters: {
-            query?: {
-                action?: string | null;
-                actor_role?: components["schemas"]["Role"] | null;
-                entity_type?: string | null;
-                since?: string | null;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuditOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    pipeline_runs_admin_pipeline_runs_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RunDetail"][];
-                };
-            };
-        };
-    };
-    list_users_admin_users_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserOut"][];
-                };
-            };
-        };
-    };
-    create_user_admin_users_post: {
+    login_auth_login_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2571,306 +1318,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UserIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserCreated"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_user_admin_users__user_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserPatch"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_alerts_alerts_get: {
-        parameters: {
-            query?: {
-                area?: string | null;
-                as_of?: string | null;
-                status_filter?: components["schemas"]["AlertStatus"] | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_list_AlertOut__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    alert_detail_alerts__alert_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                alert_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_AlertDetail_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    acknowledge_alerts__alert_id__acknowledge_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                alert_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_AlertDetail_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    assign_alerts__alert_id__assign_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                alert_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AlertAssign"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_AlertDetail_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    resolve_alert_alerts__alert_id__resolve_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                alert_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AlertResolve"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_AlertDetail_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    ask_assistant_ask_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AskIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AnswerOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    caregiver_login_auth_caregiver_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CaregiverLogin"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    staff_login_auth_login_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StaffLogin"];
+                "application/json": components["schemas"]["Login"];
             };
         };
         responses: {
@@ -2928,72 +1376,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Me"];
-                };
-            };
-        };
-    };
-    request_code_auth_otp_request_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OtpRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OtpRequested"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    verify_code_auth_otp_verify_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OtpVerify"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3062,126 +1444,6 @@ export interface operations {
             };
         };
     };
-    calendar_calendar_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Calendar"];
-                };
-            };
-        };
-    };
-    list_centres_centres_get: {
-        parameters: {
-            query?: {
-                area?: string | null;
-                week?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_list_CentreRow__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    centre_detail_centres__code__get: {
-        parameters: {
-            query?: {
-                week?: string | null;
-            };
-            header?: never;
-            path: {
-                code: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_CentreDetail_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    verify_centre_centres__code__verify_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                code: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VerifyIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_CentreDetail_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     decisions_decisions_get: {
         parameters: {
             query: {
@@ -3213,7 +1475,7 @@ export interface operations {
             };
         };
     };
-    demo_config_demo_config_get: {
+    demo_account_demo_account_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3228,18 +1490,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DemoConfig"];
+                    "application/json": components["schemas"]["DemoAccount"];
                 };
             };
         };
     };
-    demo_login_demo_login__role__post: {
+    demo_login_demo_login_post: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                role: components["schemas"]["Role"];
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -3253,15 +1513,6 @@ export interface operations {
                     "application/json": components["schemas"]["TokenResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
         };
     };
     areas_geo_areas_get: {
@@ -3269,8 +1520,9 @@ export interface operations {
             query?: {
                 parent?: string | null;
                 detail?: "full" | "medium" | "coarse";
-                week?: string | null;
                 level?: ("district" | "sector") | null;
+                /** @description Catchment step in minutes */
+                minutes?: number | null;
             };
             header?: never;
             path?: never;
@@ -3302,7 +1554,6 @@ export interface operations {
         parameters: {
             query?: {
                 area?: string | null;
-                week?: string | null;
             };
             header?: never;
             path?: never;
@@ -3334,7 +1585,6 @@ export interface operations {
         parameters: {
             query?: {
                 area?: string | null;
-                week?: string | null;
             };
             header?: never;
             path?: never;
@@ -3415,37 +1665,6 @@ export interface operations {
             };
         };
     };
-    local_suggestions_local_suggestions_get: {
-        parameters: {
-            query: {
-                sector: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_ScenarioOut_"] | null;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     districts_national_districts_get: {
         parameters: {
             query?: never;
@@ -3484,157 +1703,6 @@ export interface operations {
             };
         };
     };
-    models_national_models_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ModelVersionOut"][];
-                };
-            };
-        };
-    };
-    list_officers_officers_get: {
-        parameters: {
-            query: {
-                centre_code: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OfficerOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_account_parent_account_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_searches_parent_searches_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SavedSearchOut"][];
-                };
-            };
-        };
-    };
-    save_search_parent_searches_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SavedSearchIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SavedSearchOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_search_parent_searches__search_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                search_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_defaults_planning_defaults__area__get: {
         parameters: {
             query?: never;
@@ -3653,108 +1721,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanningDefaults"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_defaults_planning_defaults__area__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                area: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanningDefaults"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanningDefaults"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    find_centres_public_centres_get: {
-        parameters: {
-            query: {
-                lon: number;
-                lat: number;
-                radius_km?: number;
-                age_band?: ("0_2" | "3_6") | null;
-                meals?: boolean;
-                max_fee?: components["schemas"]["FeeBand"] | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_FindResult_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    centre_detail_public_centres__code__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                code: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_PublicCentre_"];
                 };
             };
             /** @description Validation Error */
@@ -3817,6 +1783,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Methodology"];
+                };
+            };
+        };
+    };
+    nearby_public_nearby_get: {
+        parameters: {
+            query: {
+                lon: number;
+                lat: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_list_PublicCentre__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3894,111 +1893,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_ScenarioOut_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_reports_reports_get: {
-        parameters: {
-            query: {
-                centre_code: string;
-                since?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Envelope_list_ReportOut__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    submit_report_reports_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReportIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportOut"];
-                };
-            };
-            /** @description Already reported */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ValidationOut"];
-                };
-            };
-        };
-    };
-    check_report_reports_check_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReportIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ValidationOut"];
                 };
             };
             /** @description Validation Error */
@@ -4107,6 +2001,26 @@ export interface operations {
             };
         };
     };
+    app_settings_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppSettings"];
+                };
+            };
+        };
+    };
     simulate_simulate_post: {
         parameters: {
             query?: never;
@@ -4127,59 +2041,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SimulationOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    sms_format_sms_format_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SmsFormat"];
-                };
-            };
-        };
-    };
-    simulate_sms_simulate_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SmsIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SmsResult"];
                 };
             };
             /** @description Validation Error */

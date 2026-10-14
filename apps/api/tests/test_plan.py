@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 
-from .conftest import Login
+from .conftest import Headers
 
 SCENARIO = {
     "district_code": "D-GICUMBI",
@@ -12,9 +12,8 @@ SCENARIO = {
 
 
 def test_plan_reject_needs_reason_and_reruns_without_the_site(
-    client: TestClient, auth: Login, demo_engine: Engine
+    client: TestClient, planner: Headers, demo_engine: Engine
 ) -> None:
-    planner = auth("district_planner")
     created = client.post("/scenarios", json=SCENARIO, headers=planner)
     assert created.status_code == 201
     plan = created.json()
@@ -53,36 +52,14 @@ def test_plan_reject_needs_reason_and_reruns_without_the_site(
     assert logged == 1
 
 
-def test_officer_decides_only_support_in_own_sector(client: TestClient, auth: Login) -> None:
-    planner = auth("district_planner")
-    scenario = client.post("/scenarios", json=SCENARIO, headers=planner).json()["data"]
-    officer = auth("sector_officer")
-    local = client.get("/local-suggestions?sector=S-GICUMBI-BYUMBA", headers=officer).json()
-    sectors = {r["sector_code"] for r in local["data"]["recommendations"]}
-    assert sectors <= {"S-GICUMBI-BYUMBA"}
-    build = next(
-        (
-            r
-            for r in scenario["recommendations"]
-            if r["action"] == "build" and r["sector_code"] == "S-GICUMBI-BYUMBA"
-        ),
-        None,
-    )
-    if build is not None:
-        response = client.post(
-            f"/recommendations/{build['id']}/decision", json={"verdict": "approve"}, headers=officer
-        )
-        assert response.status_code == 403
-
-
-def test_simulator_reports_countable_outcomes_only(client: TestClient, auth: Login) -> None:
+def test_simulator_reports_countable_outcomes_only(client: TestClient, planner: Headers) -> None:
     body = {
         "district_code": "D-GICUMBI",
         "budget_rwf": 60_000_000,
         "weights": {"stunting": 1, "readiness": 0, "jobs": 0},
         "include_baseline": True,
     }
-    result = client.post("/simulate", json=body, headers=auth("district_planner")).json()
+    result = client.post("/simulate", json=body, headers=planner).json()
     assert set(result["outcomes"]) == {
         "children_reached",
         "uncovered_remaining",

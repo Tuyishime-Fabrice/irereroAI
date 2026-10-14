@@ -9,59 +9,25 @@ import { Logo } from "@/components/brand/Logo";
 import { ZigzagBand } from "@/components/brand/ZigzagBand";
 import { SimulatedWatermark } from "@/components/signature/SimulatedWatermark";
 import { LoadingState } from "@/components/ui/States";
-import type { Schemas } from "@/lib/api/client";
-import { weekParts } from "@/lib/format/weeks";
 
 import { DraftTranslationNote } from "./DraftTranslationNote";
 import { LocaleToggle } from "./LocaleToggle";
-import { NAV } from "./nav";
-import { homeFor } from "./roles";
-import { ScopeSwitcher } from "./ScopeSwitcher";
+import { HOME, NAV } from "./nav";
 import { useSession } from "./SessionProvider";
 import { ThemeToggle } from "./ThemeToggle";
-import { useWorkspace, WorkspaceProvider } from "./Workspace";
+import { WorkspaceProvider } from "./Workspace";
 
-function WeekSelector() {
-  const t = useTranslations("shell");
-  const months = useTranslations("months");
-  const { weeks, week, setWeek, currentWeek } = useWorkspace();
-  return (
-    <label className="flex items-center gap-2 text-xs text-ink-muted">
-      {t("week")}
-      <select
-        value={week}
-        onChange={(e) => setWeek(e.target.value)}
-        className="min-h-8 rounded-md border border-line-strong bg-surface px-2 text-sm text-ink"
-      >
-        {weeks.map((w, i) => {
-          const { monthKey, day } = weekParts(w);
-          return (
-            <option key={w} value={w}>
-              {t("weekOption", { n: i + 1, day, month: months(monthKey) })}
-              {w === currentWeek ? ` · ${t("thisWeek")}` : ""}
-            </option>
-          );
-        })}
-      </select>
-    </label>
-  );
-}
-
-function Shell({ roles, children }: { roles: Schemas["Role"][]; children: ReactNode }) {
+function Shell({ children }: { children: ReactNode }) {
   const t = useTranslations("shell");
   const { user, loading, signOut } = useSession();
   const pathname = usePathname();
   const router = useRouter();
-  const allowed = user && roles.includes(user.role);
 
   useEffect(() => {
-    if (loading) return;
-    if (!user) router.replace(`/sign-in?next=${encodeURIComponent(pathname)}`);
-    else if (!roles.includes(user.role)) router.replace(homeFor(user.role));
-  }, [loading, user, roles, router, pathname]);
+    if (!loading && !user) router.replace(`/sign-in?next=${encodeURIComponent(pathname)}`);
+  }, [loading, user, router, pathname]);
 
-  if (!allowed) return <LoadingState />;
-  const nav = NAV[user.role];
+  if (!user) return <LoadingState />;
   return (
     <div className="min-h-screen">
       <a
@@ -73,19 +39,16 @@ function Shell({ roles, children }: { roles: Schemas["Role"][]; children: ReactN
       <ZigzagBand className="no-print" />
       <header className="no-print flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2">
         <div className="flex items-center gap-4">
-          <Link href={homeFor(user.role)} aria-label={t("home")}>
+          <Link href={HOME} aria-label={t("home")}>
             <Logo size={24} />
           </Link>
           <p className="hidden text-sm text-ink-muted sm:block">
-            <span className="font-medium text-ink">{t(`role.${user.role}`)}</span>
-            {user.scope_name ? ` · ${user.scope_name}` : ""}
+            <span className="font-medium text-ink">{t("role")}</span> · {user.district_name}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SimulatedWatermark />
           <DraftTranslationNote />
-          {user.role !== "caregiver" && <ScopeSwitcher />}
-          {user.role !== "caregiver" && <WeekSelector />}
           <ThemeToggle />
           <LocaleToggle />
           <button
@@ -106,10 +69,9 @@ function Shell({ roles, children }: { roles: Schemas["Role"][]; children: ReactN
           className="no-print border-b border-line bg-surface md:min-h-[calc(100vh-56px)] md:w-56 md:shrink-0 md:border-r md:border-b-0"
         >
           <ul className="flex gap-1 overflow-x-auto p-2 md:flex-col">
-            {nav.map((item) => {
+            {NAV.map((item) => {
               const active =
-                item.href === pathname ||
-                (item.href !== homeFor(user.role) && pathname.startsWith(item.href));
+                item.href === pathname || (item.href !== HOME && pathname.startsWith(item.href));
               return (
                 <li key={item.href} className="shrink-0">
                   <Link
@@ -132,11 +94,11 @@ function Shell({ roles, children }: { roles: Schemas["Role"][]; children: ReactN
   );
 }
 
-/** Signed-in layout: role rail, scope and week in the top bar, simulated-data label. */
-export function AppShell({ roles, children }: { roles: Schemas["Role"][]; children: ReactNode }) {
+/** Signed-in layout for the planner: the rail, the district, and the simulated-data label. */
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <WorkspaceProvider>
-      <Shell roles={roles}>{children}</Shell>
+      <Shell>{children}</Shell>
     </WorkspaceProvider>
   );
 }

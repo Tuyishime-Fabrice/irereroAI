@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { signInAs, watchErrors } from "./helpers";
+import { signInAsPlanner, watchErrors } from "./helpers";
 
 test("the planner rejects a suggestion and the plan re-runs without it", async ({ page }) => {
   const errors = watchErrors(page);
-  await signInAs(page, "district_planner");
+  await signInAsPlanner(page);
   await page.goto("/district/plan");
   await page.getByRole("button", { name: "Get suggestions" }).click();
   await expect(page.getByRole("heading", { name: "Shortlist" })).toBeVisible();

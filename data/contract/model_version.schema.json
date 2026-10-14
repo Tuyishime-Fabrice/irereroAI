@@ -24,7 +24,6 @@
         "need",
         "coverage",
         "optimizer",
-        "early_warning",
         "explainer"
       ],
       "description": "need | coverage | optimizer | early_warning | explainer"

@@ -28,39 +28,37 @@ def test_centre_request_stores_only_the_grid_cell(client: TestClient, demo_engin
     assert abs(stored[0] - lon) < 0.005 and abs(stored[1] - lat) < 0.005
 
 
-def test_empty_search_becomes_a_demand_signal(client: TestClient, demo_engine: Engine) -> None:
-    with demo_engine.connect() as conn:
-        before = conn.execute(text("SELECT count(*) FROM demand_signal")).scalar_one()
-    result = client.get("/public/centres?lon=29.9&lat=-1.45&radius_km=1").json()["data"]
-    assert result == {"centres": [], "demand_recorded": True}
-    with demo_engine.connect() as conn:
-        after = conn.execute(text("SELECT count(*) FROM demand_signal")).scalar_one()
-    assert after == before + 1
-
-
-def test_public_find_shows_only_verified_centres(client: TestClient, demo_engine: Engine) -> None:
-    centres = client.get("/public/centres?lon=30.07&lat=-1.58&radius_km=30").json()["data"]
+def test_nearby_shows_only_verified_centres_without_small_counts(
+    client: TestClient, demo_engine: Engine
+) -> None:
+    centres = client.get("/public/nearby?lon=30.07&lat=-1.58&limit=10").json()["data"]
     with demo_engine.connect() as conn:
         verified = set(conn.execute(text("SELECT code FROM centre WHERE verified")).scalars())
-    assert {c["code"] for c in centres["centres"]} <= verified
+    assert centres and {c["code"] for c in centres} <= verified
+    for centre in centres:
+        free = centre["free_places"]
+        assert free["suppressed"] or free["value"] == 0 or free["value"] >= 5
 
 
-def test_parent_can_delete_their_account(client: TestClient) -> None:
-    code = client.post("/auth/otp/request", json={"phone": "+250700000077"}).json()["demo_code"]
-    token = client.post("/auth/otp/verify", json={"phone": "+250700000077", "code": code}).json()[
-        "access_token"
-    ]
-    headers = {"Authorization": f"Bearer {token}"}
-    saved = client.post(
-        "/parent/searches", json={"label": "Home", "lon": 30.07, "lat": -1.58}, headers=headers
-    )
-    assert saved.status_code == 201
-    assert client.delete("/parent/account", headers=headers).status_code == 204
-    again = client.post("/auth/otp/request", json={"phone": "+250700000077"}).json()["demo_code"]
-    fresh = client.post("/auth/otp/verify", json={"phone": "+250700000077", "code": again}).json()[
-        "access_token"
-    ]
-    assert client.get("/parent/searches", headers={"Authorization": f"Bearer {fresh}"}).json() == []
+def test_no_personal_data_is_kept_about_parents(demo_engine: Engine) -> None:
+    with demo_engine.connect() as conn:
+        columns = set(
+            conn.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name = 'demand_signal'"
+                )
+            ).scalars()
+        )
+    assert columns == {
+        "id",
+        "grid_cell",
+        "cell_centre",
+        "sector_code",
+        "age_band",
+        "origin",
+        "created_at",
+    }
 
 
 def test_audit_log_cannot_be_rewritten(demo_engine: Engine) -> None:

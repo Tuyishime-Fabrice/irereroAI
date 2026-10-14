@@ -13,7 +13,6 @@ import { useProvenance } from "@/components/shell/ProvenanceProvider";
 import { useWorkspace } from "@/components/shell/Workspace";
 import { RangeBar } from "@/components/signature/RangeBar";
 import { SourceChips } from "@/components/signature/SourceChip";
-import { WeekScrubber } from "@/components/signature/WeekScrubber";
 import { SelectField } from "@/components/ui/Field";
 import { PageTitle } from "@/components/ui/PageTitle";
 import { Panel, PanelHeader } from "@/components/ui/Panel";
@@ -39,25 +38,29 @@ function value(area: Area, metric: Metric): number | null {
 export function NeedMap() {
   const t = useTranslations("needMap");
   const district = useDistrictCode();
-  const { week, weeks, setWeek } = useWorkspace();
+  const { catchment } = useWorkspace();
   const [metric, setMetric] = useState<Metric>("stunting");
   const [layers, setLayers] = useState<Set<string>>(new Set(["centres", "demand"]));
   const [selected, setSelected] = useState<string | null>(null);
 
   const areas = useApi(
-    `areas:${district}:${week}`,
+    `areas:${district}:${catchment}`,
     async () =>
-      (await api.GET("/geo/areas", { params: { query: { parent: district, week } } })).data ?? null,
+      (
+        await api.GET("/geo/areas", {
+          params: { query: { parent: district, minutes: catchment } },
+        })
+      ).data ?? null,
   );
   const centres = useApi(
-    `gcentres:${district}:${week}`,
+    `gcentres:${district}`,
     async () =>
-      (await api.GET("/geo/centres", { params: { query: { area: district, week } } })).data ?? null,
+      (await api.GET("/geo/centres", { params: { query: { area: district } } })).data ?? null,
   );
   const demand = useApi(
-    `demand:${district}:${week}`,
+    `demand:${district}`,
     async () =>
-      (await api.GET("/geo/demand", { params: { query: { area: district, week } } })).data ?? null,
+      (await api.GET("/geo/demand", { params: { query: { area: district } } })).data ?? null,
   );
   const sites = useApi(
     `sites:${district}`,
@@ -90,8 +93,7 @@ export function NeedMap() {
           lon: coords(f.geometry)[0],
           lat: coords(f.geometry)[1],
           label: f.properties.name,
-          tone:
-            f.properties.alert_severity === "critical" || f.properties.overcrowded ? "alert" : "ok",
+          tone: f.properties.overcrowded || !f.properties.water_available ? "alert" : "ok",
         })),
       });
     }
@@ -125,10 +127,7 @@ export function NeedMap() {
   const area = areas.data.data.features.find((f) => f.id === selected)?.properties;
   const format = metric === "stunting" || metric === "mothers" ? formatShare : formatNumber;
   const demandTotal =
-    demand.data?.data.features.reduce(
-      (n, f) => n + f.properties.empty_searches + f.properties.centre_requests,
-      0,
-    ) ?? 0;
+    demand.data?.data.features.reduce((n, f) => n + f.properties.centre_requests, 0) ?? 0;
 
   return (
     <>
@@ -146,9 +145,6 @@ export function NeedMap() {
           ))}
         </SelectField>
         <div className="flex flex-col gap-2">
-          <div data-tour="week-scrubber">
-            <WeekScrubber weeks={weeks} value={week} onChange={setWeek} />
-          </div>
           <fieldset className="flex flex-wrap gap-4 text-sm">
             <legend className="sr-only">{t("layers")}</legend>
             {LAYERS.map((layer) => (
@@ -240,7 +236,6 @@ export function NeedMap() {
           </div>
         </Panel>
       </div>
-      <p className="mt-4 text-sm text-ink-muted">{t("replayNote")}</p>
     </>
   );
 }

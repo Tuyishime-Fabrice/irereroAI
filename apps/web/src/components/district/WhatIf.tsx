@@ -60,7 +60,7 @@ export function WhatIf() {
         lead={t("lead")}
         actions={<SimulatedWatermark force variant="inline" />}
       />
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3" data-tour="what-if">
         {options.map((option, i) => (
           <Panel key={i} className="flex flex-col gap-4 p-4">
             <h2 className="font-display text-xl text-ink">{t("option", { n: i + 1 })}</h2>

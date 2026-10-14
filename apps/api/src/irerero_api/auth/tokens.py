@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from irerero_api.auth.principal import Principal
 from irerero_api.config import Settings
-from irerero_contract.enums import Role, ScopeLevel
+from irerero_contract.enums import Role
 from irerero_contract.tables import RefreshToken, UserAccount
 
 ALGORITHM = "HS256"
@@ -39,8 +39,7 @@ def issue_tokens(session: Session, user: UserAccount, settings: Settings) -> tup
             "typ": "access",
             "sub": str(user.id),
             "role": user.role.value,
-            "scope_level": user.scope_level.value,
-            "scope_code": user.scope_code,
+            "district": user.district_code,
             "iat": now,
             "exp": now + timedelta(minutes=settings.access_token_minutes),
         },
@@ -60,8 +59,7 @@ def principal_from_access(token: str, settings: Settings) -> Principal:
     return Principal(
         id=uuid.UUID(claims["sub"]),
         role=Role(claims["role"]),
-        scope_level=ScopeLevel(claims["scope_level"]),
-        scope_code=claims.get("scope_code"),
+        district_code=claims["district"],
     )
 
 

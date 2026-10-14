@@ -57,7 +57,7 @@ files = ["packages/engine/src", "packages/contract/src", "apps/api/src", "pipeli
 exclude = ["/tests/"]
 
 [[tool.mypy.overrides]]
-module = ["geoalchemy2.*", "pyotp.*"]
+module = ["geoalchemy2.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

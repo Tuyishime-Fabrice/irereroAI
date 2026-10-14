@@ -150,29 +150,6 @@ JSON Schema: [`data/contract/admin_unit.schema.json`](../data/contract/admin_uni
 | `origin` | code | yes | official \| public \| partner \| simulated. Drives UI badges |
 | `pipeline_run_id` | uuid |  | Pipeline run that loaded the row. Null for records entered through the app |
 
-### `alert`
-
-An early-warning signal for one centre and week, with its reason in plain words.
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | uuid | key | Id |
-| `centre_code` | string | yes | Centre concerned |
-| `week_start` | date | yes | Week the signal fired |
-| `kind` | code | yes | attendance_drop \| missing_report \| overcrowding \| wash \| closure_risk |
-| `severity` | code | yes | info \| warning \| critical |
-| `reason_en` | text | yes | Reason in English |
-| `reason_rw` | text | yes | Reason in Kinyarwanda |
-| `evidence` | json | yes | Numbers the rule used, e.g. {attendance, baseline_mean, z_score} |
-| `rule` | string | yes | Rule id inside the early-warning model |
-| `model_version_id` | string | yes | Early-warning version |
-| `origin` | code | yes | Origin of the reports the alert was computed from |
-| `status` | code | yes | open \| acknowledged \| resolved |
-| `assigned_to` | uuid |  | Officer following up |
-| `resolution_note` | text |  | What was done |
-| `created_at` | datetime | yes | When the row was written |
-| `updated_at` | datetime | yes | Last status change |
-
 ### `area_indicator`
 
 Source indicators aligned to an area. Phase 2 adapters write here; models read here.
@@ -254,10 +231,10 @@ JSON Schema: [`data/contract/centre.schema.json`](../data/contract/centre.schema
 | `offers_meals` | boolean | yes | Serves at least one meal a day |
 | `offers_growth_monitoring` | boolean | yes | Hosts growth monitoring or refers to it |
 | `disability_inclusive` | boolean | yes | Has adapted space and trained caregivers for children with disabilities |
-| `verified` | boolean | yes | A sector officer has checked the centre in person |
-| `verified_at` | datetime |  | When the last verification happened |
-| `verified_by` | uuid |  | Officer who verified the centre |
-| `reliability_score` | float | yes | 0 to 1. Share of the last 12 weeks reported on time without quality flags |
+| `verified` | boolean | yes | Marked verified in the NCDA ECD Mapping System |
+| `water_available` | boolean | yes | Has safe drinking water and handwashing on site |
+| `enrolment` | integer | yes | Children enrolled, from the latest attendance feed record |
+| `enrolment_as_of` | date | yes | Date of the attendance feed record the enrolment comes from |
 | `ncda_ref` | string |  | Record identifier in the NCDA ECD Mapping System |
 | `source` | string | yes | Named source, for example "NISR Census 2022" or "IrereroAI demo generator" |
 | `reference_year` | smallinteger | yes | Year the values describe, not the year they were loaded |
@@ -266,7 +243,7 @@ JSON Schema: [`data/contract/centre.schema.json`](../data/contract/centre.schema
 
 ### `coverage_snapshot`
 
-Weekly coverage per sector. Produced by CoverageModel from centres and need.
+Coverage per sector for each catchment step. Precomputed by CoverageModel.
 
 JSON Schema: [`data/contract/coverage_snapshot.schema.json`](../data/contract/coverage_snapshot.schema.json)
 
@@ -274,11 +251,10 @@ JSON Schema: [`data/contract/coverage_snapshot.schema.json`](../data/contract/co
 | --- | --- | --- | --- |
 | `id` | uuid | key | Row id |
 | `area_code` | string | yes | Sector |
-| `week_start` | date | yes | Monday of the week |
 | `model_version_id` | string | yes | Coverage model that produced the row |
 | `children_covered` | integer | yes | Children 0 to 6 with a place within the catchment |
 | `children_uncovered` | integer | yes | Children 0 to 6 without a reachable place |
-| `overcrowded_centres` | integer | yes | Centres with attendance above capacity |
+| `overcrowded_centres` | integer | yes | Centres with enrolment above capacity |
 | `catchment_minutes` | smallinteger | yes | Walking time used for the catchment |
 | `source` | string | yes | Named source, for example "NISR Census 2022" or "IrereroAI demo generator" |
 | `reference_year` | smallinteger | yes | Year the values describe, not the year they were loaded |
@@ -320,16 +296,15 @@ A person's verdict on a recommendation. Rejection reasons feed the next run.
 
 ### `demand_signal`
 
-A parent search with no result, or a request for a centre. The raw parent location is never stored: the API snaps it to a 500 m grid cell in EPSG:32735 before anything is written.
+A parent's request for a centre near a place. The raw parent location is never stored: the API snaps it to a 500 m grid cell in EPSG:32735 before anything is written.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `id` | uuid | key | Id |
-| `kind` | code | yes | empty_search \| centre_request |
 | `grid_cell` | string | yes | 500 m cell id in EPSG:32735: 'E{easting}N{northing}' |
 | `cell_centre` | point 4326 | yes | Centre of the cell, EPSG:4326 |
 | `sector_code` | string | yes | Sector containing the cell centre |
-| `age_band` | string |  | Age band searched for: 0_2 \| 3_6 |
+| `age_band` | string |  | Age band the parent needs a place for: 0_2 \| 3_6 |
 | `origin` | code | yes | Origin of the signal |
 | `created_at` | datetime | yes | When the row was written |
 
@@ -378,20 +353,6 @@ JSON Schema: [`data/contract/need_estimate.schema.json`](../data/contract/need_e
 | `origin` | code | yes | official \| public \| partner \| simulated. Drives UI badges |
 | `pipeline_run_id` | uuid |  | Pipeline run that loaded the row. Null for records entered through the app |
 
-### `otp_challenge`
-
-One-time sign-in code for parents. Only the hash of the code is stored.
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | uuid | key | Id |
-| `phone` | string | yes | E.164 phone |
-| `code_hash` | string | yes | Argon2id hash of the code |
-| `attempts` | smallinteger | yes | Failed attempts |
-| `expires_at` | datetime | yes | Expiry |
-| `consumed_at` | datetime |  | Used |
-| `created_at` | datetime | yes | When the row was written |
-
 ### `pipeline_run`
 
 One execution of an adapter or the demo generator, with its checks.
@@ -413,7 +374,7 @@ JSON Schema: [`data/contract/pipeline_run.schema.json`](../data/contract/pipelin
 
 ### `planning_default`
 
-Default budget and policy weights for an area, set by national analysts.
+Default budget and policy weights the plan screen opens with, per district or national.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -422,7 +383,6 @@ Default budget and policy weights for an area, set by national analysts.
 | `weight_stunting` | float | yes | Default stunting weight |
 | `weight_readiness` | float | yes | Default readiness weight |
 | `weight_jobs` | float | yes | Default jobs weight |
-| `updated_by` | uuid |  | Analyst who last changed it |
 | `updated_at` | datetime | yes | When the row was written |
 
 ### `recommendation`
@@ -457,20 +417,6 @@ Issued refresh tokens, so they can be rotated and revoked.
 | `user_id` | uuid | yes | Owner |
 | `expires_at` | datetime | yes | Expiry |
 | `revoked_at` | datetime |  | Set on rotation or sign-out |
-| `created_at` | datetime | yes | When the row was written |
-
-### `saved_search`
-
-A parent's saved search. Location is snapped to the 500 m grid, like demand signals.
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | uuid | key | Id |
-| `user_id` | uuid | yes | Parent |
-| `label` | string | yes | Name the parent gave it |
-| `grid_cell` | string | yes | 500 m cell id |
-| `cell_centre` | point 4326 | yes | Centre of the cell, EPSG:4326 |
-| `filters` | json | yes | {age_band, meals, max_fee_band, max_km} |
 | `created_at` | datetime | yes | When the row was written |
 
 ### `scenario`
@@ -514,53 +460,17 @@ JSON Schema: [`data/contract/unit_cost.schema.json`](../data/contract/unit_cost.
 
 ### `user_account`
 
-Staff, caregivers and parents. Role and scope are copied into every access token.
+District planners. Role and district are copied into every access token.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `id` | uuid | key | Id |
 | `role` | code | yes | Role |
-| `scope_level` | code | yes | none \| centre \| sector \| district \| national |
-| `scope_code` | string |  | Centre code or admin unit code the account may see |
+| `district_code` | string | yes | District the planner plans for |
 | `display_name` | string | yes | Name shown in the app |
-| `email` | string |  | Staff login |
-| `phone` | string |  | E.164 phone, parent and caregiver login |
-| `password_hash` | string |  | Argon2id hash |
-| `totp_secret` | string |  | TOTP secret. Required for admins |
+| `email` | string | yes | Login |
+| `password_hash` | string | yes | Argon2id hash |
 | `is_active` | boolean | yes | Can sign in |
 | `created_at` | datetime | yes | When the row was written |
-
-### `weekly_report`
-
-The weekly centre report: about ten counts, no child-level data.
-
-JSON Schema: [`data/contract/weekly_report.schema.json`](../data/contract/weekly_report.schema.json)
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | uuid | key | Report id |
-| `centre_code` | string | yes | Reporting centre |
-| `week_start` | date | yes | Monday of the reported week |
-| `enrolled_0_2_female` | integer | yes | Girls aged 0 to 2 enrolled |
-| `enrolled_0_2_male` | integer | yes | Boys aged 0 to 2 enrolled |
-| `enrolled_3_6_female` | integer | yes | Girls aged 3 to 6 enrolled |
-| `enrolled_3_6_male` | integer | yes | Boys aged 3 to 6 enrolled |
-| `avg_daily_attendance` | integer | yes | Average number of children present per open day |
-| `waiting_list` | integer | yes | Children waiting for a place |
-| `caregivers_present` | integer | yes | Caregivers present on a typical day |
-| `days_open` | smallinteger | yes | Days the centre opened this week, 0 to 6 |
-| `days_meal_served` | smallinteger | yes | Days a meal was served, 0 to 6 |
-| `wash_available` | boolean | yes | Water and handwashing were available all week |
-| `referrals_growth_monitoring` | integer | yes | Children referred to growth monitoring this week |
-| `children_with_disability` | integer | yes | Enrolled children with a known disability |
-| `main_problem` | code | yes | none \| no_food \| no_water \| caregiver_absent \| building_damage \| weather \| other |
-| `channel` | code | yes | web \| offline \| sms \| assisted |
-| `quality_flags` | list | yes | Validation flags. Flagged reports are kept and shown, never silently accepted |
-| `submitted_by` | uuid |  | Account that submitted or entered the report |
-| `submitted_at` | datetime | yes | When the server received it |
-| `source` | string | yes | Named source, for example "NISR Census 2022" or "IrereroAI demo generator" |
-| `reference_year` | smallinteger | yes | Year the values describe, not the year they were loaded |
-| `origin` | code | yes | official \| public \| partner \| simulated. Drives UI badges |
-| `pipeline_run_id` | uuid |  | Pipeline run that loaded the row. Null for records entered through the app |
 
 <!-- END GENERATED FIELD REFERENCE -->

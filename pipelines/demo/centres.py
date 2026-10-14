@@ -1,13 +1,19 @@
 """Simulated ECD centres for Gicumbi: the story centres plus generated ones in every sector."""
 
-from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import Connection, text
 
 from irerero_contract.enums import CentreType, FeeBand
-from pipelines.demo.config import DEMO_DISTRICT, REFERENCE_YEAR, SOURCE, UNDERSERVED_SECTOR, rng
-from pipelines.demo.story import STORY_CENTRES
+from pipelines.demo.config import (
+    DEMO_DISTRICT,
+    ENROLMENT_AS_OF,
+    REFERENCE_YEAR,
+    SOURCE,
+    UNDERSERVED_SECTOR,
+    rng,
+)
+from pipelines.demo.story import STORY_BY_CODE, STORY_CENTRES
 
 CAPACITY = {
     CentreType.HOME_BASED: (15, 30),
@@ -41,7 +47,8 @@ NAME_PATTERN = {
 }
 # Byumba is the district town and gets more centres; the under-served sector gets no new ones.
 EXTRA_CENTRES = {"S-GICUMBI-BYUMBA": 3, UNDERSERVED_SECTOR: 0}
-VERIFIED_AS_OF = datetime(2026, 9, 1, tzinfo=UTC)
+# Generated centres enrol between these shares of their capacity.
+ENROLMENT_SHARE = (0.6, 1.05)
 
 
 def _sectors(conn: Connection) -> list[tuple[str, str]]:
@@ -110,7 +117,10 @@ def build_centres(conn: Connection) -> list[dict[str, Any]]:
     rows = []
     for centre in planned:
         kind = centre["type"]
-        verified = r.random() < 0.75
+        story = STORY_BY_CODE.get(centre["code"])
+        enrolment = (
+            story.enrolment if story else round(centre["capacity"] * r.uniform(*ENROLMENT_SHARE))
+        )
         rows.append(
             {
                 "code": centre["code"],
@@ -128,18 +138,16 @@ def build_centres(conn: Connection) -> list[dict[str, Any]]:
                 "offers_meals": r.random() < 0.7,
                 "offers_growth_monitoring": r.random() < 0.6,
                 "disability_inclusive": r.random() < 0.25,
-                "verified": verified,
-                "verified_at": VERIFIED_AS_OF - timedelta(days=r.randint(5, 170))
-                if verified
-                else None,
+                "verified": story is not None or r.random() < 0.75,
+                "water_available": story.water_available if story else r.random() < 0.85,
+                "enrolment": enrolment,
+                "enrolment_as_of": ENROLMENT_AS_OF,
             }
         )
     # The story needs these centres to have the services their problems are about.
     for row in rows:
         if row["code"] in {"ECD-GIC-001", "ECD-GIC-002", "ECD-GIC-003"}:
             row["offers_meals"] = True
-            row["verified"] = True
-            row["verified_at"] = VERIFIED_AS_OF - timedelta(days=30)
     return rows
 
 
@@ -147,12 +155,13 @@ INSERT_CENTRE = text(
     """
     INSERT INTO centre (code, name, type, status, sector_code, location, capacity, serves_0_2,
         serves_3_6, opening_hours, fee_band, offers_meals, offers_growth_monitoring,
-        disability_inclusive, verified, verified_at, reliability_score, source, reference_year,
-        origin, pipeline_run_id)
+        disability_inclusive, verified, water_available, enrolment, enrolment_as_of, source,
+        reference_year, origin, pipeline_run_id)
     VALUES (:code, :name, :type, :status, :sector_code,
         ST_SetSRID(ST_MakePoint(:lon, :lat), 4326), :capacity, :serves_0_2, :serves_3_6,
         :opening_hours, :fee_band, :offers_meals, :offers_growth_monitoring,
-        :disability_inclusive, :verified, :verified_at, 0, :source, :year, 'simulated', :run_id)
+        :disability_inclusive, :verified, :water_available, :enrolment, :enrolment_as_of,
+        :source, :year, 'simulated', :run_id)
     """
 )
 

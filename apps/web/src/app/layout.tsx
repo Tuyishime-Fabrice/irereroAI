@@ -29,7 +29,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: "IrereroAI", template: "%s · IrereroAI" },
     description: t("description"),
-    manifest: "/manifest.webmanifest",
   };
 }
 

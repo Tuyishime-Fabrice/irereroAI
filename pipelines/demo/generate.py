@@ -16,7 +16,7 @@ from sqlalchemy import Engine, inspect, text
 from irerero_contract.enums import Origin, RunStatus
 from pipelines.adapter import REPO_ROOT, CheckResult, RunRecorder
 from pipelines.db import engine as make_engine
-from pipelines.demo.accounts import CAREGIVER_CENTRE, account_id, load_accounts
+from pipelines.demo.accounts import load_accounts
 from pipelines.demo.catalogue import load_catalogue, load_need_model, load_planning_defaults
 from pipelines.demo.centres import load_centres
 from pipelines.demo.demand import load_demand
@@ -24,7 +24,6 @@ from pipelines.demo.derive import derive, load_model_versions
 from pipelines.demo.geography import BoundaryDownloadError, load_boundaries
 from pipelines.demo.need import load_need
 from pipelines.demo.planning import load_sites, load_unit_costs
-from pipelines.demo.reports import load_reports
 
 ALEMBIC_INI = REPO_ROOT / "apps" / "api" / "alembic.ini"
 
@@ -68,15 +67,12 @@ def generate(engine: Engine) -> dict[str, int]:
             counts["user_account"] = load_accounts(conn)
             centres = load_centres(conn, run_id)
             counts["centre"] = len(centres)
-            submitters = {CAREGIVER_CENTRE: account_id("caregiver")}
-            counts["weekly_report"] = load_reports(conn, run_id, centres, submitters)
             counts["need_estimate"] = load_need(conn, run_id)
             counts["unit_cost"] = load_unit_costs(conn, run_id)
             counts["candidate_site"] = load_sites(conn, run_id, centres)
             counts["demand_signal"] = load_demand(conn)
             load_model_versions(conn)
             counts |= derive(conn)
-            counts["alert"] = conn.execute(text("SELECT count(*) FROM alert")).scalar_one()
     except Exception:
         recorder.finish(RunStatus.FAILED, {}, [])
         raise

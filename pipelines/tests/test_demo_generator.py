@@ -1,9 +1,16 @@
 from sqlalchemy import Engine, text
 
+from irerero_engine.coverage import CATCHMENT_STEPS
 from pipelines.demo.generate import generate
-from pipelines.demo.story import STORY_BY_ROLE
+from pipelines.demo.story import STORY_CENTRES
 
-FINGERPRINT_TABLES = ("centre", "weekly_report", "need_estimate", "candidate_site", "demand_signal")
+FINGERPRINT_TABLES = (
+    "centre",
+    "need_estimate",
+    "candidate_site",
+    "demand_signal",
+)
+STORY = {c.role: c for c in STORY_CENTRES}
 
 
 def _fingerprint(engine: Engine) -> dict[str, str]:
@@ -38,49 +45,48 @@ def test_generator_is_deterministic(demo_engine: Engine) -> None:
 
 def test_everything_generated_is_labelled_simulated(demo_engine: Engine) -> None:
     with demo_engine.connect() as conn:
-        for table in ("centre", "weekly_report", "need_estimate", "candidate_site", "unit_cost"):
+        for table in (
+            "centre",
+            "need_estimate",
+            "candidate_site",
+            "unit_cost",
+            "demand_signal",
+            "coverage_snapshot",
+        ):
             origins = conn.execute(text(f"SELECT DISTINCT origin FROM {table}")).scalars().all()  # noqa: S608
             assert origins == ["simulated"], table
         boundaries = conn.execute(text("SELECT DISTINCT origin FROM admin_unit")).scalars().all()
         assert boundaries == ["public"]
 
 
-def test_planted_problems_are_present(demo_engine: Engine) -> None:
+def test_planted_centres_are_present(demo_engine: Engine) -> None:
     with demo_engine.connect() as conn:
-        weeks = dict(
+        rows = {
+            r.code: r
+            for r in conn.execute(
+                text("SELECT code, type, capacity, enrolment, water_available FROM centre")
+            )
+        }
+    assert not rows[STORY["no_water"].code].water_available
+    crowded = rows[STORY["overcrowded"].code]
+    assert crowded.enrolment > crowded.capacity
+    home = rows[STORY["outgrown_home"].code]
+    assert home.type == "home_based" and home.enrolment > home.capacity
+
+
+def test_coverage_is_precomputed_for_every_catchment_step(demo_engine: Engine) -> None:
+    with demo_engine.connect() as conn:
+        uncovered = dict(
             conn.execute(
-                text("SELECT centre_code, count(*) FROM weekly_report GROUP BY centre_code")
+                text(
+                    "SELECT catchment_minutes, sum(children_uncovered) FROM coverage_snapshot "
+                    "GROUP BY catchment_minutes ORDER BY catchment_minutes"
+                )
             ).all()
         )
-        assert weeks[STORY_BY_ROLE["stopped_reporting"].code] == 9
-        assert weeks[STORY_BY_ROLE["caregiver_home"].code] == 11
-
-        no_water = conn.execute(
-            text(
-                "SELECT count(*) FROM weekly_report WHERE centre_code = :c "
-                "AND main_problem = 'no_water' AND NOT wash_available"
-            ),
-            {"c": STORY_BY_ROLE["no_water"].code},
-        ).scalar_one()
-        assert no_water == 3
-
-        jump_flags = conn.execute(
-            text(
-                "SELECT count(*) FROM weekly_report WHERE centre_code = :c "
-                "AND 'enrolment_jump' = ANY(quality_flags)"
-            ),
-            {"c": STORY_BY_ROLE["implausible_jump"].code},
-        ).scalar_one()
-        assert jump_flags == 1
-
-        crowded = conn.execute(
-            text(
-                "SELECT bool_and(r.avg_daily_attendance > c.capacity) FROM weekly_report r "
-                "JOIN centre c ON c.code = r.centre_code WHERE c.code = :c"
-            ),
-            {"c": STORY_BY_ROLE["overcrowded"].code},
-        ).scalar_one()
-        assert crowded
+    assert sorted(uncovered) == list(CATCHMENT_STEPS)
+    totals = [uncovered[step] for step in CATCHMENT_STEPS]
+    assert totals == sorted(totals, reverse=True)
 
 
 def test_demand_clusters_in_the_underserved_sector(demo_engine: Engine) -> None:
@@ -90,9 +96,7 @@ def test_demand_clusters_in_the_underserved_sector(demo_engine: Engine) -> None:
                 text("SELECT sector_code, count(*) FROM demand_signal GROUP BY sector_code")
             ).all()
         )
-    assert (
-        max(by_sector, key=lambda code: by_sector[code]) == STORY_BY_ROLE["underserved"].sector_code
-    )
+    assert max(by_sector, key=lambda code: by_sector[code]) == STORY["underserved"].sector_code
 
 
 def test_demand_signals_store_only_grid_cells(demo_engine: Engine) -> None:

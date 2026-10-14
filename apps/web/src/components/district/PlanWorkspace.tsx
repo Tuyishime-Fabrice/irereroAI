@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
-import { AssistantDrawer, type AssistantSubject } from "@/components/assistant/AssistantDrawer";
 import { useProvenance } from "@/components/shell/ProvenanceProvider";
 import { DecisionCard } from "@/components/signature/DecisionCard";
 import { ImpactCounter } from "@/components/signature/ImpactCounter";
@@ -40,7 +39,6 @@ export function PlanWorkspace() {
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [running, setRunning] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [asking, setAsking] = useState<AssistantSubject | null>(null);
   useProvenance(scenario?.provenance);
 
   const latest = history.data?.[0]?.id;
@@ -101,7 +99,6 @@ export function PlanWorkspace() {
       recommendation={{ ...rec, rank: index + 1 }}
       maxReached={maxReached}
       canDecide
-      onAsk={() => setAsking({ kind: "recommendation", id: rec.id, title: rec.site_name })}
       onDecide={async (decision) => {
         const { data } = await api.POST("/recommendations/{recommendation_id}/decision", {
           params: { path: { recommendation_id: rec.id } },
@@ -222,7 +219,6 @@ export function PlanWorkspace() {
           )}
         </div>
       </div>
-      <AssistantDrawer subject={asking} onClose={() => setAsking(null)} />
     </>
   );
 }

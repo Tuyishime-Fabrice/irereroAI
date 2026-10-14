@@ -21,7 +21,7 @@ export default async function TourPage() {
             <Panel className="h-full p-4">
               <p className="font-mono text-xs text-clay">
                 {String(i + 1).padStart(2, "0")}
-                {step.role && ` · ${t(`as.${step.role}`)}`}
+                {step.as && ` · ${t(`as.${step.as}`)}`}
               </p>
               <h2 className="font-display text-lg text-ink">{t(`steps.${step.key}.title`)}</h2>
               <p className="mt-1 text-sm text-ink">{t(`steps.${step.key}.text`)}</p>

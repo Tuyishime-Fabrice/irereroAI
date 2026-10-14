@@ -14,7 +14,7 @@ import {
   type Tokens,
 } from "@/lib/api/upstream";
 
-const SIGN_IN = [/^auth\/login$/, /^auth\/caregiver$/, /^auth\/otp\/verify$/, /^demo\/login\/\w+$/];
+const SIGN_IN = [/^auth\/login$/, /^demo\/login$/];
 
 async function forward(request: NextRequest, path: string, access: string | undefined) {
   const headers = new Headers();

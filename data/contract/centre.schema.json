@@ -19,6 +19,9 @@
     "offers_meals",
     "offers_growth_monitoring",
     "disability_inclusive",
+    "water_available",
+    "enrolment",
+    "enrolment_as_of",
     "source",
     "reference_year",
     "origin"
@@ -129,37 +132,21 @@
     },
     "verified": {
       "type": "boolean",
-      "description": "A sector officer has checked the centre in person"
+      "description": "Marked verified in the NCDA ECD Mapping System"
     },
-    "verified_at": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "description": "When the last verification happened"
+    "water_available": {
+      "type": "boolean",
+      "description": "Has safe drinking water and handwashing on site"
     },
-    "verified_by": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uuid"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "description": "Officer who verified the centre"
-    },
-    "reliability_score": {
-      "type": "number",
+    "enrolment": {
+      "type": "integer",
       "minimum": 0,
-      "maximum": 1,
-      "description": "0 to 1. Share of the last 12 weeks reported on time without quality flags"
+      "description": "Children enrolled, from the latest attendance feed record"
+    },
+    "enrolment_as_of": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the attendance feed record the enrolment comes from"
     },
     "ncda_ref": {
       "anyOf": [

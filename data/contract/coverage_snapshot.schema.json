@@ -2,12 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://irereroai.rw/contract/coverage_snapshot.schema.json",
   "title": "coverage_snapshot",
-  "description": "Weekly coverage per sector. Produced by CoverageModel from centres and need.",
+  "description": "Coverage per sector for each catchment step. Precomputed by CoverageModel.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "area_code",
-    "week_start",
     "model_version_id",
     "children_covered",
     "children_uncovered",
@@ -28,11 +27,6 @@
       "maxLength": 64,
       "description": "Sector"
     },
-    "week_start": {
-      "type": "string",
-      "format": "date",
-      "description": "Monday of the week"
-    },
     "model_version_id": {
       "type": "string",
       "maxLength": 64,
@@ -51,7 +45,7 @@
     "overcrowded_centres": {
       "type": "integer",
       "minimum": 0,
-      "description": "Centres with attendance above capacity"
+      "description": "Centres with enrolment above capacity"
     },
     "catchment_minutes": {
       "type": "integer",

@@ -1,4 +1,4 @@
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 
 import pytest
 from fastapi.testclient import TestClient
@@ -6,7 +6,7 @@ from sqlalchemy import Engine
 
 from irerero_api.main import app
 
-Login = Callable[[str], dict[str, str]]
+Headers = dict[str, str]
 
 
 @pytest.fixture(scope="session")
@@ -16,14 +16,7 @@ def client(demo_engine: Engine) -> Iterator[TestClient]:
 
 
 @pytest.fixture(scope="session")
-def auth(client: TestClient) -> Login:
-    """Authorization headers for the demo account of a role."""
-    cache: dict[str, dict[str, str]] = {}
-
-    def login(role: str) -> dict[str, str]:
-        if role not in cache:
-            token = client.post(f"/demo/login/{role}").json()["access_token"]
-            cache[role] = {"Authorization": f"Bearer {token}"}
-        return cache[role]
-
-    return login
+def planner(client: TestClient) -> Headers:
+    """Authorization headers for the demo planner (Gicumbi)."""
+    token = client.post("/demo/login").json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}

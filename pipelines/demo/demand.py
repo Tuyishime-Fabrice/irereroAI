@@ -1,6 +1,6 @@
-"""Simulated parent demand: empty searches and centre requests, clustered where centres are few.
+"""Simulated parent centre requests, clustered where centres are few.
 
-Locations go through the same 500 m grid snapping as live requests from the Find page.
+Locations go through the same 500 m grid snapping as live requests from the parent page.
 """
 
 from datetime import UTC, datetime, time, timedelta
@@ -9,7 +9,14 @@ from sqlalchemy import Connection, insert, text
 
 from irerero_contract.grid import cell_centre, cell_id, nearest_sector
 from irerero_contract.tables import DemandSignal
-from pipelines.demo.config import DEMO_DISTRICT, UNDERSERVED_SECTOR, WEEKS, rng, stable_id
+from pipelines.demo.config import (
+    DEMAND_WEEKS,
+    DEMO_DISTRICT,
+    ENROLMENT_AS_OF,
+    UNDERSERVED_SECTOR,
+    rng,
+    stable_id,
+)
 
 CLUSTER_SIGNALS = 14
 DEMAND_SITE = "SITE-CYUMBA-V1"
@@ -54,13 +61,12 @@ def load_demand(conn: Connection) -> int:
     )
     count = 0
     for n, (lon, lat) in enumerate(cluster + scattered):
-        week = WEEKS[r.randint(5, len(WEEKS) - 1)]
-        created = datetime.combine(week + timedelta(days=r.randint(0, 6)), time(8), tzinfo=UTC)
+        day = ENROLMENT_AS_OF - timedelta(days=r.randint(0, DEMAND_WEEKS * 7 - 1))
+        created = datetime.combine(day, time(8), tzinfo=UTC)
         sector = conn.execute(nearest_sector(cell_centre(lon, lat))).scalar_one()
         conn.execute(
             insert(DemandSignal).values(
                 id=stable_id("demand", n),
-                kind="centre_request" if n % 3 == 0 else "empty_search",
                 grid_cell=cell_id(lon, lat),
                 cell_centre=cell_centre(lon, lat),
                 sector_code=sector,

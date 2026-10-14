@@ -19,7 +19,7 @@ export default async function Landing() {
           <p className="mt-4 max-w-xl text-lg text-ink-muted">{t("lead")}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/find"
+              href="/request"
               className="inline-flex min-h-12 items-center rounded-md bg-kivu px-5 font-medium text-white"
             >
               {t("ctaFind")}
@@ -88,7 +88,7 @@ export default async function Landing() {
               <h3 className="font-semibold text-ink">{t(`who.${key}.title`)}</h3>
               <p className="text-sm text-ink-muted">{t(`who.${key}.text`)}</p>
               <Link
-                href={key === "parents" ? "/find" : "/sign-in"}
+                href={key === "parents" ? "/request" : "/sign-in"}
                 className="mt-auto text-sm font-medium text-kivu underline"
               >
                 {t(`who.${key}.link`)}

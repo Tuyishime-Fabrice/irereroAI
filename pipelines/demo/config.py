@@ -2,19 +2,19 @@
 
 import random
 import uuid
-from datetime import date, timedelta
+from datetime import date
 
 SEED = 20260713
 SOURCE = "IrereroAI demo generator (simulated)"
 REFERENCE_YEAR = 2026
 
-# Twelve reporting weeks. The demo's "current week" is week 12, whatever today's date is.
-FIRST_WEEK = date(2026, 7, 6)
-WEEKS = [FIRST_WEEK + timedelta(weeks=i) for i in range(12)]
-CURRENT_WEEK = WEEKS[-1]
+# Date of the simulated centre feed record, and the eight weeks of parent requests before it.
+ENROLMENT_AS_OF = date(2026, 9, 21)
+DEMAND_WEEKS = 8
 
 DEMO_DISTRICT = "D-GICUMBI"
-OFFICER_SECTOR = "S-GICUMBI-BYUMBA"
+# The district town: denser population and more centres.
+TOWN_SECTOR = "S-GICUMBI-BYUMBA"
 UNDERSERVED_SECTOR = "S-GICUMBI-CYUMBA"
 
 # Gicumbi stunting among children under 5, RDHS 2025 (figure supplied by the team).

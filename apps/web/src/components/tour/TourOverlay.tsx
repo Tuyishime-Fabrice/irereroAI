@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/Button";
 import { TOUR } from "./steps";
 import { readStep, subscribe, writeStep } from "./tourStore";
 
-async function switchTo(role: string): Promise<boolean> {
-  const response = await fetch(`/api/demo/login/${role}`, { method: "POST" });
+async function signInAsPlanner(): Promise<boolean> {
+  const response = await fetch("/api/demo/login", { method: "POST" });
   return response.ok;
 }
 
@@ -59,10 +59,10 @@ export function TourOverlay() {
       return;
     }
     writeStep(index);
-    if (next.role && next.role !== user?.role) {
+    if (next.as === "planner" && !user) {
       setBusy(true);
-      // A full page load avoids racing the old account's role guard during the switch.
-      if (await switchTo(next.role)) window.location.assign(next.path);
+      // A full page load picks up the new session cookie everywhere at once.
+      if (await signInAsPlanner()) window.location.assign(next.path);
       else setBusy(false);
       return;
     }
@@ -77,7 +77,7 @@ export function TourOverlay() {
     >
       <p className="font-mono text-xs font-semibold tracking-wide text-clay uppercase">
         {t("progress", { n: step + 1, total: TOUR.length })}
-        {current.role && ` · ${t(`as.${current.role}`)}`}
+        {current.as && ` · ${t(`as.${current.as}`)}`}
       </p>
       <h2 className="mt-1 font-display text-lg text-ink">{t(`steps.${current.key}.title`)}</h2>
       <p className="mt-1 text-sm text-ink">{t(`steps.${current.key}.text`)}</p>

@@ -18,9 +18,9 @@ from pipelines.demo.config import (
     DEMO_DISTRICT,
     GICUMBI_STUNTING,
     GICUMBI_STUNTING_SOURCE,
-    OFFICER_SECTOR,
     REFERENCE_YEAR,
     SOURCE,
+    TOWN_SECTOR,
     UNDERSERVED_SECTOR,
     rng,
     stable_id,
@@ -99,10 +99,10 @@ def _sector_rows(conn: Connection, r: random.Random) -> list[dict[str, Any]]:
     ).all()
     children, stunting, barrier, poverty = [], [], [], []
     for s in sectors:
-        density = r.uniform(55, 110) * (2.2 if s.code == OFFICER_SECTOR else 1.0)
+        density = r.uniform(55, 110) * (2.2 if s.code == TOWN_SECTOR else 1.0)
         children.append(density * s.area_km2)
         stunting.append(min(0.55, max(0.22, r.gauss(GICUMBI_STUNTING, 0.06))))
-        barrier.append(r.uniform(0.2, 0.42) + (0.08 if s.code == OFFICER_SECTOR else 0.0))
+        barrier.append(r.uniform(0.2, 0.42) + (0.08 if s.code == TOWN_SECTOR else 0.0))
         poverty.append(r.uniform(0.15, 0.45))
     under = sectors.index(next(s for s in sectors if s.code == UNDERSERVED_SECTOR))
     stunting[under], poverty[under] = 0.49, 0.47

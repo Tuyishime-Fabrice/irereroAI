@@ -65,27 +65,6 @@ export const SAMPLE_OUTCOMES: Schemas["OutcomesOut"] = {
   actions: { build: 5, support: 3, upgrade: 1 },
 };
 
-export const SAMPLE_ALERT: Schemas["AlertOut"] = {
-  id: "00000000-0000-0000-0000-000000000002",
-  centre_code: "SAMPLE",
-  centre_name: "Sample centre",
-  sector_code: "SAMPLE",
-  sector_name: "Sample sector",
-  week_start: "2026-09-07",
-  kind: "attendance_drop",
-  severity: "critical",
-  reason_en:
-    "Attendance fell to 14 of 40 children (35%), against a usual 84%, for 3 weeks in a row.",
-  reason_rw: "Ubwitabire bwagabanutse bugera ku bana 14 kuri 40 (35%), mu byumweru 3 bikurikirana.",
-  evidence: {},
-  status: "open",
-  assigned_to: null,
-  assigned_name: null,
-  resolution_note: null,
-  age_weeks: 2,
-  origin: "simulated",
-};
-
 /** Abstract squares, clearly not geography. */
 export const SAMPLE_AREAS = [0, 1, 2, 3, 4, 5].map((i) => {
   const x = 30 + (i % 3) * 0.05;

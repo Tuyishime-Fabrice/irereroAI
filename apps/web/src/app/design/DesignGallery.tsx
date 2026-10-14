@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Logo } from "@/components/brand/Logo";
 import { LogoMark } from "@/components/brand/LogoMark";
@@ -9,17 +9,13 @@ import { ZigzagBand } from "@/components/brand/ZigzagBand";
 import { HatchedChoropleth } from "@/components/map/HatchedChoropleth";
 import { LocaleToggle } from "@/components/shell/LocaleToggle";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
-import { AlertRow } from "@/components/signature/AlertRow";
 import { DecisionCard } from "@/components/signature/DecisionCard";
 import { DriverBars } from "@/components/signature/DriverBars";
 import { ImpactCounter } from "@/components/signature/ImpactCounter";
 import { RangeBar } from "@/components/signature/RangeBar";
-import { ReliabilityMeter } from "@/components/signature/ReliabilityMeter";
 import { SimulatedWatermark } from "@/components/signature/SimulatedWatermark";
-import { SmsPreview } from "@/components/signature/SmsPreview";
 import { SourceChip } from "@/components/signature/SourceChip";
 import { TrendChart } from "@/components/signature/TrendChart";
-import { WeekScrubber } from "@/components/signature/WeekScrubber";
 import { Button } from "@/components/ui/Button";
 import { PageTitle } from "@/components/ui/PageTitle";
 import { Panel, PanelHeader } from "@/components/ui/Panel";
@@ -27,7 +23,6 @@ import { EmptyState } from "@/components/ui/States";
 import { formatNumber } from "@/lib/format/numbers";
 
 import {
-  SAMPLE_ALERT,
   SAMPLE_AREAS,
   SAMPLE_DRIVERS,
   SAMPLE_OUTCOMES,
@@ -67,7 +62,6 @@ function Specimen({ name, children }: { name: string; children: ReactNode }) {
 
 export function DesignGallery() {
   const t = useTranslations("design");
-  const [week, setWeek] = useState(SAMPLE_WEEKS[11] as string);
   return (
     <div>
       <ZigzagBand />
@@ -119,7 +113,6 @@ export function DesignGallery() {
               maxReached={100}
               canDecide
               onDecide={async () => undefined}
-              onAsk={() => undefined}
             />
           </Specimen>
           <div className="flex flex-col gap-4">
@@ -131,13 +124,6 @@ export function DesignGallery() {
             </Specimen>
             <Specimen name="SourceChip">
               <SourceChip source={SAMPLE_SOURCE} />
-            </Specimen>
-            <Specimen name="ReliabilityMeter">
-              <div className="flex flex-col gap-2">
-                <ReliabilityMeter score={0.92} />
-                <ReliabilityMeter score={0.67} />
-                <ReliabilityMeter score={0.42} />
-              </div>
             </Specimen>
             <Specimen name="SimulatedWatermark">
               <div className="flex flex-col items-start gap-3">
@@ -151,18 +137,6 @@ export function DesignGallery() {
           </div>
           <Specimen name="ImpactCounter">
             <ImpactCounter outcomes={SAMPLE_OUTCOMES} />
-          </Specimen>
-          <Specimen name="AlertRow">
-            <AlertRow alert={SAMPLE_ALERT} action={<Button>Open</Button>} />
-          </Specimen>
-          <Specimen name="WeekScrubber">
-            <WeekScrubber weeks={SAMPLE_WEEKS} value={week} onChange={setWeek} />
-          </Specimen>
-          <Specimen name="SmsPreview">
-            <SmsPreview
-              message="IR ECD-GIC-001 39 6 5 12 13 30 2 2 5 5 Y 1 1 0"
-              reply="Murakoze. Raporo yakiriwe."
-            />
           </Specimen>
           <Specimen name="TrendChart">
             <TrendChart

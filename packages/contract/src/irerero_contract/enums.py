@@ -46,32 +46,6 @@ class CentreStatus(StrEnum):
     CLOSED = "closed"
 
 
-class MainProblem(StrEnum):
-    NONE = "none"
-    NO_FOOD = "no_food"
-    NO_WATER = "no_water"
-    CAREGIVER_ABSENT = "caregiver_absent"
-    BUILDING_DAMAGE = "building_damage"
-    WEATHER = "weather"
-    OTHER = "other"
-
-
-class ReportChannel(StrEnum):
-    WEB = "web"
-    OFFLINE = "offline"
-    SMS = "sms"
-    ASSISTED = "assisted"
-
-
-class QualityFlag(StrEnum):
-    """Set by validation. A flagged report is stored, shown to the officer, never dropped."""
-
-    OUT_OF_RANGE_CONFIRMED = "out_of_range_confirmed"
-    ENROLMENT_JUMP = "enrolment_jump"
-    ATTENDANCE_JUMP = "attendance_jump"
-    LATE_SUBMISSION = "late_submission"
-
-
 class CandidateKind(StrEnum):
     VILLAGE = "village"
     SCHOOL = "school"
@@ -114,46 +88,10 @@ class RejectionReason(StrEnum):
     OTHER = "other"
 
 
-class AlertKind(StrEnum):
-    ATTENDANCE_DROP = "attendance_drop"
-    MISSING_REPORT = "missing_report"
-    OVERCROWDING = "overcrowding"
-    WASH = "wash"
-    CLOSURE_RISK = "closure_risk"
-
-
-class AlertSeverity(StrEnum):
-    INFO = "info"
-    WARNING = "warning"
-    CRITICAL = "critical"
-
-
-class AlertStatus(StrEnum):
-    OPEN = "open"
-    ACKNOWLEDGED = "acknowledged"
-    RESOLVED = "resolved"
-
-
-class DemandKind(StrEnum):
-    EMPTY_SEARCH = "empty_search"
-    CENTRE_REQUEST = "centre_request"
-
-
 class Role(StrEnum):
-    PARENT = "parent"
-    CAREGIVER = "caregiver"
-    SECTOR_OFFICER = "sector_officer"
+    """Signed-in roles. Parents use the public pages and never need an account."""
+
     DISTRICT_PLANNER = "district_planner"
-    NATIONAL_ANALYST = "national_analyst"
-    ADMIN = "admin"
-
-
-class ScopeLevel(StrEnum):
-    NONE = "none"
-    CENTRE = "centre"
-    SECTOR = "sector"
-    DISTRICT = "district"
-    NATIONAL = "national"
 
 
 class RunStatus(StrEnum):
@@ -166,7 +104,6 @@ class EngineComponent(StrEnum):
     NEED = "need"
     COVERAGE = "coverage"
     OPTIMIZER = "optimizer"
-    EARLY_WARNING = "early_warning"
     EXPLAINER = "explainer"
 
 

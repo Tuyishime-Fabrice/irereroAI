@@ -1,33 +1,20 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { roles, signInAs } from "./helpers";
+import { signInAsPlanner } from "./helpers";
 
-const pages: { path: string; role?: keyof typeof roles }[] = [
+const pages: { path: string; planner?: boolean }[] = [
   { path: "/" },
-  { path: "/find" },
+  { path: "/request" },
   { path: "/methodology" },
   { path: "/sign-in" },
-  { path: "/caregiver", role: "caregiver" },
-  { path: "/caregiver/report", role: "caregiver" },
-  { path: "/sector", role: "sector_officer" },
-  { path: "/sector/alerts", role: "sector_officer" },
-  { path: "/district", role: "district_planner" },
-  { path: "/district/plan", role: "district_planner" },
-  { path: "/find/ECD-GIC-001" },
   { path: "/tour" },
-  { path: "/caregiver/sms", role: "caregiver" },
-  { path: "/sector/centres", role: "sector_officer" },
-  { path: "/sector/suggestions", role: "sector_officer" },
-  { path: "/district/what-if", role: "district_planner" },
-  { path: "/district/decisions", role: "district_planner" },
-  { path: "/district/brief", role: "district_planner" },
-  { path: "/national", role: "national_analyst" },
-  { path: "/national/defaults", role: "national_analyst" },
-  { path: "/national/status", role: "national_analyst" },
-  { path: "/admin", role: "admin" },
-  { path: "/admin/pipelines", role: "admin" },
-  { path: "/admin/audit", role: "admin" },
+  { path: "/district", planner: true },
+  { path: "/district/plan", planner: true },
+  { path: "/district/what-if", planner: true },
+  { path: "/district/decisions", planner: true },
+  { path: "/district/brief", planner: true },
+  { path: "/national", planner: true },
 ];
 
 async function expectNoViolations(page: Page) {
@@ -40,19 +27,19 @@ async function expectNoViolations(page: Page) {
   expect(results.violations.map((v) => `${v.id}: ${v.nodes.length} × ${v.help}`)).toEqual([]);
 }
 
-for (const { path, role } of pages) {
+for (const { path, planner } of pages) {
   test(`no WCAG A/AA violations on ${path}`, async ({ page }) => {
-    if (role) await signInAs(page, role);
+    if (planner) await signInAsPlanner(page);
     await page.goto(path);
     await expectNoViolations(page);
   });
 }
 
-const kinyarwanda = ["/", "/find", "/caregiver/report", "/district/plan"];
+const kinyarwanda = ["/", "/request", "/district/plan"];
 
-for (const { path, role } of pages.filter((p) => kinyarwanda.includes(p.path))) {
+for (const { path, planner } of pages.filter((p) => kinyarwanda.includes(p.path))) {
   test(`no WCAG A/AA violations on ${path} in Kinyarwanda`, async ({ page, context, baseURL }) => {
-    if (role) await signInAs(page, role);
+    if (planner) await signInAsPlanner(page);
     await context.addCookies([{ name: "irerero_locale", value: "rw", url: baseURL ?? "" }]);
     await page.goto(path);
     await expect(page.locator("html")).toHaveAttribute("lang", "rw");

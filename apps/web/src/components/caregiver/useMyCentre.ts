@@ -4,10 +4,10 @@ import { useSession } from "@/components/shell/SessionProvider";
 import { api } from "@/lib/api/client";
 import { useApi } from "@/lib/useApi";
 
-/** The signed-in caregiver's own centre, with its reports and alerts. */
-export function useMyCentre() {
+/** A centre's detail with reports and alerts: the caregiver's own centre unless one is named. */
+export function useMyCentre(centreCode?: string) {
   const { user } = useSession();
-  const code = user?.scope_code ?? null;
+  const code = centreCode ?? user?.scope_code ?? null;
   return useApi(code && `centre:${code}`, async () => {
     if (!code) return null;
     const { data } = await api.GET("/centres/{code}", { params: { path: { code } } });

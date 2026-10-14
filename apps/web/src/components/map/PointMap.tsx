@@ -7,7 +7,13 @@ import { useEffect, useRef } from "react";
 
 import { boundsOf, useMapLibre } from "./useMapLibre";
 
-export type MapPoint = { id: string; lon: number; lat: number; label: string };
+export type MapPoint = {
+  id: string;
+  lon: number;
+  lat: number;
+  label: string;
+  tone?: "alert" | "warning" | "ok";
+};
 
 /**
  * Public map: area outlines, centres and the chosen place. Clicking the map picks a place.
@@ -53,7 +59,7 @@ export function PointMap({
       features: points.map((p) => ({
         type: "Feature",
         geometry: { type: "Point", coordinates: [p.lon, p.lat] },
-        properties: { id: p.id, selected: p.id === selected },
+        properties: { id: p.id, selected: p.id === selected, tone: p.tone ?? "ok" },
       })),
     });
     set("place", {
@@ -87,7 +93,15 @@ export function PointMap({
         source: "centres",
         paint: {
           "circle-radius": ["case", ["get", "selected"], 9, 6],
-          "circle-color": "#1D5C63",
+          "circle-color": [
+            "match",
+            ["get", "tone"],
+            "alert",
+            "#B3261E",
+            "warning",
+            "#C98B2B",
+            "#1D5C63",
+          ],
           "circle-stroke-color": "#FFFDF9",
           "circle-stroke-width": 2,
         },

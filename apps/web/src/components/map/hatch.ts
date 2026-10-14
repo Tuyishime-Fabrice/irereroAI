@@ -19,8 +19,8 @@ export function hatchImage(level: number, size = 24): ImageData {
   const step = size / rows;
   // A light halo under a dark line keeps the zigzag visible on every step of the scale.
   for (const [colour, width] of [
-    ["rgba(255, 253, 249, 0.85)", 3],
-    ["rgba(30, 27, 24, 0.85)", 1.3],
+    ["rgba(255, 253, 249, 0.55)", 2.4],
+    ["rgba(30, 27, 24, 0.75)", 1.1],
   ] as const) {
     context.strokeStyle = colour;
     context.lineWidth = width;

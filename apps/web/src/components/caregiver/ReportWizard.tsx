@@ -34,7 +34,11 @@ const COUNT_KEYS = [
   "children_with_disability",
 ] as const;
 
-function startingPoint(centre: Schemas["CentreDetail"], week: string): ReportBody {
+function startingPoint(
+  centre: Schemas["CentreDetail"],
+  week: string,
+  assisted: boolean,
+): ReportBody {
   const last = centre.reports.at(-1);
   const counts = Object.fromEntries(COUNT_KEYS.map((k) => [k, last ? last[k] : 0])) as Record<
     (typeof COUNT_KEYS)[number],
@@ -46,13 +50,20 @@ function startingPoint(centre: Schemas["CentreDetail"], week: string): ReportBod
     ...counts,
     wash_available: last?.wash_available ?? true,
     main_problem: "none",
-    channel: "web",
+    channel: assisted ? "assisted" : "web",
     confirmed: false,
   };
 }
 
-export function ReportWizard() {
-  const { data: centre, loading, error, reload } = useMyCentre();
+/** The weekly report. `assisted` is an officer entering it on a centre's behalf. */
+export function ReportWizard({
+  centreCode,
+  assisted = false,
+}: {
+  centreCode?: string;
+  assisted?: boolean;
+}) {
+  const { data: centre, loading, error, reload } = useMyCentre(centreCode);
   const { weeks, currentWeek } = useWorkspace();
   if (loading) return <LoadingState />;
   if (error || !centre) return <ErrorState onRetry={reload} />;
@@ -64,6 +75,7 @@ export function ReportWizard() {
       provenance={centre.provenance}
       openWeeks={open}
       currentWeek={currentWeek}
+      assisted={assisted}
     />
   );
 }
@@ -73,19 +85,22 @@ function Wizard({
   provenance,
   openWeeks,
   currentWeek,
+  assisted,
 }: {
   centre: Schemas["CentreDetail"];
   provenance: Schemas["Provenance"];
   openWeeks: string[];
   currentWeek: string;
+  assisted: boolean;
 }) {
   const t = useTranslations("report");
   const months = useTranslations("months");
   const outbox = useOutbox();
+  const home = assisted ? `/sector/centres/${centre.code}` : "/caregiver";
   useProvenance(provenance);
   const firstWeek = openWeeks.includes(currentWeek) ? currentWeek : openWeeks.at(-1);
   const [body, setBody] = useState<ReportBody | null>(
-    firstWeek ? startingPoint(centre, firstWeek) : null,
+    firstWeek ? startingPoint(centre, firstWeek, assisted) : null,
   );
   const [index, setIndex] = useState(0);
   const [check, setCheck] = useState<Schemas["ValidationOut"] | null>(null);
@@ -108,7 +123,7 @@ function Wizard({
       <Panel className="max-w-xl p-6">
         <h1 className="font-display text-2xl text-ink">{t("allDoneTitle")}</h1>
         <p className="mt-2 text-ink-muted">{t("allDoneText")}</p>
-        <Link href="/caregiver" className="mt-4 inline-block text-kivu underline">
+        <Link href={home} className="mt-4 inline-block text-kivu underline">
           {t("backHome")}
         </Link>
       </Panel>
@@ -165,17 +180,19 @@ function Wizard({
         </ul>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href="/caregiver"
+            href={home}
             className="inline-flex min-h-12 items-center rounded-md bg-kivu px-5 font-medium text-white"
           >
             {t("backHome")}
           </Link>
-          <Link
-            href="/caregiver/sms"
-            className="inline-flex min-h-12 items-center rounded-md border border-line-strong px-5 text-ink"
-          >
-            {t("seeSms")}
-          </Link>
+          {!assisted && (
+            <Link
+              href="/caregiver/sms"
+              className="inline-flex min-h-12 items-center rounded-md border border-line-strong px-5 text-ink"
+            >
+              {t("seeSms")}
+            </Link>
+          )}
         </div>
       </Panel>
     );
@@ -194,7 +211,10 @@ function Wizard({
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-4">
       <div>
-        <p className="text-sm text-ink-muted">{centre.name}</p>
+        <p className="text-sm text-ink-muted">
+          {centre.name}
+          {assisted && ` · ${t("assisted")}`}
+        </p>
         <h1 className="font-display text-2xl text-ink">
           {t("title", { week: weekLabel(body.week_start) })}
         </h1>

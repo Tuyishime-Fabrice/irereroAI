@@ -38,7 +38,7 @@ export function SourceChip({ source }: { source: SourceValue }) {
     };
   }, [open]);
 
-  const label = source.source.split(";")[0]?.split(" (")[0] ?? source.source;
+  const label = chipLabel(source);
   return (
     <span ref={ref} className="relative inline-block" onMouseLeave={() => setOpen(false)}>
       <button
@@ -72,12 +72,18 @@ export function SourceChip({ source }: { source: SourceValue }) {
   );
 }
 
+function chipLabel(source: SourceValue): string {
+  return source.source.split(";")[0]?.split(" (")[0] ?? source.source;
+}
+
 export function SourceChips({ sources }: { sources: SourceValue[] }) {
   const unique = sources.filter(
     (s, i) =>
       sources.findIndex(
         (o) =>
-          o.source === s.source && o.reference_year === s.reference_year && o.origin === s.origin,
+          chipLabel(o) === chipLabel(s) &&
+          o.reference_year === s.reference_year &&
+          o.origin === s.origin,
       ) === i,
   );
   return (

@@ -5,7 +5,7 @@ import pytest
 import irerero_contract.tables  # noqa: F401
 from irerero_contract.base import Base
 from irerero_contract.indicators import INDICATORS
-from pipelines.registry import ADAPTERS
+from pipelines.registry import ADAPTERS, SOURCES_DOC, sources_markdown
 
 PHASE2_SOURCES = {
     "census_2022",
@@ -39,3 +39,7 @@ def test_planned_adapters_refuse_to_run(tmp_path: Path) -> None:
     adapter = ADAPTERS["census_2022"]()
     with pytest.raises(NotImplementedError, match="Phase 2"):
         adapter.extract(tmp_path)
+
+
+def test_sources_document_is_current() -> None:
+    assert SOURCES_DOC.read_text() == sources_markdown(), "run python -m pipelines.registry --write"

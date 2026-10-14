@@ -1,4 +1,4 @@
-.PHONY: setup migrate api web seed seed-local lint typecheck test client
+.PHONY: setup migrate api web seed seed-local lint typecheck test e2e client
 
 setup:  ## Install all dependencies and git hooks
 	uv sync
@@ -32,6 +32,9 @@ typecheck:
 test:
 	uv run pytest
 	pnpm --filter web test
+
+e2e:  ## Demo journeys and accessibility checks against a running, freshly seeded stack
+	pnpm --filter web e2e
 
 client:  ## Regenerate the web app's API types from the OpenAPI schema
 	uv run python -m irerero_api.openapi_export apps/web/openapi.json

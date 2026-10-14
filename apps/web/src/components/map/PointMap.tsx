@@ -142,7 +142,7 @@ export function PointMap({
       <div
         ref={container}
         className="h-full w-full"
-        role="img"
+        role="region"
         aria-label={t("findLabel", { count: points.length })}
       />
       {offline && (

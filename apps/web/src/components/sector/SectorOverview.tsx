@@ -72,10 +72,10 @@ export function SectorOverview() {
       />
       <dl className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {stats.map((s) => (
-          <Panel key={s.key} className="p-4">
+          <div key={s.key} className="rounded-md border border-line bg-surface p-4">
             <dt className="text-xs text-ink-muted">{t(`stats.${s.key}`)}</dt>
             <dd className="font-display text-3xl text-ink tabular">{s.value}</dd>
-          </Panel>
+          </div>
         ))}
       </dl>
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">

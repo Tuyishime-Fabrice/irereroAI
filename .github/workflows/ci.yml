@@ -82,6 +82,25 @@ jobs:
         run: |
           curl --fail --retry 10 --retry-delay 3 --retry-all-errors http://localhost:8000/health
           curl --fail --retry 10 --retry-delay 3 --retry-all-errors http://localhost:3000/
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium for Playwright
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Demo journeys and accessibility (Playwright, axe)
+        run: pnpm --filter web e2e
+      - name: Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          retention-days: 7
       - name: Logs on failure
         if: failure()
         run: docker compose logs

@@ -38,6 +38,8 @@ services:
       dockerfile: apps/web/Dockerfile
     environment:
       API_INTERNAL_URL: http://api:8000
+      # Compose serves plain http on localhost; set to false behind https.
+      INSECURE_COOKIES: ${INSECURE_COOKIES:-true}
     env_file:
       - path: .env
         required: false

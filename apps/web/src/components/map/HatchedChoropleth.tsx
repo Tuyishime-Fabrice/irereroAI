@@ -202,7 +202,7 @@ export function HatchedChoropleth({
         <div
           ref={container}
           className="h-full w-full"
-          role="img"
+          role="region"
           aria-label={t("mapLabel", { title, count: areas.length })}
         />
         <div className="absolute bottom-3 left-3 max-w-60">

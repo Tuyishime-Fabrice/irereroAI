@@ -17,6 +17,7 @@ export function RangeBar({
   return (
     <span
       className="inline-flex w-full min-w-28 flex-col gap-1"
+      role="img"
       aria-label={label ? `${label}: ${text}` : text}
     >
       <span className="tabular text-sm text-ink" aria-hidden>

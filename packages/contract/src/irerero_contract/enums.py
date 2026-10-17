@@ -46,6 +46,19 @@ class CentreStatus(StrEnum):
     CLOSED = "closed"
 
 
+class FacilityKind(StrEnum):
+    SCHOOL = "school"
+    CHILDCARE = "childcare"
+    HEALTH = "health"
+
+
+class TravelMethod(StrEnum):
+    """How walking minutes were worked out for the precomputed catchments."""
+
+    ROAD_NETWORK = "road_network"
+    STRAIGHT_LINE = "straight_line"
+
+
 class CandidateKind(StrEnum):
     VILLAGE = "village"
     SCHOOL = "school"
@@ -108,7 +121,7 @@ class EngineComponent(StrEnum):
 
 
 class SourceStatus(StrEnum):
-    """Whether a source is loaded, or stood in for by simulated data until Phase 2."""
+    """Loaded; stood in for by simulated data until its file is loaded; or not loaded yet."""
 
     LOADED = "loaded"
     SIMULATED_STAND_IN = "simulated_stand_in"

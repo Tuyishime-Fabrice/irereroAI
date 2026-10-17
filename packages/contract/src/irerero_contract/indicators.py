@@ -30,5 +30,35 @@ INDICATORS: dict[str, Indicator] = {
             "minutes",
             "Median walking time from a home to the nearest ECD centre",
         ),
+        Indicator("population_under5", "count", "Children under 5 (WorldPop, constrained)"),
+        Indicator(
+            "households_improved_water_share", "share", "Households using an improved water source"
+        ),
+        Indicator(
+            "households_improved_sanitation_share",
+            "share",
+            "Households using improved sanitation",
+        ),
+        Indicator(
+            "mothers_secondary_share",
+            "share",
+            "Mothers of children under 6 with secondary education or more",
+        ),
+        Indicator(
+            "mothers_employed_share", "share", "Mothers of children under 6 who are employed"
+        ),
+        Indicator(
+            "pre_primary_attendance_rate", "share", "Children aged 3 to 6 attending pre-primary"
+        ),
+        Indicator("pre_primary_enrolment", "count", "Children enrolled in pre-primary"),
+        Indicator(
+            "women_lfp_rate_mothers_u3",
+            "share",
+            "Labour force participation of women with a child under 3",
+        ),
+        Indicator("rainfall_mm_annual", "mm", "Mean annual rainfall (CHIRPS)"),
+        Indicator("elevation_m_mean", "m", "Mean elevation (SRTM)"),
+        Indicator("slope_deg_mean", "degrees", "Mean terrain slope (SRTM)"),
+        Indicator("night_lights_mean", "nW/cm2/sr", "Mean night-time light radiance (VIIRS)"),
     )
 }

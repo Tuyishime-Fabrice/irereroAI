@@ -33,19 +33,23 @@ class Centre(Provenance, Base):
     capacity: Mapped[int] = count("Number of children the centre can take")
     serves_0_2: Mapped[bool] = mapped_column(Boolean, comment="Takes children aged 0 to 2")
     serves_3_6: Mapped[bool] = mapped_column(Boolean, comment="Takes children aged 3 to 6")
-    opening_hours: Mapped[str] = mapped_column(
-        String(64), comment='OpenStreetMap opening_hours syntax, e.g. "Mo-Fr 07:30-12:00"'
+    opening_hours: Mapped[str | None] = mapped_column(
+        String(64),
+        comment='OpenStreetMap opening_hours syntax, e.g. "Mo-Fr 07:30-12:00". Null if unknown',
     )
-    fee_band: Mapped[FeeBand] = mapped_column(
+    fee_band: Mapped[FeeBand | None] = mapped_column(
         enum_type(FeeBand),
-        comment="Monthly fee per child in RWF: free | under_1000 | from_1000_to_5000 | over_5000",
+        comment="Monthly fee per child in RWF: free | under_1000 | from_1000_to_5000 | over_5000. "
+        "Null if unknown",
     )
     offers_meals: Mapped[bool] = mapped_column(Boolean, comment="Serves at least one meal a day")
-    offers_growth_monitoring: Mapped[bool] = mapped_column(
-        Boolean, comment="Hosts growth monitoring or refers to it"
+    offers_growth_monitoring: Mapped[bool | None] = mapped_column(
+        Boolean, comment="Hosts growth monitoring or refers to it. Null if unknown"
     )
-    disability_inclusive: Mapped[bool] = mapped_column(
-        Boolean, comment="Has adapted space and trained caregivers for children with disabilities"
+    disability_inclusive: Mapped[bool | None] = mapped_column(
+        Boolean,
+        comment="Has adapted space and trained caregivers for children with disabilities. "
+        "Null if unknown",
     )
     verified: Mapped[bool] = mapped_column(
         Boolean, default=False, comment="Marked verified in the NCDA ECD Mapping System"

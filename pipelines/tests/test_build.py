@@ -1,8 +1,9 @@
 from sqlalchemy import Engine, text
 
 from irerero_engine.coverage import CATCHMENT_STEPS
-from pipelines.demo.generate import generate
+from pipelines.build import build
 from pipelines.demo.story import STORY_CENTRES
+from pipelines.sources.__main__ import DOC, document
 
 FINGERPRINT_TABLES = (
     "centre",
@@ -34,13 +35,13 @@ def _strip_run_ids(engine: Engine) -> None:
 
 
 def test_generator_is_deterministic(demo_engine: Engine) -> None:
-    generate(demo_engine)
+    build(demo_engine)
     _strip_run_ids(demo_engine)
     first = _fingerprint(demo_engine)
-    generate(demo_engine)
+    build(demo_engine)
     _strip_run_ids(demo_engine)
     assert _fingerprint(demo_engine) == first
-    generate(demo_engine)
+    build(demo_engine)
 
 
 def test_everything_generated_is_labelled_simulated(demo_engine: Engine) -> None:
@@ -121,3 +122,16 @@ def test_gicumbi_stunting_matches_the_anchor(demo_engine: Engine) -> None:
             )
         ).scalar_one()
     assert abs(weighted - 0.388) < 0.002
+
+
+def test_data_sources_document_is_current() -> None:
+    assert DOC.read_text() == document(), "run python -m pipelines.sources --write"
+
+
+def test_the_catalogue_marks_simulated_stand_ins(demo_engine: Engine) -> None:
+    with demo_engine.connect() as conn:
+        status = dict(conn.execute(text("SELECT id, status FROM data_source")).all())
+    assert status["census_2022"] == "simulated_stand_in"
+    assert status["ecd_centres"] == "simulated_stand_in"
+    assert status["worldpop"] == "planned"
+    assert status["geoboundaries"] == "loaded"

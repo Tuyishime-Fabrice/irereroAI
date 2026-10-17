@@ -1,4 +1,4 @@
-.PHONY: setup migrate api web seed seed-local lint typecheck test e2e client
+.PHONY: setup migrate api web seed build sources lint typecheck test e2e client
 
 setup:  ## Install all dependencies and git hooks
 	uv sync
@@ -14,11 +14,14 @@ api:  ## Run the API with reload (local)
 web:  ## Run the web app in dev mode (local)
 	pnpm --filter web dev
 
-seed:  ## Seed simulated demo data into the docker compose database
-	docker compose exec -T api python -m pipelines.demo.generate
+seed:  ## Build the docker compose database from data/raw/ files, demo data where missing
+	docker compose exec -T api python -m pipelines.build
 
-seed-local:  ## Seed simulated demo data into the local database
-	uv run python -m pipelines.demo.generate
+build:  ## Build the local database from data/raw/ files, demo data where missing
+	uv run python -m pipelines.build
+
+sources:  ## Create the data/raw/ folders and list which dataset files are present
+	uv run python -m pipelines.sources
 
 lint:
 	uv run ruff check .
@@ -40,3 +43,4 @@ client:  ## Regenerate the web app's API types from the OpenAPI schema
 	uv run python -m irerero_api.openapi_export apps/web/openapi.json
 	pnpm --filter web generate:api
 	uv run python -m irerero_contract.export
+	uv run python -m pipelines.sources --write

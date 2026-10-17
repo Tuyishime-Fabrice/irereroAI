@@ -5,24 +5,15 @@ from sqlalchemy import Connection, text
 from irerero_engine.coverage import DemandPoint
 from irerero_engine.types import Position
 
-# Children are spread over a 1 km grid in proportion to area. Phase 2 replaces the uniform
-# spread with WorldPop densities without changing the engine.
-CELL_METRES = 1000
-
+# Where children live inside each sector: precomputed 500 m cells, from WorldPop when loaded,
+# otherwise an even spread over the sector's area.
 QUERY = text(
     """
-    WITH sector AS (
-        SELECT a.code, ST_Transform(a.geom, 32735) AS g
-        FROM admin_unit a WHERE a.parent_code = :district AND a.level = 'sector'
-    ), cell AS (
-        SELECT s.code, s.g, grid.i, grid.j, ST_Intersection(grid.geom, s.g) AS part
-        FROM sector s, ST_SquareGrid(:size, s.g) AS grid
-        WHERE ST_Intersects(grid.geom, s.g)
-    )
-    SELECT code, i, j, ST_X(ST_PointOnSurface(part)) AS x, ST_Y(ST_PointOnSurface(part)) AS y,
-        ST_Area(part) / ST_Area(g) AS share
-    FROM cell WHERE NOT ST_IsEmpty(part) AND ST_Area(part) > 0
-    ORDER BY code, i, j
+    SELECT c.id, c.sector_code AS code, ST_X(ST_Transform(c.location, 32735)) AS x,
+        ST_Y(ST_Transform(c.location, 32735)) AS y, c.share
+    FROM population_cell c JOIN admin_unit s ON s.code = c.sector_code
+    WHERE s.parent_code = :district
+    ORDER BY c.id
     """
 )
 
@@ -45,8 +36,8 @@ BOUNDS = text(
 def demand_points(
     conn: Connection, district: str
 ) -> tuple[list[DemandPoint], dict[str, tuple[float, float]]]:
-    """Grid points with children, and per-sector (low/estimate, high/estimate) child counts."""
-    cells = conn.execute(QUERY, {"district": district, "size": CELL_METRES}).all()
+    """Cells with children, and per-sector (low/estimate, high/estimate) child counts."""
+    cells = conn.execute(QUERY, {"district": district}).all()
     codes: Sequence[str] = sorted({c.code for c in cells})
     need = {r.area_code: r for r in conn.execute(BOUNDS, {"codes": list(codes)})}
     points = []
@@ -56,7 +47,7 @@ def demand_points(
             continue
         points.append(
             DemandPoint(
-                id=f"{cell.code}:{cell.i}:{cell.j}",
+                id=cell.id,
                 position=Position(cell.x, cell.y),
                 area_code=cell.code,
                 children_0_2=area.young * cell.share,

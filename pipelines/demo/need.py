@@ -5,15 +5,11 @@ simulated around it so that their child-weighted mean equals the anchor. Child c
 anchored to any published figure and are labelled simulated; Phase 2 replaces them with PHC5.
 """
 
-import json
 import random
-from collections.abc import Mapping, Sequence
-from statistics import mean, pstdev
 from typing import Any
 
 from sqlalchemy import Connection, text
 
-from irerero_engine.features import FEATURES
 from pipelines.demo.config import (
     DEMO_DISTRICT,
     GICUMBI_STUNTING,
@@ -49,35 +45,11 @@ def _count(value: float, relative: float) -> dict[str, int]:
     }
 
 
-def _drivers(
-    signals: Mapping[str, Sequence[float]], index: int, top: int = 3
-) -> list[dict[str, Any]]:
-    """Rank signals by how far this area sits above the others (z-score), top few as drivers."""
-    scores = {}
-    for key, values in signals.items():
-        spread = pstdev(values) or 1.0
-        scores[key] = (values[index] - mean(values)) / spread
-    positive = sorted(((s, k) for k, s in scores.items() if s > 0), reverse=True)[:top]
-    total = sum(s for s, _ in positive) or 1.0
-    return [
-        {
-            "feature": key,
-            "label_en": FEATURES[key].label_en,
-            "label_rw": FEATURES[key].label_rw,
-            "contribution": round(score / total, 3),
-        }
-        for score, key in positive
-    ]
-
-
-def _row(
-    area: str, values: dict[str, Any], drivers: list[dict[str, Any]], source: str
-) -> dict[str, Any]:
+def _row(area: str, values: dict[str, Any], source: str) -> dict[str, Any]:
     row: dict[str, Any] = {
         "id": stable_id("need", area),
         "area_code": area,
         "model_version_id": MODEL_VERSION,
-        "top_drivers": drivers,
         "source": source,
         "reference_year": REFERENCE_YEAR,
         "origin": "simulated",
@@ -88,13 +60,12 @@ def _row(
     return row
 
 
-def _sector_rows(conn: Connection, r: random.Random) -> list[dict[str, Any]]:
+def _sector_rows(
+    conn: Connection, r: random.Random
+) -> tuple[list[dict[str, Any]], dict[str, float]]:
+    """Need rows per sector, and simulated poverty shares (the EICV7 stand-in)."""
     sectors = conn.execute(
-        text(
-            "SELECT a.code, a.area_km2, COALESCE(SUM(c.capacity), 0) AS capacity "
-            "FROM admin_unit a LEFT JOIN centre c ON c.sector_code = a.code "
-            "WHERE a.parent_code = :d GROUP BY a.code, a.area_km2 ORDER BY a.code"
-        ),
+        text("SELECT code, area_km2 FROM admin_unit WHERE parent_code = :d ORDER BY code"),
         {"d": DEMO_DISTRICT},
     ).all()
     children, stunting, barrier, poverty = [], [], [], []
@@ -110,15 +81,6 @@ def _sector_rows(conn: Connection, r: random.Random) -> list[dict[str, Any]]:
     weighted = sum(c * s for c, s in zip(children, stunting, strict=True)) / sum(children)
     stunting = [s * GICUMBI_STUNTING / weighted for s in stunting]
 
-    signals = {
-        "children_density": [c / s.area_km2 for c, s in zip(children, sectors, strict=True)],
-        "uncovered_children": [
-            max(0.0, c - s.capacity) / c for c, s in zip(children, sectors, strict=True)
-        ],
-        "stunting_risk": stunting,
-        "mothers_barrier": barrier,
-        "poverty": poverty,
-    }
     rows = []
     for i, s in enumerate(sectors):
         wide = s.code in WIDE_UNCERTAINTY
@@ -132,8 +94,8 @@ def _sector_rows(conn: Connection, r: random.Random) -> list[dict[str, Any]]:
             "mothers_barrier_share": _bounded(barrier[i], r.uniform(0.04, 0.1)),
         }
         source = f"{SOURCE}; stunting: {GICUMBI_STUNTING_SOURCE}"
-        rows.append(_row(s.code, values, _drivers(signals, i), source))
-    return rows
+        rows.append(_row(s.code, values, source))
+    return rows, {s.code: round(p, 4) for s, p in zip(sectors, poverty, strict=True)}
 
 
 def _district_rows(
@@ -171,20 +133,12 @@ def _district_rows(
                 "mothers_barrier_share": _bounded(r.uniform(0.2, 0.5), r.uniform(0.04, 0.1)),
             }
         )
-    signals = {
-        "children_density": [
-            (v["children_0_2"]["estimate"] + v["children_3_6"]["estimate"]) / d.area_km2
-            for v, d in zip(values, districts, strict=True)
-        ],
-        "stunting_risk": [v["stunting_risk"]["estimate"] for v in values],
-        "mothers_barrier": [v["mothers_barrier_share"]["estimate"] for v in values],
-    }
     rows = []
     for i, d in enumerate(districts):
         source = SOURCE
         if d.code == DEMO_DISTRICT:
             source = f"{SOURCE}; stunting: RDHS 2025 district value 38.8% (interval simulated)"
-        rows.append(_row(d.code, values[i], _drivers(signals, i), source))
+        rows.append(_row(d.code, values[i], source))
     return rows
 
 
@@ -195,23 +149,43 @@ INSERT = text(
         children_3_6_estimate, children_3_6_low, children_3_6_high,
         stunting_risk_estimate, stunting_risk_low, stunting_risk_high,
         mothers_barrier_share_estimate, mothers_barrier_share_low, mothers_barrier_share_high,
-        top_drivers, source, reference_year, origin, pipeline_run_id)
+        source, reference_year, origin, pipeline_run_id)
     VALUES (:id, :area_code, :model_version_id,
         :children_0_2_estimate, :children_0_2_low, :children_0_2_high,
         :children_3_6_estimate, :children_3_6_low, :children_3_6_high,
         :stunting_risk_estimate, :stunting_risk_low, :stunting_risk_high,
         :mothers_barrier_share_estimate, :mothers_barrier_share_low, :mothers_barrier_share_high,
-        CAST(:top_drivers AS jsonb), :source, :reference_year, :origin, :run_id)
+:source, :reference_year, :origin, :run_id)
     """
 )
 
 
+POVERTY = text(
+    "INSERT INTO area_indicator (id, area_code, indicator, value, unit, source, reference_year, "
+    "origin, pipeline_run_id) VALUES (:id, :area, 'poverty_headcount', :value, 'share', "
+    ":source, :year, 'simulated', :run_id)"
+)
+
+
 def load_need(conn: Connection, run_id: object) -> int:
+    """Simulated need for every district and the pilot's sectors, and the pilot's simulated
+    poverty shares. Loaded official values replace parts of it later in the build."""
     r = rng("need")
-    sector_rows = _sector_rows(conn, r)
+    sector_rows, poverty = _sector_rows(conn, r)
     rows = sector_rows + _district_rows(conn, r, sector_rows)
+    conn.execute(INSERT, [row | {"run_id": run_id} for row in rows])
     conn.execute(
-        INSERT,
-        [row | {"top_drivers": json.dumps(row["top_drivers"]), "run_id": run_id} for row in rows],
+        POVERTY,
+        [
+            {
+                "id": stable_id("poverty", area),
+                "area": area,
+                "value": value,
+                "source": SOURCE,
+                "year": REFERENCE_YEAR,
+                "run_id": run_id,
+            }
+            for area, value in poverty.items()
+        ],
     )
     return len(rows)

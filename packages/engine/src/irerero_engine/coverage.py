@@ -1,17 +1,17 @@
 """CoverageModel: which children have a reachable place.
 
-Phase 1 baseline: straight-line catchments. Walking minutes convert to metres with an adjustable
-factor, and children are matched to the nearest centres until each centre's capacity is used.
-Phase 2: OSM walking-time catchments implement the same interface.
+Catchments are walking minutes from each centre or site to each population cell, precomputed
+by the build (see travel.py). Children are matched to the nearest places, by walking time,
+until each place's capacity is used.
 """
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Protocol
 
+from irerero_engine.travel import TravelTimes
 from irerero_engine.types import Position
 
-DEFAULT_METRES_PER_MINUTE = 67.0  # about 4 km/h on rural paths
 DEFAULT_CATCHMENT_MINUTES = 30
 # Catchments precomputed by the build, so the planner's slider answers instantly.
 CATCHMENT_STEPS = (15, 20, 30, 45, 60)
@@ -103,28 +103,69 @@ class CoverageModel(Protocol):
     ) -> Assignment: ...
 
 
-class StraightLineCoverage:
-    version = "coverage-straight-line-1"
+Minutes = Mapping[str, Mapping[str, float]]
+"""Seat id -> population cell id -> walking minutes, for cells within the longest step."""
 
-    def __init__(
-        self,
-        catchment_minutes: int = DEFAULT_CATCHMENT_MINUTES,
-        metres_per_minute: float = DEFAULT_METRES_PER_MINUTE,
-    ) -> None:
-        self.catchment_minutes = catchment_minutes
-        self.metres_per_minute = metres_per_minute
+
+class Located(Protocol):
+    @property
+    def id(self) -> str: ...
 
     @property
-    def radius_metres(self) -> float:
-        return self.catchment_minutes * self.metres_per_minute
+    def position(self) -> Position: ...
 
-    def radius(self, seat: Seat) -> float:
-        return self.radius_metres * seat.radius_factor
+
+def catchments(
+    travel: TravelTimes,
+    seats: Sequence[Located],
+    points: Sequence[Located],
+    limit: float = max(CATCHMENT_STEPS),
+) -> dict[str, dict[str, float]]:
+    """Walking minutes from each seat to every point within `limit` minutes."""
+    positions = [p.position for p in points]
+    out: dict[str, dict[str, float]] = {}
+    for seat in seats:
+        times = travel.minutes(seat.position, positions, limit)
+        out[seat.id] = {
+            point.id: minutes
+            for point, minutes in zip(points, times, strict=True)
+            if minutes is not None
+        }
+    return out
+
+
+class CatchmentCoverage:
+    """Coverage over precomputed walking minutes."""
+
+    version = "coverage-walking-time-1"
+
+    def __init__(self, catchment_minutes: int, minutes: Minutes) -> None:
+        self.catchment_minutes = catchment_minutes
+        self.minutes = minutes
+        self._ordered = {
+            seat: sorted((m, pid) for pid, m in cells.items()) for seat, cells in minutes.items()
+        }
+        self._index: tuple[Sequence[DemandPoint], dict[str, DemandPoint]] | None = None
+
+    def _by_id(self, points: Sequence[DemandPoint]) -> dict[str, DemandPoint]:
+        # The optimizer passes the same list many times; index it once.
+        if self._index is None or self._index[0] is not points:
+            self._index = (points, {p.id: p for p in points})
+        return self._index[1]
 
     def reachable(self, seat: Seat, points: Sequence[DemandPoint]) -> list[DemandPoint]:
-        limit = self.radius(seat)
-        near = [p for p in points if p.position.distance_to(seat.position) <= limit]
-        return sorted(near, key=lambda p: (p.position.distance_to(seat.position), p.id))
+        """Points within the catchment, nearest first. A smaller radius factor (an access
+        problem a planner reported) shrinks the catchment in proportion."""
+        limit = self.catchment_minutes * seat.radius_factor
+        by_id = self._by_id(points)
+        out = []
+        for minutes, pid in self._ordered.get(seat.id, ()):
+            if minutes > limit:
+                break
+            point = by_id.get(pid)
+            if point is not None:
+                out.append(point)
+        return out
 
     def assign(self, seat: Seat, points: Sequence[DemandPoint], state: CoverageState) -> Assignment:
         """Nearest children first; at each point, places are shared between the age bands in

@@ -123,8 +123,9 @@ def simulate(body: SimulateIn, session: SessionDep, principal: Planner) -> Simul
     """What-if: outcomes of a budget and weights without saving anything."""
     require_district(session, principal, body.district_code)
     settings = get_settings()
-    data = service.build_input(session, settings, body.district_code, body.budget_rwf, body.weights)
-    model = service.coverage_model(settings)
+    data, model = service.build_input(
+        session, settings, body.district_code, body.budget_rwf, body.weights
+    )
     plan = GreedyOptimizer(model).plan(data)
     baseline = None
     if body.include_baseline:

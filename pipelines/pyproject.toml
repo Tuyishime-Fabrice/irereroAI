@@ -1,7 +1,7 @@
 [project]
 name = "irerero-pipelines"
 version = "0.1.0"
-description = "Ingestion adapters (Phase 2) and the deterministic demo data generator (Phase 1)"
+description = "Dataset loaders, the demo data that stands in for missing files, and the build"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "irerero-contract",
@@ -10,6 +10,10 @@ dependencies = [
   "alembic>=1.20",
   "irerero-api",
 ]
+
+[project.optional-dependencies]
+# Only needed to load rasters (WorldPop, CHIRPS, SRTM, VIIRS) and the OpenStreetMap extract.
+geo = ["rasterio>=1.4", "osmium>=4.0"]
 
 [tool.uv.sources]
 irerero-contract = { workspace = true }
@@ -20,8 +24,8 @@ irerero-api = { workspace = true }
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
-# The package is the `pipelines/` directory itself so that the generator lives at
-# pipelines/demo/generate.py and runs as `python -m pipelines.demo.generate`.
+# The package is the `pipelines/` directory itself so that the build lives at
+# pipelines/build.py and runs as `python -m pipelines.build`.
 [tool.hatch.build.targets.wheel]
 bypass-selection = true
 

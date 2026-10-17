@@ -1,14 +1,15 @@
-"""Precomputed coverage per sector for every catchment step, so the map answers instantly."""
+"""Coverage per sector for every catchment step, precomputed so the map answers instantly."""
 
 from collections import defaultdict
 
 from sqlalchemy import Connection, insert, text
 
+from irerero_api.engine_io.catchments import walking_minutes
 from irerero_api.engine_io.centres import seats
 from irerero_api.engine_io.points import demand_points
 from irerero_contract.enums import Origin
 from irerero_contract.tables import CoverageSnapshot
-from irerero_engine.coverage import CATCHMENT_STEPS, StraightLineCoverage, cover
+from irerero_engine.coverage import CATCHMENT_STEPS, CatchmentCoverage, cover
 
 OVERCROWDED = text(
     """
@@ -20,16 +21,12 @@ OVERCROWDED = text(
 
 
 def snapshot(
-    conn: Connection,
-    district: str,
-    metres_per_minute: float,
-    origin: Origin,
-    source: str,
-    reference_year: int,
+    conn: Connection, district: str, origin: Origin, source: str, reference_year: int
 ) -> int:
     """Write one coverage_snapshot row per sector and catchment step. Returns rows written."""
     points, _ = demand_points(conn, district)
     centre_seats = seats(conn, district)
+    minutes = walking_minutes(conn, district)
     crowded: dict[str, int] = {
         row.sector_code: row.n for row in conn.execute(OVERCROWDED, {"district": district})
     }
@@ -37,8 +34,8 @@ def snapshot(
     for point in points:
         children[point.area_code] += point.children
     rows = []
-    for minutes in CATCHMENT_STEPS:
-        model = StraightLineCoverage(minutes, metres_per_minute)
+    for step in CATCHMENT_STEPS:
+        model = CatchmentCoverage(step, minutes)
         state = cover(model, centre_seats, points)
         uncovered: dict[str, float] = defaultdict(float)
         for point in points:
@@ -50,7 +47,7 @@ def snapshot(
                 "children_covered": round(children[area] - uncovered[area]),
                 "children_uncovered": round(uncovered[area]),
                 "overcrowded_centres": crowded.get(area, 0),
-                "catchment_minutes": minutes,
+                "catchment_minutes": step,
                 "source": source,
                 "reference_year": reference_year,
                 "origin": origin,

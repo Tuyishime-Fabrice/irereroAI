@@ -1,4 +1,4 @@
-from irerero_engine.coverage import StraightLineCoverage, initial_state
+from irerero_engine.coverage import initial_state
 from irerero_engine.optimizer import (
     Constraints,
     GreedyOptimizer,
@@ -7,9 +7,8 @@ from irerero_engine.optimizer import (
     largest_population_first,
 )
 
-from .helpers import build, point
+from .helpers import build, model, point
 
-MODEL = StraightLineCoverage(catchment_minutes=10, metres_per_minute=100)  # 1 km radius
 # A dense town already served by a centre, and two unserved villages.
 POINTS = [
     point("town", 0, 0, 400),
@@ -17,6 +16,7 @@ POINTS = [
     point("village-2", 20_000, 0, 100, risk=0.5),
 ]
 SITES = [build("in-town", 0, 0), build("v1", 10_000, 0), build("v2", 20_000, 0)]
+MODEL = model(10, SITES, POINTS)  # 1 km
 
 
 def _input(budget: float, **constraints: frozenset[str]) -> PlanningInput:

@@ -8,6 +8,7 @@ from sqlalchemy import (
     CheckConstraint,
     Float,
     ForeignKey,
+    SmallInteger,
     String,
     Text,
 )
@@ -78,6 +79,11 @@ class CandidateSite(Provenance, Base):
         ForeignKey("centre.code"), comment="Existing centre for upgrade and support sites"
     )
     location: Mapped[Any] = mapped_column(point(), comment="Site location, EPSG:4326")
+    nearest_centre_minutes: Mapped[int | None] = mapped_column(
+        SmallInteger,
+        comment="Walking minutes to the nearest active centre. Precomputed by the build",
+        info={"minimum": 0},
+    )
     unit_cost_band: Mapped[CostBand] = mapped_column(
         enum_type(CostBand), comment="Cost band looked up in unit_cost"
     )

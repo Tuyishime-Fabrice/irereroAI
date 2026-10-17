@@ -15,21 +15,25 @@ from irerero_contract.tables.planning import (
     Scenario,
     UnitCost,
 )
+from irerero_contract.tables.precomputed import Catchment, Facility, PopulationCell
 
 __all__ = [
     "AdminUnit",
     "AreaIndicator",
     "AuditLog",
     "CandidateSite",
+    "Catchment",
     "Centre",
     "CoverageSnapshot",
     "DataSource",
     "Decision",
     "DemandSignal",
+    "Facility",
     "ModelVersion",
     "NeedEstimate",
     "PipelineRun",
     "PlanningDefault",
+    "PopulationCell",
     "Recommendation",
     "RefreshToken",
     "Scenario",

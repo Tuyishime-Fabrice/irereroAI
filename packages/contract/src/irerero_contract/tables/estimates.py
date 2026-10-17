@@ -1,6 +1,5 @@
 import uuid
 from datetime import date
-from typing import Any
 
 from sqlalchemy import (
     CheckConstraint,
@@ -12,10 +11,9 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from irerero_contract.base import DRIVERS_INFO, Base, Provenance, count, new_uuid
+from irerero_contract.base import Base, Provenance, count, new_uuid
 
 
 def _ordered(prefix: str) -> CheckConstraint:
@@ -63,11 +61,6 @@ class NeedEstimate(Provenance, Base):
     )
     mothers_barrier_share_low: Mapped[float] = _share("Mothers' childcare barrier, lower bound")
     mothers_barrier_share_high: Mapped[float] = _share("Mothers' childcare barrier, upper bound")
-    top_drivers: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSONB,
-        comment="Up to five drivers: [{feature, label_en, label_rw, contribution}]",
-        info=DRIVERS_INFO,
-    )
 
 
 class CoverageSnapshot(Provenance, Base):

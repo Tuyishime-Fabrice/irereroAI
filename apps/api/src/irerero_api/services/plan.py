@@ -22,10 +22,10 @@ from irerero_api.schemas.plan import (
     ScenarioOut,
     WeightsIn,
 )
-from irerero_api.services.planning import planning_input
+from irerero_api.services.planning import coverage_model, planning_input
 from irerero_contract.enums import Origin, RecommendationStatus
 from irerero_contract.tables import AdminUnit, Recommendation, Scenario, UserAccount
-from irerero_engine.coverage import StraightLineCoverage
+from irerero_engine.coverage import CatchmentCoverage
 from irerero_engine.explain import TemplateExplainer
 from irerero_engine.optimizer import (
     Candidate,
@@ -61,10 +61,6 @@ SITE_SOURCES = text(
 )
 
 
-def coverage_model(settings: Settings) -> StraightLineCoverage:
-    return StraightLineCoverage(settings.catchment_minutes, settings.metres_per_minute)
-
-
 def weights_of(weights: WeightsIn) -> Weights:
     return Weights(weights.stunting, weights.readiness, weights.jobs)
 
@@ -77,14 +73,11 @@ def build_input(
     weights: WeightsIn,
     excluded: frozenset[str] = frozenset(),
     preselected: tuple[str, ...] = (),
-) -> PlanningInput:
+) -> tuple[PlanningInput, CatchmentCoverage]:
+    """The optimizer's input and the coverage model over the precomputed catchments."""
+    model = coverage_model(session.connection(), district, settings.catchment_minutes)
     data = planning_input(
-        session.connection(),
-        district,
-        budget,
-        weights_of(weights),
-        coverage_model(settings),
-        excluded,
+        session.connection(), district, budget, weights_of(weights), model, excluded
     )
     return PlanningInput(
         points=data.points,
@@ -94,7 +87,7 @@ def build_input(
         constraints=data.constraints,
         child_count_bounds=data.child_count_bounds,
         preselected=preselected,
-    )
+    ), model
 
 
 def rounded(value: Range) -> RangeOut:
@@ -162,7 +155,7 @@ def _store(
 def create(
     session: Session, settings: Settings, principal: Principal, body: ScenarioIn
 ) -> Scenario:
-    data = build_input(
+    data, model = build_input(
         session,
         settings,
         body.district_code,
@@ -170,7 +163,7 @@ def create(
         body.weights,
         frozenset(body.excluded_site_ids),
     )
-    optimizer = GreedyOptimizer(coverage_model(settings))
+    optimizer = GreedyOptimizer(model)
     plan = optimizer.plan(data)
     sources = site_sources(session, body.district_code)
     simulated = any(s.origin == Origin.SIMULATED.value for refs in sources.values() for s in refs)
@@ -216,7 +209,7 @@ def recommendations(
 def rerun(session: Session, settings: Settings, scenario: Scenario) -> None:
     """Refill the plan after a rejection, keeping every approved or edited suggestion."""
     decided = recommendations(session, scenario.id, DECIDED)
-    data = build_input(
+    data, model = build_input(
         session,
         settings,
         scenario.district_code,
@@ -225,7 +218,7 @@ def rerun(session: Session, settings: Settings, scenario: Scenario) -> None:
         frozenset(scenario.constraints.get("excluded_site_ids", [])),
         preselected=tuple(r.site_id for r in decided),
     )
-    plan = GreedyOptimizer(coverage_model(settings)).plan(data)
+    plan = GreedyOptimizer(model).plan(data)
     session.execute(
         delete(Recommendation).where(
             Recommendation.scenario_id == scenario.id,
@@ -319,10 +312,9 @@ def _rec_out(
 
 
 def scenario_out(session: Session, settings: Settings, scenario: Scenario) -> ScenarioOut:
-    data = build_input(
+    data, model = build_input(
         session, settings, scenario.district_code, scenario.budget_rwf, _weights_in(scenario)
     )
-    model = coverage_model(settings)
     by_id = {c.id: c for c in data.candidates}
     names = {
         row.code: row.name
@@ -379,9 +371,9 @@ def outcomes_out_for(
     session: Session, settings: Settings, scenario: Scenario, items: Sequence[RecommendationOut]
 ) -> OutcomesOut:
     """Outcomes of a subset of a scenario's suggestions, e.g. only the approved ones."""
-    data = build_input(
+    data, model = build_input(
         session, settings, scenario.district_code, scenario.budget_rwf, _weights_in(scenario)
     )
     by_id = {c.id: c for c in data.candidates}
     chosen = [by_id[item.site_id] for item in items]
-    return outcomes_out(evaluate(coverage_model(settings), data, chosen).outcomes, chosen)
+    return outcomes_out(evaluate(model, data, chosen).outcomes, chosen)

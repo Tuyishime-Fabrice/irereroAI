@@ -67,8 +67,21 @@ def _site_points(conn: Connection, sector: str, count: int, seed: int) -> list[t
     return [(x, y) for x, y in rows]
 
 
-def build_sites(conn: Connection, centres: list[dict[str, Any]]) -> list[dict[str, Any]]:
+CENTRES = text(
+    """
+    SELECT c.code, c.name, c.type, c.sector_code, ST_X(c.location) AS lon,
+        ST_Y(c.location) AS lat
+    FROM centre c JOIN admin_unit s ON s.code = c.sector_code
+    WHERE s.parent_code = :d AND c.status = 'active' ORDER BY c.code
+    """
+)
+
+
+def build_sites(conn: Connection) -> list[dict[str, Any]]:
+    """Village and school sites (simulated) in every sector, plus an upgrade option for each
+    home-based centre and a support option for every centre, simulated or loaded."""
     r = rng("sites")
+    centres = [dict(row._mapping) for row in conn.execute(CENTRES, {"d": DEMO_DISTRICT})]
     sectors = conn.execute(
         text("SELECT code, name FROM admin_unit WHERE parent_code = :d ORDER BY code"),
         {"d": DEMO_DISTRICT},
@@ -136,8 +149,8 @@ def build_sites(conn: Connection, centres: list[dict[str, Any]]) -> list[dict[st
     return sites
 
 
-def load_sites(conn: Connection, run_id: object, centres: list[dict[str, Any]]) -> int:
-    rows = build_sites(conn, centres)
+def load_sites(conn: Connection, run_id: object) -> int:
+    rows = build_sites(conn)
     conn.execute(
         text(
             "INSERT INTO candidate_site (id, kind, name, sector_code, centre_code, location, "

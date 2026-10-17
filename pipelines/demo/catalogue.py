@@ -1,36 +1,24 @@
-"""The source catalogue the methodology page reads: what is loaded, simulated or planned."""
+"""The source catalogue the methodology page reads: what is loaded, simulated or not loaded."""
+
+from collections.abc import Set
 
 from sqlalchemy import Connection, insert
 
 from irerero_contract.enums import EngineComponent, Origin, SourceStatus
 from irerero_contract.tables import DataSource, ModelVersion, PlanningDefault
-from pipelines.demo.geography import SOURCE as BOUNDARY_SOURCE
 from pipelines.demo.need import MODEL_VERSION as NEED_MODEL_VERSION
-from pipelines.registry import ADAPTERS
+from pipelines.sources import DATASETS
+from pipelines.sources.boundaries import SOURCE as BOUNDARY_SOURCE
 
-# Phase 2 sources whose role the demo generator fills with simulated values today.
-STOOD_IN = {
-    "census_2022": "child counts per sector",
-    "rdhs_2025": "stunting risk per sector, around the published Gicumbi value",
-    "lfs_2025": "mothers' childcare barrier share",
-    "ncda_mapping": "centres with capacity and latest enrolment",
-    "education_yearbook": "school candidate sites",
-}
+# Datasets whose part the demo generator plays, with simulated values, until they are loaded.
+STOOD_IN = {"census_2022", "eicv7", "lfs_2025", "rdhs_2025", "ecd_centres"}
 
 
-def load_catalogue(conn: Connection) -> int:
+def load_catalogue(conn: Connection, present: Set[str]) -> int:
+    simulated = ["need_estimate", "candidate_site", "unit_cost", "demand_signal"]
+    if "ecd_centres" not in present:
+        simulated.insert(0, "centre")
     rows = [
-        {
-            "id": "geoboundaries",
-            "name": "geoBoundaries gbOpen, Rwanda provinces, districts and sectors",
-            "publisher": "geoBoundaries (William & Mary), from NISR open data",
-            "reference_year": 2023,
-            "origin": Origin.PUBLIC,
-            "status": SourceStatus.LOADED,
-            "licence": "CC BY 4.0",
-            "url": "https://www.geoboundaries.org",
-            "feeds": ["admin_unit"],
-        },
         {
             "id": "demo_generator",
             "name": "IrereroAI demo generator",
@@ -40,29 +28,41 @@ def load_catalogue(conn: Connection) -> int:
             "status": SourceStatus.LOADED,
             "licence": "Simulated data, no real people or centres",
             "url": None,
-            "feeds": [
-                "centre",
-                "need_estimate",
-                "candidate_site",
-                "unit_cost",
-                "demand_signal",
-            ],
-        },
+            "feeds": simulated,
+        }
     ]
-    for name, adapter in ADAPTERS.items():
-        spec = adapter.spec
-        status = SourceStatus.SIMULATED_STAND_IN if name in STOOD_IN else SourceStatus.PLANNED
+    if "boundaries" not in present:
         rows.append(
             {
-                "id": name,
-                "name": spec.title,
-                "publisher": spec.publisher,
-                "reference_year": spec.reference_year,
-                "origin": spec.origin,
+                "id": "geoboundaries",
+                "name": "geoBoundaries gbOpen, Rwanda provinces, districts and sectors",
+                "publisher": "geoBoundaries (William & Mary), from NISR open data",
+                "reference_year": 2023,
+                "origin": Origin.PUBLIC,
+                "status": SourceStatus.LOADED,
+                "licence": "CC BY 4.0",
+                "url": "https://www.geoboundaries.org",
+                "feeds": ["admin_unit"],
+            }
+        )
+    for dataset in DATASETS:
+        if dataset.key in present:
+            status = SourceStatus.LOADED
+        elif dataset.key in STOOD_IN:
+            status = SourceStatus.SIMULATED_STAND_IN
+        else:
+            status = SourceStatus.PLANNED
+        rows.append(
+            {
+                "id": dataset.key,
+                "name": dataset.title,
+                "publisher": dataset.publisher,
+                "reference_year": dataset.reference_year,
+                "origin": dataset.origin,
                 "status": status,
-                "licence": spec.licence,
-                "url": spec.url,
-                "feeds": list(spec.target_tables) + list(spec.indicators),
+                "licence": dataset.licence,
+                "url": dataset.url,
+                "feeds": list(dataset.produces),
             }
         )
     conn.execute(insert(DataSource), rows)

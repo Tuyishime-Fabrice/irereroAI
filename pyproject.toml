@@ -10,6 +10,10 @@ dependencies = [
   "irerero-pipelines",
 ]
 
+[project.optional-dependencies]
+# Raster and OpenStreetMap readers for the build: `uv sync --extra geo`.
+geo = ["irerero-pipelines[geo]"]
+
 [dependency-groups]
 dev = [
   "ruff>=0.17",

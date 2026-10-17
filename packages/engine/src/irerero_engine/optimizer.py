@@ -149,6 +149,7 @@ class _Valuer:
     max_risk: float
     max_barrier: float
     points: Mapping[str, DemandPoint] = field(default_factory=dict)
+    point_list: list[DemandPoint] = field(default_factory=list)
 
     def child_value(self, point: DemandPoint, young: float, old: float) -> float:
         w = self.weights
@@ -334,7 +335,9 @@ class GreedyOptimizer:
         weights = data.weights.normalised()
         max_risk = max((p.stunting_risk for p in data.points), default=0.0)
         max_barrier = max((p.mothers_barrier_share for p in data.points), default=0.0)
-        valuer = _Valuer(weights, max_risk, max_barrier, {p.id: p for p in data.points})
+        valuer = _Valuer(
+            weights, max_risk, max_barrier, {p.id: p for p in data.points}, list(data.points)
+        )
         area_means = _area_means(data.points)
         state = data.base_state.copy()
         remaining = constraints.budget
@@ -406,7 +409,7 @@ class GreedyOptimizer:
             risk, barrier = area_means.get(candidate.area_code, (0.0, 0.0))
             return valuer.support_value(candidate, risk, barrier), None
         seat = _seat(candidate, constraints)
-        assignment = self.model.assign(seat, list(valuer.points.values()), state)
+        assignment = self.model.assign(seat, valuer.point_list, state)
         boost = 1 + DEMAND_BOOST * min(candidate.parent_demand, DEMAND_CAP) / DEMAND_CAP
         return valuer.assignment_value(assignment) * boost, assignment
 
@@ -430,9 +433,7 @@ class GreedyOptimizer:
         if group == "support":
             put("report_problems", candidate.severity)
             return
-        reachable = self.model.reachable(
-            _seat(candidate, constraints), list(valuer.points.values())
-        )
+        reachable = self.model.reachable(_seat(candidate, constraints), valuer.point_list)
         waiting = sum(state.uncovered(p.id) for p in reachable)
         put("uncovered_children", waiting)
         put("parent_demand", float(candidate.parent_demand))

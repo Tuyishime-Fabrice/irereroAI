@@ -88,7 +88,7 @@ def seed(eng: Engine) -> bool:
             for course_id in JOINING:
                 done = rng.random()
                 demo = cid == DEMO_CAREGIVER
-                completed = (course_id == "ecd_standards") if demo else done < 0.6
+                completed = (course_id == "ecd_standards") if demo else done < 0.75
                 count = LESSON_COUNT[course_id]
                 lessons = (
                     list(range(1, count + 1)) if completed else ([1] if demo or done < 0.85 else [])

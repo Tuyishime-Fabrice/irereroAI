@@ -23,6 +23,8 @@ jobs:
       - run: uv run ruff format --check .
       - name: DATA_SOURCES.md matches the dataset declarations
         run: uv run python -m irerero.data --check
+      - name: Data dictionary matches the models
+        run: uv run python -m irerero.docs --check
       - name: Build from the demo bundle
         run: uv run python -m irerero.pipeline.build
       - run: uv run pytest

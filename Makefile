@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install sources data test lint format app check
+.PHONY: help install sources data test lint format app check docs
 
 help:  ## List the targets
 	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-9s %s\n", $$1, $$2}'
@@ -29,3 +29,8 @@ app:  ## Run the Streamlit app
 
 check: lint test  ## Everything CI runs
 	uv run python -m irerero.data --check
+	uv run python -m irerero.docs --check
+
+docs:  ## Regenerate DATA_SOURCES.md and docs/data_dictionary.md
+	uv run python -m irerero.data --write
+	uv run python -m irerero.docs --write

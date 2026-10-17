@@ -29,14 +29,16 @@ PAGES = {
     "plan": st.Page("views/plan.py", title="Plan builder and tracker", icon=":material/checklist:"),
     "caregiver": st.Page("views/caregiver.py", title="Caregiver home", icon=":material/home:"),
     "officer": st.Page("views/officer.py", title="Training", icon=":material/school:"),
+    "brief": st.Page("views/brief.py", title="District brief", icon=":material/description:"),
+    "admin": st.Page("views/admin.py", title="Admin", icon=":material/admin_panel_settings:"),
     "methods": st.Page("views/methods.py", title="Data and methods", icon=":material/dataset:"),
 }
 BY_ROLE = {
-    PLANNER: ["national", "priorities", "sector", "plan", "methods"],
-    ANALYST: ["national", "priorities", "sector", "plan", "methods"],
+    PLANNER: ["national", "priorities", "sector", "plan", "brief", "methods"],
+    ANALYST: ["national", "priorities", "sector", "plan", "brief", "methods"],
     OFFICER: ["officer", "sector", "plan", "methods"],
     CAREGIVER: ["caregiver", "methods"],
-    ADMIN: ["methods"],
+    ADMIN: ["admin", "methods"],
 }
 
 st.navigation([PAGES[key] for key in BY_ROLE[user.role]]).run()

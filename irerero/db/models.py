@@ -75,11 +75,13 @@ class Estimate2026(Base):
     children_3_5: Mapped[float] = mapped_column(Float)
     low: Mapped[float] = mapped_column(Float)
     high: Mapped[float] = mapped_column(Float)
+    attendance_rate_2022: Mapped[float] = mapped_column(Float)
     attendance_rate: Mapped[float] = mapped_column(Float)
     attending: Mapped[float] = mapped_column(Float)
     far_share: Mapped[float | None] = mapped_column(Float)
     """Share of young children more than 1 km from a school with pre-primary."""
-    distance_method: Mapped[str | None] = mapped_column(String(24))
+    distance_method: Mapped[str | None] = mapped_column(String(64))
+    children_spread: Mapped[str | None] = mapped_column(String(24))
     status: Mapped[str] = mapped_column(String(24))
     method: Mapped[str] = mapped_column(Text)
 

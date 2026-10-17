@@ -25,7 +25,7 @@ format:  ## Fix lint and formatting
 	uv run ruff format .
 
 app:  ## Run the Streamlit app
-	uv run streamlit run app/Home.py
+	uv run streamlit run app/streamlit_app.py
 
 check: lint test  ## Everything CI runs
 	uv run python -m irerero.data --check

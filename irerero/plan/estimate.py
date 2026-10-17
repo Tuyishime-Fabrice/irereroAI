@@ -1,0 +1,122 @@
+"""2026 estimate of children aged 3 to 5 per sector, and of those attending pre-primary.
+
+1. District total for 2026: NISR projected population x the district's census 3-5 share.
+2. Split across sectors: WorldPop under-5 per sector x the district's census ratio of 3-5 to
+   0-4 children; while WorldPop is missing, each sector's share of the district's census 3-5
+   count.
+3. Range: projection range (or PROJECTION_REL_ERROR) combined with the disagreement between
+   WorldPop and census sector shares (or SHARE_DRIFT_REL).
+4. Attending: the sector's 2022 census attendance rate, moved by the district's change in
+   MINEDUC pupils per child from 2021/22 (census year) to the latest yearbook.
+
+Census, MINEDUC and NCDA counts are never added together: MINEDUC only moves the census rate.
+"""
+
+import numpy as np
+import pandas as pd
+
+from irerero.config import (
+    ESTIMATE_YEAR,
+    MAX_ATTENDANCE,
+    MODEL,
+    PROJECTION_REL_ERROR,
+    SHARE_DRIFT_REL,
+    SIMULATED,
+    YEARBOOK_YEARS,
+)
+from irerero.pipeline.inputs import Inputs
+
+CENSUS_YEAR = 2022
+CENSUS_SCHOOL_YEAR = "2021/22"
+
+
+def projected(inputs: Inputs, year: int) -> pd.DataFrame:
+    """District population in `year` (with low/high), extrapolating one step back to 2022 when
+    the series starts in 2023."""
+    proj = inputs.projections.frame
+    wide = proj.pivot_table(index="geo_id", columns="year", values="population", aggfunc="sum")
+    if year not in wide.columns:
+        first, second = sorted(wide.columns)[:2]
+        if year != first - 1:
+            raise ValueError(f"no projection for {year}")
+        values = wide[first] ** 2 / wide[second]
+        return pd.DataFrame({"population": values, "low": values, "high": values})
+    rows = proj[proj.year == year].set_index("geo_id")
+    low = rows.population_low.astype(float).fillna(rows.population.astype(float))
+    high = rows.population_high.astype(float).fillna(rows.population.astype(float))
+    return pd.DataFrame({"population": rows.population.astype(float), "low": low, "high": high})
+
+
+def children_by_district(inputs: Inputs, year: int) -> pd.DataFrame:
+    """Children aged 3 to 5 per district in `year`: projected population x census 3-5 share."""
+    census = inputs.census_districts.frame.set_index("geo_id")
+    pop = projected(inputs, year)
+    if census.population.notna().all():
+        share = census.children_3_5.astype(float) / census.population.astype(float)
+        base = pop.mul(share, axis=0)
+    else:  # no census population: grow the census count with the projection
+        growth = pop.div(projected(inputs, CENSUS_YEAR).population, axis=0)
+        base = growth.mul(census.children_3_5.astype(float), axis=0)
+    return base.rename(columns={"population": "children_3_5"})
+
+
+def attendance_trend(inputs: Inputs) -> pd.Series:
+    """Per district: MINEDUC pupils per child in the latest yearbook / in 2021/22."""
+    book = inputs.yearbook.frame.set_index(["geo_id", "school_year"]).pupils.astype(float)
+    latest = YEARBOOK_YEARS[-1]
+    latest_year = int(latest[:4]) + 1
+    kids_then = children_by_district(inputs, CENSUS_YEAR).children_3_5
+    kids_now = children_by_district(inputs, latest_year).children_3_5
+    then = book.xs(CENSUS_SCHOOL_YEAR, level="school_year") / kids_then
+    now = book.xs(latest, level="school_year") / kids_now
+    return (now / then).rename("trend")
+
+
+def estimate(inputs: Inputs) -> pd.DataFrame:
+    sectors = inputs.census_sectors.frame.set_index("geo_id")
+    districts = inputs.census_districts.frame.set_index("geo_id")
+    parent = inputs.sectors.set_index("geo_id").parent_id.loc[sectors.index]
+    totals = children_by_district(inputs, ESTIMATE_YEAR)
+
+    census_share = sectors.children_3_5.astype(float) / parent.map(
+        sectors.children_3_5.astype(float).groupby(parent).sum()
+    )
+    if inputs.under5 is not None:
+        ratio = districts.children_3_5.astype(float) / districts.children_0_4.astype(float)
+        raw = inputs.under5.reindex(sectors.index).astype(float) * parent.map(ratio)
+        share = raw / parent.map(raw.groupby(parent).sum())
+        drift = ((share - census_share).abs() / census_share).clip(upper=1.0)
+        method = "WorldPop under-5 x census age ratio, calibrated to NISR projections"
+    else:
+        share = census_share
+        drift = pd.Series(SHARE_DRIFT_REL, index=sectors.index)
+        method = "census 2022 sector share, calibrated to NISR projections"
+
+    total = parent.map(totals.children_3_5)
+    projection_rel = parent.map((totals.high - totals.low) / 2 / totals.children_3_5).replace(
+        0, PROJECTION_REL_ERROR
+    )
+    rel = np.sqrt(projection_rel**2 + drift**2)
+    children = share * total
+
+    rate_2022 = sectors.children_3_5_attending.astype(float) / sectors.children_3_5.astype(float)
+    rate = (rate_2022 * parent.map(attendance_trend(inputs))).clip(upper=MAX_ATTENDANCE)
+
+    inputs_real = all(
+        loaded.real for loaded in (inputs.census_sectors, inputs.projections, inputs.yearbook)
+    )
+    out = pd.DataFrame(
+        {
+            "geo_id": sectors.index,
+            "district_id": parent.to_numpy(),
+            "children_3_5": children.round().to_numpy(),
+            "low": (children * (1 - rel)).round().to_numpy(),
+            "high": (children * (1 + rel)).round().to_numpy(),
+            "attendance_rate_2022": rate_2022.round(4).to_numpy(),
+            "attendance_rate": rate.round(4).to_numpy(),
+            "status": MODEL if inputs_real else SIMULATED,
+            "method": method,
+        }
+    )
+    out["attending"] = (out.children_3_5 * out.attendance_rate).round()
+    return out

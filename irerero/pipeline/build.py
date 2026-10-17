@@ -21,6 +21,8 @@ from irerero.db.session import engine as default_engine
 from irerero.db.store import replace_analysis
 from irerero.pipeline.inputs import Inputs, load_inputs
 from irerero.pipeline.observations import build_observations
+from irerero.plan.distance import far_shares
+from irerero.plan.estimate import estimate
 
 SIMPLIFY_DEGREES = 0.0014
 
@@ -93,6 +95,15 @@ def sources(inputs: Inputs) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def estimate_2026(inputs: Inputs) -> pd.DataFrame:
+    distance = far_shares(inputs.sectors, inputs.schools, inputs.raw, inputs.supply.frame)
+    out = estimate(inputs).merge(distance, on="geo_id", how="left")
+    # the layer inherits simulated status from simulated school points
+    if not inputs.schools.real:
+        out["distance_method"] = out.distance_method + ", simulated schools"
+    return out
+
+
 def write_geojson(inputs: Inputs, out: Path) -> None:
     for level in ("district", "sector"):
         frame = inputs.units[level][["geo_id", "name", "parent_id", "geometry"]]
@@ -108,6 +119,7 @@ def build(
         "geo_unit": geo_units(inputs),
         "source": sources(inputs),
         "observation": build_observations(inputs),
+        "estimate_2026": estimate_2026(inputs),
     }
     out.mkdir(parents=True, exist_ok=True)
     for name, frame in tables.items():

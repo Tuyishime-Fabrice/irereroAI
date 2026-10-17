@@ -58,6 +58,18 @@ COMPONENT_LABELS = {
     "peer_gap": "Below similar sectors",
     "poverty": "Poverty",
 }
+# 2026 estimate. Where a source gives no range, these assumptions set it (documented in
+# docs/methodology.md): projection error and drift in sector shares since the 2022 census.
+PROJECTION_REL_ERROR = 0.03
+SHARE_DRIFT_REL = 0.05
+MAX_ATTENDANCE = 0.98  # cap for the projected attendance rate
+
+# Distance layer.
+GRID_SPACING_M = 250  # spacing of evenly spread points while WorldPop is missing
+SNAP_LIMIT_M = 500  # a point further than this from a road is not on the network
+MIN_ROAD_COVERAGE = 0.5  # below this share of points near a road, use straight-line distance
+METRIC_CRS = 32735  # WGS 84 / UTM zone 35S covers Rwanda
+
 STABILITY_DRAWS = 500
 STABILITY_CONCENTRATION = 40.0  # Dirichlet concentration around the chosen weights
 STABILITY_TOP = 3

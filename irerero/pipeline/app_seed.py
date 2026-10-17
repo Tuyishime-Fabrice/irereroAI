@@ -1,5 +1,6 @@
-"""Seed the app tables that start with content: demo users. Idempotent, never overwrites a row
-that already exists, so decisions and progress survive restarts."""
+"""Seed the app tables that start with content: demo users, and the simulated Muhanga LEARN data
+(caregivers, check-ins, course progress) with its training triggers. Idempotent, never
+overwrites a row that already exists, so decisions and progress survive restarts."""
 
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
@@ -25,3 +26,6 @@ def seed(eng: Engine) -> None:
                     )
                 )
         s.commit()
+    from irerero.learn import simulate
+
+    simulate.seed(eng)

@@ -1,0 +1,9 @@
+{
+  "position": 2,
+  "title_en": "Child safeguarding basics",
+  "title_rw": "Ibanze ku kurengera umwana",
+  "required_on_joining": true,
+  "trigger": "joining",
+  "source": "UNICEF Rwanda and NCDA child protection and safeguarding materials",
+  "title_rw_reviewed": false
+}

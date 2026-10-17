@@ -1,0 +1,56 @@
+{
+  "draft": true,
+  "note": "Draft questions; check each against the cited source before use.",
+  "items": [
+    {
+      "question": "When must children wash hands with soap?",
+      "options": [
+        "Only once a day",
+        "After the toilet and before eating",
+        "Only when hands look dirty",
+        "Never at the centre"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What is a tippy-tap?",
+      "options": [
+        "A toy",
+        "A simple handwashing station",
+        "A water tax",
+        "A song"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Your centre has no water this month. What do you do?",
+      "options": [
+        "Nothing",
+        "Report it in the check-in and to the sector officer",
+        "Close the centre for good",
+        "Use river water without treating it"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Why does WASH matter for young children?",
+      "options": [
+        "It prevents diarrhoea and infections",
+        "It is only about looks",
+        "It makes lessons longer",
+        "It does not matter"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Drinking water at the centre should be:",
+      "options": [
+        "Stored covered and treated",
+        "Left open in the sun",
+        "Taken from any source",
+        "Shared from one cup"
+      ],
+      "answer": 0
+    }
+  ]
+}

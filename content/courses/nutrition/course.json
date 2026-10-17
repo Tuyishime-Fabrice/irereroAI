@@ -1,0 +1,9 @@
+{
+  "position": 4,
+  "title_en": "Nutrition and growth monitoring referral",
+  "title_rw": "Imirire no gukurikirana imikurire y'umwana",
+  "required_on_joining": false,
+  "trigger": "checkin:few_meals | sector:STUNTING",
+  "source": "WHO, UNICEF and World Bank, Nurturing Care Framework (2018); Rwanda community-based nutrition guidance",
+  "title_rw_reviewed": false
+}

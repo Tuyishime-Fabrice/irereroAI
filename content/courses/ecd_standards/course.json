@@ -1,0 +1,9 @@
+{
+  "position": 1,
+  "title_en": "ECD Standards essentials",
+  "title_rw": "Amahame y'ibanze y'imbonezamikurire y'abana bato",
+  "required_on_joining": true,
+  "trigger": "joining",
+  "source": "National Child Development Agency (NCDA), National ECD Standards (2024)",
+  "title_rw_reviewed": false
+}

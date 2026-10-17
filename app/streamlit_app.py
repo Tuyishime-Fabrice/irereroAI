@@ -27,13 +27,15 @@ PAGES = {
     ),
     "sector": st.Page("views/sector.py", title="Sector profile", icon=":material/troubleshoot:"),
     "plan": st.Page("views/plan.py", title="Plan builder and tracker", icon=":material/checklist:"),
+    "caregiver": st.Page("views/caregiver.py", title="Caregiver home", icon=":material/home:"),
+    "officer": st.Page("views/officer.py", title="Training", icon=":material/school:"),
     "methods": st.Page("views/methods.py", title="Data and methods", icon=":material/dataset:"),
 }
 BY_ROLE = {
     PLANNER: ["national", "priorities", "sector", "plan", "methods"],
     ANALYST: ["national", "priorities", "sector", "plan", "methods"],
-    OFFICER: ["sector", "plan", "methods"],
-    CAREGIVER: ["methods"],
+    OFFICER: ["officer", "sector", "plan", "methods"],
+    CAREGIVER: ["caregiver", "methods"],
     ADMIN: ["methods"],
 }
 

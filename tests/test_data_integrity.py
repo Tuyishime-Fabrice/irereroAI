@@ -72,11 +72,11 @@ def test_demo_values_are_marked_simulated(tables):
     assert not tables["source"].query("source_id != 'geoboundaries'").loaded.any()
 
 
-def test_tables_reach_the_database(tables, eng):
+def test_tables_reach_the_database(tables, build_eng):
     from irerero.db.store import read
 
-    assert len(read(eng, "observation")) == len(tables["observation"])
-    assert len(read(eng, "geo_unit", level="sector")) == 416
+    assert len(read(build_eng, "observation")) == len(tables["observation"])
+    assert len(read(build_eng, "geo_unit", level="sector")) == 416
 
 
 @pytest.mark.parametrize("indicator", ["children_3_5", "attending_3_5", "pp_pupils"])

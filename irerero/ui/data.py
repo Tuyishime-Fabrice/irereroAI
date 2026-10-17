@@ -38,6 +38,9 @@ def ensure_built() -> None:
     from irerero.pipeline.app_seed import seed
 
     seed(e)
+    from irerero.learn import triggers
+
+    triggers.run(e, diagnosis_now(target()))
     st.session_state["_built"] = True
 
 

@@ -17,7 +17,7 @@ def empty_raw(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 @pytest.fixture(scope="session")
-def eng(tmp_path_factory: pytest.TempPathFactory) -> Engine:
+def build_eng(tmp_path_factory: pytest.TempPathFactory) -> Engine:
     path = tmp_path_factory.mktemp("db") / "test.sqlite"
     engine = create_engine(f"sqlite:///{path}")
     Base.metadata.create_all(engine)
@@ -30,5 +30,5 @@ def inputs(empty_raw: Path) -> Inputs:
 
 
 @pytest.fixture(scope="session")
-def tables(empty_raw: Path, eng: Engine, tmp_path_factory: pytest.TempPathFactory) -> dict:
-    return build(empty_raw, eng, tmp_path_factory.mktemp("processed"))
+def tables(empty_raw: Path, build_eng: Engine, tmp_path_factory: pytest.TempPathFactory) -> dict:
+    return build(empty_raw, build_eng, tmp_path_factory.mktemp("processed"))

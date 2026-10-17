@@ -19,6 +19,7 @@ from irerero.data.sources.boundaries import GEOBOUNDARIES
 from irerero.data.validate import SchemaError
 from irerero.db.session import engine as default_engine
 from irerero.db.store import replace_analysis
+from irerero.learn import content
 from irerero.pipeline import diagnose_step
 from irerero.pipeline.inputs import Inputs, load_inputs
 from irerero.pipeline.observations import build_observations
@@ -115,6 +116,14 @@ def estimate_2026(inputs: Inputs) -> pd.DataFrame:
     return out
 
 
+def supply_extract(inputs: Inputs) -> pd.DataFrame:
+    frame = inputs.supply.frame
+    return frame.assign(status=inputs.supply.status)[
+        ["centre_id", "name", "centre_type", "geo_id", "lon", "lat", "capacity", "enrolled_3_5",
+         "caregivers", "as_of", "status"]
+    ]  # fmt: skip
+
+
 def write_geojson(inputs: Inputs, out: Path) -> None:
     for level in ("district", "sector"):
         frame = inputs.units[level][["geo_id", "name", "parent_id", "geometry"]]
@@ -134,6 +143,8 @@ def build(
     }
     tables.update(diagnose_step.run(inputs, tables))
     tables["forecast"] = forecast.forecast(inputs)
+    tables["supply_extract"] = supply_extract(inputs)
+    tables.update(content.load())
     out.mkdir(parents=True, exist_ok=True)
     for name, frame in tables.items():
         if name in PARQUET:

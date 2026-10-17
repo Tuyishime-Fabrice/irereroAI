@@ -1,0 +1,56 @@
+{
+  "draft": true,
+  "note": "Draft questions; check each against the cited source before use.",
+  "items": [
+    {
+      "question": "Under the National ECD Standards (2024), how many children at most should share one room?",
+      "options": [
+        "15",
+        "30",
+        "45",
+        "60"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Which caregiver-to-child ratios does IrereroAI use from the standards?",
+      "options": [
+        "1:5 to 1:10",
+        "1:15 to 1:30",
+        "1:40 to 1:50",
+        "There is no ratio"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Which settings do the standards cover?",
+      "options": [
+        "Only private schools",
+        "School-based, community-based and home-based ECD",
+        "Only primary schools",
+        "Only centres in Kigali"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What should a centre keep every day?",
+      "options": [
+        "A register of attendance",
+        "Children's test scores",
+        "Photos of every child",
+        "Parents' phone numbers on the wall"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "How do young children learn best, according to the standards?",
+      "options": [
+        "Copying from the board",
+        "Through play and interaction",
+        "Sitting quietly all day",
+        "Homework"
+      ],
+      "answer": 1
+    }
+  ]
+}

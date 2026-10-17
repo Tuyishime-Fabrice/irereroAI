@@ -20,6 +20,7 @@ from irerero.config import (
     TARGET_YEAR,
     YEARBOOK_YEARS,
 )
+from irerero.learn import progress
 from irerero.plan import gap
 from irerero.plan.frame import ranked
 from irerero.track import forecast, plans
@@ -355,3 +356,39 @@ else:
         use_container_width=True,
     )
     theme.note("The audit log is append-only: entries cannot be edited or deleted.")
+
+# --- training -----------------------------------------------------------------------------
+st.subheader("Training tracker")
+training = progress.summary(eng)
+training = training[training.district_id == district_id]
+if user.role == OFFICER:
+    training = training[training.sector_id == user.sector_id]
+if training.empty:
+    st.info("No LEARN data for this district: the pilot runs in Muhanga.")
+else:
+    by_sector = progress.aggregate(training, "sector_id")
+    flagged = training[training.status == "recommended"].groupby("sector_id").size()
+    st.dataframe(
+        pd.DataFrame(
+            {
+                "Sector": [names.get(g, g) for g in by_sector.sector_id],
+                "Caregivers": by_sector.caregivers,
+                "Required courses assigned": by_sector.required,
+                "Completed": by_sector.completed,
+                "Overdue": by_sector.overdue,
+                "Waiting for officer": [int(flagged.get(g, 0)) for g in by_sector.sector_id],
+                "Completed (%)": (by_sector.share_completed * 100).round(),
+            }
+        ),
+        hide_index=True,
+        use_container_width=True,
+        column_config={
+            "Completed (%)": st.column_config.ProgressColumn(
+                min_value=0, max_value=100, format="%d%%"
+            )
+        },
+    )
+    theme.note(
+        "Simulated pilot data. Aggregates only; completion of required training feeds the "
+        f"capacity factor in DIAGNOSE. {progress.QUIZ_NOTE}"
+    )

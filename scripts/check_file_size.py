@@ -10,7 +10,7 @@ from pathlib import Path
 MAX_BYTES = 500 * 1024
 BLOCKED_SUFFIXES = {".dta", ".sav", ".tif", ".tiff", ".pbf", ".gpkg", ".shp", ".parquet", ".pkl"}
 BLOCKED_DIRS = ("data/raw/", "data/interim/", "data/processed/")
-ALLOWED_LARGE = {"pnpm-lock.yaml", "uv.lock"}
+ALLOWED_LARGE = {"uv.lock"}
 
 
 def problems(paths: list[str]) -> list[str]:

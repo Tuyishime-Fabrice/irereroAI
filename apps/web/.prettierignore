@@ -1,9 +1,0 @@
-.next
-node_modules
-src/lib/api/schema.d.ts
-pnpm-lock.yaml
-tsconfig.json
-openapi.json
-public/maplibre-gl-worker.mjs
-test-results
-playwright-report

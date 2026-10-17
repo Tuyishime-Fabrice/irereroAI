@@ -6,7 +6,7 @@ repos:
         name: detect secrets
         entry: uv run detect-secrets-hook --baseline .secrets.baseline
         language: system
-        exclude: ^(pnpm-lock\.yaml|uv\.lock|apps/web/messages/.*\.json|apps/web/openapi\.json)$
+        exclude: ^uv\.lock$
       - id: file-size-guard
         name: file size and data format guard
         entry: uv run python scripts/check_file_size.py

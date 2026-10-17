@@ -1,46 +1,31 @@
-.PHONY: setup migrate api web seed build sources lint typecheck test e2e client
+.DEFAULT_GOAL := help
+.PHONY: help install sources data test lint format app check
 
-setup:  ## Install all dependencies and git hooks
-	uv sync
-	pnpm install
-	uv run pre-commit install
+help:  ## List the targets
+	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-9s %s\n", $$1, $$2}'
 
-migrate:  ## Apply database migrations (local)
-	cd apps/api && uv run alembic upgrade head
+install:  ## Install Python 3.11 dependencies (with the OSM road-network extra)
+	uv sync --extra osm
 
-api:  ## Run the API with reload (local)
-	cd apps/api && uv run uvicorn irerero_api.main:app --reload --port 8000
+sources:  ## Create the data/raw/ folders and list which source files are present
+	uv run python -m irerero.data
 
-web:  ## Run the web app in dev mode (local)
-	pnpm --filter web dev
+data:  ## Rebuild every analysis table from data/raw/, demo data where files are missing
+	uv run python -m irerero.pipeline.build
 
-seed:  ## Build the docker compose database from data/raw/ files, demo data where missing
-	docker compose exec -T api python -m pipelines.build
+test:  ## Run the test suite
+	uv run pytest
 
-build:  ## Build the local database from data/raw/ files, demo data where missing
-	uv run python -m pipelines.build
-
-sources:  ## Create the data/raw/ folders and list which dataset files are present
-	uv run python -m pipelines.sources
-
-lint:
+lint:  ## Lint and check formatting
 	uv run ruff check .
 	uv run ruff format --check .
-	pnpm --filter web lint
 
-typecheck:
-	uv run mypy
-	pnpm --filter web typecheck
+format:  ## Fix lint and formatting
+	uv run ruff check --fix .
+	uv run ruff format .
 
-test:
-	uv run pytest
-	pnpm --filter web test
+app:  ## Run the Streamlit app
+	uv run streamlit run app/Home.py
 
-e2e:  ## Demo journeys and accessibility checks against a running, freshly seeded stack
-	pnpm --filter web e2e
-
-client:  ## Regenerate the web app's API types from the OpenAPI schema
-	uv run python -m irerero_api.openapi_export apps/web/openapi.json
-	pnpm --filter web generate:api
-	uv run python -m irerero_contract.export
-	uv run python -m pipelines.sources --write
+check: lint test  ## Everything CI runs
+	uv run python -m irerero.data --check

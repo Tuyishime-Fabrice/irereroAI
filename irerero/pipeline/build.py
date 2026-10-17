@@ -19,12 +19,14 @@ from irerero.data.sources.boundaries import GEOBOUNDARIES
 from irerero.data.validate import SchemaError
 from irerero.db.session import engine as default_engine
 from irerero.db.store import replace_analysis
+from irerero.pipeline import diagnose_step
 from irerero.pipeline.inputs import Inputs, load_inputs
 from irerero.pipeline.observations import build_observations
 from irerero.plan.distance import far_shares
 from irerero.plan.estimate import estimate
 
 SIMPLIFY_DEGREES = 0.0014
+PARQUET = ("geo_unit", "source", "observation", "estimate_2026", "model_output", "diagnosis")
 
 
 def geo_units(inputs: Inputs) -> pd.DataFrame:
@@ -121,9 +123,11 @@ def build(
         "observation": build_observations(inputs),
         "estimate_2026": estimate_2026(inputs),
     }
+    tables.update(diagnose_step.run(inputs, tables))
     out.mkdir(parents=True, exist_ok=True)
     for name, frame in tables.items():
-        frame.to_parquet(out / f"{name}.parquet", index=False)
+        if name in PARQUET:
+            frame.to_parquet(out / f"{name}.parquet", index=False)
     write_geojson(inputs, out)
     replace_analysis(eng or default_engine(), tables)
     return tables

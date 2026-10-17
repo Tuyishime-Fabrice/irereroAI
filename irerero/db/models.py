@@ -119,6 +119,8 @@ class Diagnosis(Base):
     bottleneck: Mapped[str] = mapped_column(String(16))
     intervention: Mapped[str] = mapped_column(Text)
     reasons: Mapped[list[str]] = mapped_column(JSON)
+    details: Mapped[dict[str, Any]] = mapped_column(JSON)
+    """Raw indicator values behind each factor, and the level they are measured at."""
     status: Mapped[str] = mapped_column(String(24))
 
 
@@ -258,7 +260,8 @@ class Assignment(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     caregiver_id: Mapped[str] = mapped_column(String(48), index=True)
-    course_id: Mapped[str] = mapped_column(ForeignKey("course.course_id"))
+    # no foreign key: course content is rebuilt with the analysis tables, progress is kept
+    course_id: Mapped[str] = mapped_column(String(32))
     trigger: Mapped[str] = mapped_column(String(64))
     """joining | checkin:no_water | checkin:few_meals | sector:WASH | sector:WELLBEING"""
     required_by: Mapped[str | None] = mapped_column(String(24))

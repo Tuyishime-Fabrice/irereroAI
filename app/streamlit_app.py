@@ -21,16 +21,17 @@ if not demo_mode():
 user = selector(data.districts())
 
 PAGES = {
-    "national": st.Page("pages/national.py", title="National overview", icon=":material/public:"),
+    "national": st.Page("views/national.py", title="National overview", icon=":material/public:"),
     "priorities": st.Page(
-        "pages/priorities.py", title="District priorities", icon=":material/format_list_numbered:"
+        "views/priorities.py", title="District priorities", icon=":material/format_list_numbered:"
     ),
-    "methods": st.Page("pages/methods.py", title="Data and methods", icon=":material/dataset:"),
+    "sector": st.Page("views/sector.py", title="Sector profile", icon=":material/troubleshoot:"),
+    "methods": st.Page("views/methods.py", title="Data and methods", icon=":material/dataset:"),
 }
 BY_ROLE = {
-    PLANNER: ["national", "priorities", "methods"],
-    ANALYST: ["national", "priorities", "methods"],
-    OFFICER: ["methods"],
+    PLANNER: ["national", "priorities", "sector", "methods"],
+    ANALYST: ["national", "priorities", "sector", "methods"],
+    OFFICER: ["sector", "methods"],
     CAREGIVER: ["methods"],
     ADMIN: ["methods"],
 }

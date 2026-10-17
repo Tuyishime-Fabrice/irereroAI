@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import pandas as pd
-from sqlalchemy import Engine, delete, insert, select
+from sqlalchemy import Engine, insert, select
 
 from irerero.db.models import ANALYSIS_TABLES, Base
 
@@ -21,14 +21,16 @@ def _clean(value: Any) -> Any:
 
 
 def replace_analysis(eng: Engine, frames: Mapping[str, pd.DataFrame]) -> None:
-    """Empty every analysis table, then insert the given frames. App tables are untouched."""
+    """Drop and recreate every analysis table (so schema changes apply), then insert the given
+    frames. App tables are untouched."""
     tables = {t.__tablename__: t.__table__ for t in ANALYSIS_TABLES}
     unknown = set(frames) - set(tables)
     if unknown:
         raise ValueError(f"not analysis tables: {sorted(unknown)}")
+    ordered = [model.__table__ for model in ANALYSIS_TABLES]  # children first
+    Base.metadata.drop_all(eng, tables=ordered)
+    Base.metadata.create_all(eng, tables=list(reversed(ordered)))
     with eng.begin() as conn:
-        for model in ANALYSIS_TABLES:  # children first, so foreign keys allow the delete
-            conn.execute(delete(model.__table__))
         for model in reversed(ANALYSIS_TABLES):
             name = model.__tablename__
             if name not in frames or frames[name].empty:

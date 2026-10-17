@@ -36,16 +36,15 @@ theme.header(
 with st.container(border=True):
     left, right = st.columns([1, 1])
     with left:
-        target = (
-            st.slider(
-                "Target attendance (%)",
-                30,
-                90,
-                round(TARGET_2029.value * 100),
-                help=f"Default {theme.fmt_pct(TARGET_2029.value)}: {TARGET_2029.citation}",
-            )
-            / 100
+        target_pct = st.slider(
+            "Target attendance (%)",
+            30,
+            90,
+            round(data.target() * 100),
+            help=f"Default {theme.fmt_pct(TARGET_2029.value)}: {TARGET_2029.citation}",
         )
+        st.session_state["target_pct"] = target_pct  # kept across screens
+        target = target_pct / 100
         preset = st.radio(
             "Priority preset", [*PRESETS, "Custom"], horizontal=True, index=2, key="preset"
         )

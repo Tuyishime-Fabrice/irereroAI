@@ -74,3 +74,35 @@ def districts() -> dict[str, str]:
 
 def clear() -> None:
     st.cache_data.clear()
+
+
+def training_completion() -> dict[str, float]:
+    """Share of caregivers per district who completed their required LEARN courses."""
+    from irerero.learn import progress
+
+    return progress.completion_by_district(eng())
+
+
+@st.cache_data(show_spinner=False)
+def diagnosis(target: float, completion: tuple[tuple[str, float], ...] = ()) -> pd.DataFrame:
+    from irerero.diagnose import live
+
+    return live.frame(
+        table("observation"),
+        table("geo_unit"),
+        table("estimate_2026"),
+        table("model_output"),
+        table("model_run"),
+        target,
+        dict(completion) or None,
+    ).merge(table("geo_unit")[["geo_id", "name", "district"]], on="geo_id", how="left")
+
+
+def diagnosis_now(target: float) -> pd.DataFrame:
+    return diagnosis(target, tuple(sorted(training_completion().items())))
+
+
+def target() -> float:
+    from irerero.config import TARGET_2029
+
+    return st.session_state.get("target_pct", round(TARGET_2029.value * 100)) / 100

@@ -78,6 +78,19 @@ CONFORMAL_COVERAGE = 0.80
 MAX_FEATURES = 6
 SIMPLER_WITHIN_PP = 1.0  # keep the simplest model within 1 point of the best MAE
 
+# Bottleneck rules (DIAGNOSE). Factor scores are national percentiles, 1 = worst.
+FAR_SHARE = 0.30  # "far from school": at least 30% of children beyond 1 km
+LARGE_GAP = 0.5  # "large gap": non-attendance in the national top half
+WEAK_FACTOR = 0.75  # a factor in the worst quarter nationally counts as weak
+PEER_FEATURES = (
+    "urban_share",
+    "women_secondary_share",
+    "water_share",
+    "electricity_share",
+    "poverty",
+    "log_density",
+)
+
 SUPPRESS_BELOW = 10  # exports show cells under 10 children as "fewer than 10"
 
 # Status of every number, shown on hover and in exports.

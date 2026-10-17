@@ -8,7 +8,7 @@ from irerero.db.models import AppUser
 
 
 def seed(eng: Engine) -> None:
-    from irerero.ui.roles import DEMO_USERS
+    from irerero.roles import DEMO_USERS
 
     with Session(eng) as s:
         existing = set(s.scalars(select(AppUser.user_id)))

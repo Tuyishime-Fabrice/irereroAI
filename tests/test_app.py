@@ -32,7 +32,14 @@ def test_role_home_renders(built_db, user):
 
 
 @pytest.mark.parametrize(
-    "page", ["views/national.py", "views/priorities.py", "views/sector.py", "views/methods.py"]
+    "page",
+    [
+        "views/national.py",
+        "views/priorities.py",
+        "views/sector.py",
+        "views/plan.py",
+        "views/methods.py",
+    ],
 )
 def test_planner_pages_render(built_db, page):
     at = AppTest.from_file(APP, default_timeout=180)

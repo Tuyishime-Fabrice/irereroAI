@@ -3,9 +3,10 @@
 import pandas as pd
 import streamlit as st
 
-from irerero.config import TARGET_2029
+from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
 from irerero.plan.frame import any_simulated
+from irerero.track import forecast
 from irerero.ui import data, maps, theme
 
 sectors = data.sectors()
@@ -57,11 +58,38 @@ with c4:
 st.subheader("Where the gap is")
 view = st.radio(
     "Map",
-    ["Places needed, by sector", "Attendance rate, by district"],
+    [
+        f"{TARGET_YEAR} status, by district",
+        "Places needed, by sector",
+        "Attendance rate, by district",
+    ],
     horizontal=True,
     label_visibility="collapsed",
 )
-if view.startswith("Places"):
+if view.startswith(TARGET_YEAR):
+    track = forecast.summary(data.table("forecast"), target).drop(index=forecast.NATIONAL)
+    maps.choropleth(
+        data.geojson("district"),
+        track.projected.to_dict(),
+        f"Projected {TARGET_YEAR} enrolment",
+        lambda v: theme.fmt_pct(v),
+        tooltip={
+            g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · {status}"
+            for g, r in track.iterrows()
+        },
+        colours={g: STATUS_COLOURS[s] for g, s in track.status.items()},
+        key="national-status",
+    )
+    counts = track.status.value_counts()
+    st.markdown(
+        " ".join(
+            theme.chip(f"{k}: {counts.get(k, 0)} districts", c) for k, c in STATUS_COLOURS.items()
+        )
+        + f' <span class="ir-note">Trend of MINEDUC enrolment projected to {TARGET_YEAR} '
+        f"against {theme.fmt_pct(target)}; see Plan builder for the method.</span>",
+        unsafe_allow_html=True,
+    )
+elif view.startswith("Places"):
     maps.choropleth(
         data.geojson("sector"),
         dict(zip(needs.geo_id, needs.places, strict=True)),

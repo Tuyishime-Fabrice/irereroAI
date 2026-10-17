@@ -24,9 +24,18 @@ from irerero.pipeline.inputs import Inputs, load_inputs
 from irerero.pipeline.observations import build_observations
 from irerero.plan.distance import far_shares
 from irerero.plan.estimate import estimate
+from irerero.track import forecast
 
 SIMPLIFY_DEGREES = 0.0014
-PARQUET = ("geo_unit", "source", "observation", "estimate_2026", "model_output", "diagnosis")
+PARQUET = (
+    "geo_unit",
+    "source",
+    "observation",
+    "estimate_2026",
+    "model_output",
+    "diagnosis",
+    "forecast",
+)
 
 
 def geo_units(inputs: Inputs) -> pd.DataFrame:
@@ -124,6 +133,7 @@ def build(
         "estimate_2026": estimate_2026(inputs),
     }
     tables.update(diagnose_step.run(inputs, tables))
+    tables["forecast"] = forecast.forecast(inputs)
     out.mkdir(parents=True, exist_ok=True)
     for name, frame in tables.items():
         if name in PARQUET:

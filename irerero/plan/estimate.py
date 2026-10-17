@@ -31,20 +31,26 @@ CENSUS_SCHOOL_YEAR = "2021/22"
 
 
 def projected(inputs: Inputs, year: int) -> pd.DataFrame:
-    """District population in `year` (with low/high), extrapolating one step back to 2022 when
-    the series starts in 2023."""
+    """District population in `year` (with low/high). Years before the series starts are
+    extrapolated back at the growth rate of its first two years."""
     proj = inputs.projections.frame
     wide = proj.pivot_table(index="geo_id", columns="year", values="population", aggfunc="sum")
     if year not in wide.columns:
         first, second = sorted(wide.columns)[:2]
-        if year != first - 1:
+        if year > first:
             raise ValueError(f"no projection for {year}")
-        values = wide[first] ** 2 / wide[second]
+        values = wide[first] * (wide[first] / wide[second]) ** (first - year)
         return pd.DataFrame({"population": values, "low": values, "high": values})
     rows = proj[proj.year == year].set_index("geo_id")
     low = rows.population_low.astype(float).fillna(rows.population.astype(float))
     high = rows.population_high.astype(float).fillna(rows.population.astype(float))
     return pd.DataFrame({"population": rows.population.astype(float), "low": low, "high": high})
+
+
+def school_year_to_year(school_year: str) -> int:
+    """2021/22 -> 2022: the calendar year in which the school year ends (census 2022 matches
+    2021/22)."""
+    return int(school_year[:4]) + 1
 
 
 def children_by_district(inputs: Inputs, year: int) -> pd.DataFrame:

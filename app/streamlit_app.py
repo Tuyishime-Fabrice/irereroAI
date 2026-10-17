@@ -26,12 +26,13 @@ PAGES = {
         "views/priorities.py", title="District priorities", icon=":material/format_list_numbered:"
     ),
     "sector": st.Page("views/sector.py", title="Sector profile", icon=":material/troubleshoot:"),
+    "plan": st.Page("views/plan.py", title="Plan builder and tracker", icon=":material/checklist:"),
     "methods": st.Page("views/methods.py", title="Data and methods", icon=":material/dataset:"),
 }
 BY_ROLE = {
-    PLANNER: ["national", "priorities", "sector", "methods"],
-    ANALYST: ["national", "priorities", "sector", "methods"],
-    OFFICER: ["sector", "methods"],
+    PLANNER: ["national", "priorities", "sector", "plan", "methods"],
+    ANALYST: ["national", "priorities", "sector", "plan", "methods"],
+    OFFICER: ["sector", "plan", "methods"],
     CAREGIVER: ["methods"],
     ADMIN: ["methods"],
 }

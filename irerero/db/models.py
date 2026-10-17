@@ -131,6 +131,11 @@ class Forecast(Base):
     year: Mapped[str] = mapped_column(String(8), primary_key=True)
     kind: Mapped[str] = mapped_column(String(16), primary_key=True)  # observed|projected|backtest
     value: Mapped[float] = mapped_column(Float)
+    """Gross pre-primary enrolment rate."""
+    children: Mapped[float | None] = mapped_column(Float)
+    """Children aged 3 to 5 that year (NISR projection x census 3-5 share)."""
+    pupils: Mapped[float | None] = mapped_column(Float)
+    """MINEDUC pre-primary pupils (observed years only)."""
     low: Mapped[float | None] = mapped_column(Float)
     high: Mapped[float | None] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(24))

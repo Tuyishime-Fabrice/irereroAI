@@ -8,7 +8,7 @@ NISR 2026 Big Data Hackathon, Track 3 (Open Innovation).
 > In my district, which sectors need action first, what is holding ECD back there, and are we on
 > track for the NST2 target of 65% pre-primary enrolment by 2028/29?
 
-**Live app:** _add the Streamlit Community Cloud link here_ · **Docs:**
+**Live app:** [irereroai.streamlit.app](https://irereroai.streamlit.app/) (demo build, simulated data) · **Docs:**
 [methodology](docs/methodology.md) · [model card](docs/model_card.md) ·
 [limitations](docs/limitations.md) · [data dictionary](docs/data_dictionary.md) ·
 [data sources](DATA_SOURCES.md)

@@ -68,8 +68,9 @@ missing. Put each file where [DATA_SOURCES.md](DATA_SOURCES.md) says, with the c
 lists, review the spellings in `data/reference/sector_name_crosswalk.csv`, and run `make data`.
 Nothing else changes.
 
-**Deploy (Streamlit Community Cloud).** Point the app at `app/streamlit_app.py` with Python
-3.11; it installs from `requirements.txt`. Add `DATABASE_URL` (Supabase or Neon Postgres) in
+**Deploy (Streamlit Community Cloud).** Point the app at `app/streamlit_app.py` and choose
+Python 3.11 under Advanced settings; it installs from `requirements.txt`, plus `libgomp1` (needed
+by LightGBM) from `packages.txt`. The first start builds the analysis tables (under a minute). Add `DATABASE_URL` (Supabase or Neon Postgres) in
 the app's Secrets, so plans, check-ins and the audit log survive restarts. Without it, the app
 uses SQLite, which resets when the container restarts.
 

@@ -1,122 +1,191 @@
-"""Screen 1. National overview: where the formal pre-primary gap is, by district and sector."""
+"""Screen 1. Overview: where the formal pre-primary gap is, and whether districts are on track."""
 
-import pandas as pd
 import streamlit as st
 
 from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
 from irerero.plan.frame import any_simulated
-from irerero.track import forecast
-from irerero.ui import data, maps, theme
+from irerero.track import forecast, plans
+from irerero.ui import charts, data, maps, theme
+from irerero.ui.roles import PLANNER, current
+from irerero.ui.theme import Col
 
+user = current()
 sectors = data.sectors()
 simulated = any_simulated(sectors)
-theme.header(
-    "National overview",
-    "Children aged 3 to 5 in 2026 and the pre-primary places needed to reach the target.",
-    simulated=simulated,
-)
-
-target = TARGET_2029.value
-needs = gap.needs(sectors, target)
 status = "simulated" if simulated else "model estimate"
 source = "IrereroAI 2026 estimate"
 
-c1, c2, c3, c4 = st.columns(4)
-with c1:
-    theme.card(
-        "Children aged 3 to 5 (2026)",
+theme.header(
+    "Early Childhood Development Overview",
+    "Plan where to act. Understand why. Track progress to 2029.",
+    simulated=simulated,
+    crumbs=["Rwanda", "Overview"],
+    aside=theme.target_callout("NST2 target", "65% by 2028/29", "Pre-primary enrolment"),
+)
+
+# --- filters ------------------------------------------------------------------------------
+with theme.panel(key="filters"):
+    f1, f2, f3 = st.columns([1, 1, 1])
+    provinces = ["All provinces", *sorted(sectors.province.dropna().unique())]
+    province = f1.selectbox("Province", provinces)
+    target_pct = f2.slider(
+        "Target attendance (%)",
+        30,
+        90,
+        round(data.target() * 100),
+        help=f"Default {theme.fmt_pct(TARGET_2029.value)}: {TARGET_2029.citation}",
+    )
+    st.session_state["target_pct"] = target_pct
+    f3.selectbox(
+        "Reference year",
+        ["2026 estimate (census 2022 base)"],
+        disabled=True,
+        help="Estimates are calibrated to NISR projections for 2026.",
+    )
+target = target_pct / 100
+scope = sectors if province == "All provinces" else sectors[sectors.province == province]
+needs = gap.needs(scope, target)
+place = "Rwanda" if province == "All provinces" else province
+
+# --- KPIs ---------------------------------------------------------------------------------
+k1, k2, k3, k4 = st.columns(4)
+with k1:
+    theme.kpi(
+        "Children aged 3–5 (2026)",
         theme.fmt_int(needs.children_3_5.sum()),
         source,
         "2026",
         status,
-        f"range {theme.fmt_int(needs.low.sum())} to {theme.fmt_int(needs.high.sum())}",
+        f"range {theme.fmt_int(needs.low.sum())} to {theme.fmt_int(needs.high.sum())} · {place}",
+        "users",
+        "teal",
     )
-with c2:
+with k2:
     rate = needs.attending.sum() / needs.children_3_5.sum()
-    theme.card("Attending pre-primary (2026)", theme.fmt_pct(rate, 1), source, "2026", status)
-with c3:
-    theme.card(
+    theme.kpi(
+        "Attending pre-primary",
+        theme.fmt_pct(rate, 1),
+        source,
+        "2026",
+        status,
+        f"≈ {theme.fmt_int(needs.attending.sum())} children",
+        "school",
+        "blue",
+    )
+with k3:
+    theme.kpi(
         f"Places needed for {theme.fmt_pct(target)}",
         theme.fmt_int(needs.places.sum()),
         source,
         "2026",
         status,
         f"{theme.fmt_int(needs.rooms.sum())} rooms at 30 children each",
+        "target",
+        "gold",
     )
-with c4:
+with k4:
     far = (needs.far_share * needs.children_3_5).sum() / needs.children_3_5.sum()
-    theme.card(
-        "Children more than 1 km from a school",
+    method = needs.distance_method.mode().iat[0] if len(needs) else ""
+    theme.kpi(
+        "Children > 1 km from a school",
         theme.fmt_pct(far),
         "IrereroAI distance layer",
         "2026",
         status,
-        needs.distance_method.mode().iat[0] if len(needs) else None,
+        method,
+        "route",
+        "rose",
     )
 
-st.subheader("Where the gap is")
-view = st.radio(
-    "Map",
-    [
-        f"{TARGET_YEAR} status, by district",
-        "Places needed, by sector",
-        "Attendance rate, by district",
-    ],
-    horizontal=True,
-    label_visibility="collapsed",
-)
-if view.startswith(TARGET_YEAR):
-    track = forecast.summary(data.table("forecast"), target).drop(index=forecast.NATIONAL)
-    maps.choropleth(
-        data.geojson("district"),
-        track.projected.to_dict(),
-        f"Projected {TARGET_YEAR} enrolment",
-        lambda v: theme.fmt_pct(v),
-        tooltip={
-            g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · {status}"
-            for g, r in track.iterrows()
-        },
-        colours={g: STATUS_COLOURS[s] for g, s in track.status.items()},
-        key="national-status",
+st.write("")
+track_all = forecast.summary(data.table("forecast"), target)
+track = track_all.drop(index=forecast.NATIONAL)
+in_scope = set(scope.district_id)
+track = track[track.index.isin(in_scope)]
+
+# --- map and outlook ----------------------------------------------------------------------
+left, right = st.columns([3, 2])
+with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "pin"):
+    view = st.radio(
+        "Map",
+        [f"{TARGET_YEAR} status", "Places needed", "Attendance rate"],
+        horizontal=True,
+        label_visibility="collapsed",
     )
-    counts = track.status.value_counts()
-    st.markdown(
-        " ".join(
-            theme.chip(f"{k}: {counts.get(k, 0)} districts", c) for k, c in STATUS_COLOURS.items()
+    geo_d, geo_s = data.geojson("district"), data.geojson("sector")
+    zoom = maps.view_for(geo_d, in_scope) if province != "All provinces" else None
+    if view.endswith("status"):
+        maps.choropleth(
+            geo_d,
+            track.projected.to_dict(),
+            f"Projected {TARGET_YEAR} enrolment",
+            lambda v: theme.fmt_pct(v),
+            tooltip={
+                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · {status}"
+                for g, r in track.iterrows()
+            },
+            colours={g: STATUS_COLOURS[s] for g, s in track.status.items()},
+            view=zoom,
+            height=420,
+            key="national-status",
         )
-        + f' <span class="ir-note">Trend of MINEDUC enrolment projected to {TARGET_YEAR} '
-        f"against {theme.fmt_pct(target)}; see Plan builder for the method.</span>",
+        counts = track.status.value_counts()
+        maps.legend(
+            [(c, f"{k} ({counts.get(k, 0)})") for k, c in STATUS_COLOURS.items()],
+            f"Districts by projected {TARGET_YEAR} status against {theme.fmt_pct(target)}",
+        )
+    elif view == "Places needed":
+        maps.choropleth(
+            geo_s,
+            dict(zip(needs.geo_id, needs.places, strict=True)),
+            f"Places needed for {theme.fmt_pct(target)}",
+            theme.fmt_int,
+            tooltip={
+                r.geo_id: f"{r.district} · {theme.fmt_pct(r.attendance_rate)} attending · {status}"
+                for r in needs.itertuples()
+            },
+            view=zoom,
+            height=420,
+            key="national-sectors",
+        )
+    else:
+        by_district = needs.groupby("district_id").agg(
+            children=("children_3_5", "sum"), attending=("attending", "sum")
+        )
+        rates = by_district.attending / by_district.children
+        maps.choropleth(
+            geo_d,
+            rates.to_dict(),
+            "Attending pre-primary (2026)",
+            lambda v: theme.fmt_pct(v),
+            tooltip={k: status for k in rates.index},
+            view=zoom,
+            height=420,
+            key="national-districts",
+        )
+
+with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment, Rwanda", "trend"):
+    rows = data.table("forecast")
+    national = rows[rows.geo_id == forecast.NATIONAL]
+    observed = national[national.kind == "observed"].set_index("year")
+    projected = national[national.kind == "projected"].set_index("year")
+    st.altair_chart(charts.trend(observed, projected, target, height=330), width="stretch")
+    nat = track_all.loc[forecast.NATIONAL]
+    st.markdown(
+        f"Projected **{theme.fmt_pct(nat.projected, 1)}** by {TARGET_YEAR} "
+        f"(80% range {theme.fmt_pct(nat.low)}–{theme.fmt_pct(nat.high)}) "
+        f"{theme.pill(nat.status)}",
         unsafe_allow_html=True,
     )
-elif view.startswith("Places"):
-    maps.choropleth(
-        data.geojson("sector"),
-        dict(zip(needs.geo_id, needs.places, strict=True)),
-        f"Places needed for {theme.fmt_pct(target)}",
-        theme.fmt_int,
-        tooltip={
-            r.geo_id: f"{r.district} · {theme.fmt_pct(r.attendance_rate)} attending · {status}"
-            for r in needs.itertuples()
-        },
-        key="national-sectors",
-    )
-else:
-    by_district = needs.groupby("district_id").agg(
-        children=("children_3_5", "sum"), attending=("attending", "sum")
-    )
-    rate = by_district.attending / by_district.children
-    maps.choropleth(
-        data.geojson("district"),
-        rate.to_dict(),
-        "Attending pre-primary (2026)",
-        lambda v: theme.fmt_pct(v),
-        tooltip={k: status for k in rate.index},
-        key="national-districts",
+    theme.note(
+        "Gross rate: MINEDUC pre-primary pupils per child aged 3–5. Linear trend with an 80% "
+        f"prediction range. Status: {status}."
     )
 
-st.subheader("Districts")
-table = (
+# --- districts and actions ----------------------------------------------------------------
+left, right = st.columns([3, 2])
+by = (
     needs.groupby(["district_id", "district", "province"])
     .agg(
         children=("children_3_5", "sum"),
@@ -125,30 +194,90 @@ table = (
         rooms=("rooms", "sum"),
     )
     .reset_index()
+    .sort_values("places", ascending=False)
 )
-table["rate"] = table.attending / table.children
-table = table.sort_values("places", ascending=False)
-st.dataframe(
-    pd.DataFrame(
-        {
-            "District": table.district,
-            "Province": table.province,
-            "Children 3-5 (2026)": table.children.round().astype(int),
-            "Attending": table.rate * 100,
-            f"Places for {theme.fmt_pct(target)}": table.places,
-            "Rooms": table.rooms,
-            "Status": status,
-        }
+by["not_attending"] = by.children - by.attending
+by["rate"] = by.attending / by.children
+by["track"] = by.district_id.map(track.status)
+by.insert(0, "rank", range(1, len(by) + 1))
+with (
+    left,
+    theme.panel(
+        "Districts needing attention first",
+        f"Ranked by places needed to reach {theme.fmt_pct(target)} · {place}",
+        "chart",
     ),
-    hide_index=True,
-    use_container_width=True,
-    column_config={
-        "Attending": st.column_config.ProgressColumn(
-            "Attending", format="%.0f%%", min_value=0, max_value=100
+):
+    show_all = st.toggle("Show all districts", value=False)
+    rows_html = by if show_all else by.head(8)
+    st.markdown(
+        theme.table(
+            rows_html.to_dict(orient="records"),
+            [
+                Col("rank", "Rank", num=True),
+                Col("district", "District", strong=True),
+                Col(
+                    "province",
+                    "Province",
+                    fmt=lambda v, r: f'<span class="muted">{v.replace(" Province", "")}</span>',
+                ),
+                Col(
+                    "not_attending",
+                    "Children not attending",
+                    fmt=lambda v, r: f"{theme.fmt_int(v)} ({theme.fmt_pct(1 - r['rate'])})",
+                    num=True,
+                ),
+                Col("places", "Places needed", fmt=lambda v, r: theme.fmt_int(v), num=True),
+                Col("rooms", "Rooms", fmt=lambda v, r: theme.fmt_int(v), num=True),
+                Col("track", f"{TARGET_YEAR} status", fmt=lambda v, r: theme.pill(v) if v else "–"),
+            ],
         ),
-    },
-)
-theme.note(
-    f"Target {theme.fmt_pct(target)}: {TARGET_2029.citation}. Rooms and places: "
-    "National ECD Standards (2024). Hover a number for its source, year and status."
-)
+        unsafe_allow_html=True,
+    )
+    theme.note(
+        f"Status of every number: {status}. Rooms and places: National ECD Standards (2024). "
+        "Hover a KPI for its source and year."
+    )
+
+with (
+    right,
+    theme.panel("Planner actions", "Pending decisions in your district's plan", "clipboard"),
+):
+    if user.role == PLANNER and user.district_id:
+        plan_list = plans.plans(data.eng(), user.district_id)
+        if len(plan_list):
+            items = plans.items(data.eng(), int(plan_list.plan_id.iat[0]))
+            names = data.table("geo_unit").set_index("geo_id").name
+            pending = items[items.decision == "pending"].head(5)
+            decided = items[items.decision != "pending"]
+            if len(pending):
+                st.markdown(
+                    theme.table(
+                        pending.to_dict(orient="records"),
+                        [
+                            Col("geo_id", "Sector", fmt=lambda v, r: names.get(v, v), strong=True),
+                            Col("bottleneck", "Bottleneck", fmt=lambda v, r: theme.pill(v)),
+                            Col("places", "Places", fmt=lambda v, r: theme.fmt_int(v), num=True),
+                        ],
+                    ),
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    theme.empty_state("Every item has a decision.", "check"), unsafe_allow_html=True
+                )
+            theme.note(f"{len(decided)} of {len(items)} items decided.")
+        else:
+            st.markdown(
+                theme.empty_state("No plan yet for your district. Start one from the ranking."),
+                unsafe_allow_html=True,
+            )
+        st.page_link("views/plan.py", label="Open action plans", icon=":material/arrow_forward:")
+    else:
+        st.markdown(
+            theme.empty_state(
+                "Plans are made by district planners. Pick a district in Action plans to read one."
+            ),
+            unsafe_allow_html=True,
+        )
+        st.page_link("views/plan.py", label="Open action plans", icon=":material/arrow_forward:")

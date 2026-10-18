@@ -12,9 +12,13 @@ from irerero.ui.roles import ROLE_LABELS, current
 
 user = current()
 eng = data.eng()
-theme.header("Admin", "Users and roles, data files. Plan decisions are not editable here.")
+theme.header(
+    "Admin",
+    "Users and roles, data files. Plan decisions are not editable here.",
+    crumbs=["Rwanda", "Admin"],
+)
 
-st.subheader("Users")
+st.markdown("#### Users")
 users = data.table("app_user")
 st.dataframe(
     users.assign(role=users.role.map(ROLE_LABELS)).rename(
@@ -28,7 +32,7 @@ st.dataframe(
         }
     ),
     hide_index=True,
-    use_container_width=True,
+    width="stretch",
 )
 with st.form("role"):
     st.markdown("Change a user's role or area (recorded in the audit log)")
@@ -64,7 +68,7 @@ with st.form("role"):
         st.rerun()
 theme.note("Demo users are fictional. The demo role picker uses its own fixed demo accounts.")
 
-st.subheader("Data files")
+st.markdown("#### Data files")
 st.dataframe(
     pd.DataFrame(
         [
@@ -78,7 +82,7 @@ st.dataframe(
         ]
     ),
     hide_index=True,
-    use_container_width=True,
+    width="stretch",
 )
 if st.button("Rebuild analysis tables", icon=":material/refresh:"):
     from irerero.data.validate import SchemaError

@@ -1,0 +1,9 @@
+{
+  "position": 3,
+  "title_en": "Hygiene and WASH routines",
+  "title_rw": "Gahunda z'isuku, amazi n'isukura",
+  "required_on_joining": false,
+  "trigger": "checkin:no_water | sector:WASH",
+  "source": "UNICEF, WASH in early childhood development settings",
+  "title_rw_reviewed": false
+}

@@ -1,0 +1,56 @@
+{
+  "draft": true,
+  "note": "Draft questions; check each against the cited source before use.",
+  "items": [
+    {
+      "question": "A child tells you something worrying. What do you do first?",
+      "options": [
+        "Ask many detailed questions",
+        "Listen calmly and report it",
+        "Tell other parents",
+        "Ignore it"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Which is an example of positive discipline?",
+      "options": [
+        "Hitting the child's hand",
+        "Explaining the rule and praising good behaviour",
+        "Shouting",
+        "Sending the child home"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Who should you report a safeguarding concern to?",
+      "options": [
+        "Nobody",
+        "The child protection focal person or sector officer",
+        "Social media",
+        "Only the child's friends"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Which can be a sign that a child needs help?",
+      "options": [
+        "A sudden change in behaviour",
+        "Liking to play",
+        "Asking questions",
+        "Being hungry at lunch time only once"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What should happen to the information you hear?",
+      "options": [
+        "Share it widely",
+        "Keep it confidential and pass it only to those who must act",
+        "Write it on the notice board",
+        "Forget it"
+      ],
+      "answer": 1
+    }
+  ]
+}

@@ -1,64 +1,54 @@
 [project]
 name = "irereroai"
-version = "0.1.0"
-description = "IrereroAI monorepo: API, engine, data contract and pipelines"
-requires-python = ">=3.12,<3.13"
+version = "1.0.0"
+description = "AI planning and action platform for early childhood development in Rwanda"
+requires-python = ">=3.11,<3.12"
 dependencies = [
-  "irerero-api",
-  "irerero-contract",
-  "irerero-engine",
-  "irerero-pipelines",
+  "streamlit>=1.50",
+  "pydeck>=0.9",
+  "altair>=5.5",
+  "pandas>=2.3",
+  "numpy>=2.2",
+  "pyarrow>=21",
+  "geopandas>=1.1",
+  "shapely>=2.1",
+  "pyogrio>=0.11",
+  "pyproj>=3.7",
+  "rasterio>=1.4",
+  "rasterstats>=0.20",
+  "scikit-learn>=1.7",
+  "lightgbm>=4.6",
+  "shap>=0.48",
+  "pdfplumber>=0.11",
+  "sqlalchemy>=2.0",
+  "psycopg[binary]>=3.2",
+  "fpdf2>=2.8",
 ]
 
+[project.optional-dependencies]
+# Walking distance along roads from the Geofabrik extract. Without it the distance layer is
+# straight-line and labelled "indicative".
+osm = ["osmium>=4.0", "networkx>=3.4"]
+
 [dependency-groups]
-dev = [
-  "ruff>=0.17",
-  "mypy>=2.4",
-  "pytest>=9.1",
-  "httpx2>=2.13",
-  "detect-secrets>=1.5",
-  "pre-commit>=4",
-]
+dev = ["pytest>=8.4", "ruff>=0.13", "detect-secrets>=1.5", "pre-commit>=4"]
 
 [tool.uv]
 package = false
 
-[tool.uv.workspace]
-members = ["apps/api", "packages/contract", "packages/engine", "pipelines"]
-
-[tool.uv.sources]
-irerero-api = { workspace = true }
-irerero-contract = { workspace = true }
-irerero-engine = { workspace = true }
-irerero-pipelines = { workspace = true }
-
 [tool.ruff]
 line-length = 100
-target-version = "py312"
-extend-exclude = ["apps/web"]
+target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF", "S", "PTH", "DTZ"]
-ignore = ["S101"]
-
-[tool.ruff.lint.isort]
-known-first-party = ["irerero_api", "irerero_contract", "irerero_engine", "pipelines"]
+select = ["E", "F", "W", "I", "B", "UP", "S", "RUF", "SIM", "PTH"]
+ignore = ["S101", "S608", "RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["S105", "S106", "S311"]
-"pipelines/demo/**" = ["S311"]
-
-[tool.mypy]
-python_version = "3.12"
-strict = true
-plugins = ["pydantic.mypy"]
-files = ["packages/engine/src", "packages/contract/src", "apps/api/src", "pipelines"]
-exclude = ["/tests/"]
-
-[[tool.mypy.overrides]]
-module = ["geoalchemy2.*", "pyotp.*"]
-ignore_missing_imports = true
+"tests/**" = ["S"]
 
 [tool.pytest.ini_options]
-testpaths = ["packages/engine/tests", "packages/contract/tests", "apps/api/tests", "pipelines/tests"]
-addopts = "--import-mode=importlib"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]

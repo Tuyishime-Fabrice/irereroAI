@@ -1,34 +1,36 @@
-.PHONY: setup migrate api web seed seed-local lint typecheck test
+.DEFAULT_GOAL := help
+.PHONY: help install sources data test lint format app check docs
 
-setup:  ## Install all dependencies and git hooks
-	uv sync
-	pnpm install
-	uv run pre-commit install
+help:  ## List the targets
+	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-9s %s\n", $$1, $$2}'
 
-migrate:  ## Apply database migrations (local)
-	cd apps/api && uv run alembic upgrade head
+install:  ## Install Python 3.11 dependencies (with the OSM road-network extra)
+	uv sync --extra osm
 
-api:  ## Run the API with reload (local)
-	cd apps/api && uv run uvicorn irerero_api.main:app --reload --port 8000
+sources:  ## Create the data/raw/ folders and list which source files are present
+	uv run python -m irerero.data
 
-web:  ## Run the web app in dev mode (local)
-	pnpm --filter web dev
+data:  ## Rebuild every analysis table from data/raw/, demo data where files are missing
+	uv run python -m irerero.pipeline.build
 
-seed:  ## Seed simulated demo data into the docker compose database
-	docker compose exec api python -m pipelines.demo.generate
+test:  ## Run the test suite
+	uv run pytest
 
-seed-local:  ## Seed simulated demo data into the local database
-	uv run python -m pipelines.demo.generate
-
-lint:
+lint:  ## Lint and check formatting
 	uv run ruff check .
 	uv run ruff format --check .
-	pnpm --filter web lint
 
-typecheck:
-	uv run mypy
-	pnpm --filter web typecheck
+format:  ## Fix lint and formatting
+	uv run ruff check --fix .
+	uv run ruff format .
 
-test:
-	uv run pytest
-	pnpm --filter web test
+app:  ## Run the Streamlit app
+	uv run streamlit run app/streamlit_app.py
+
+check: lint test  ## Everything CI runs
+	uv run python -m irerero.data --check
+	uv run python -m irerero.docs --check
+
+docs:  ## Regenerate DATA_SOURCES.md and docs/data_dictionary.md
+	uv run python -m irerero.data --write
+	uv run python -m irerero.docs --write

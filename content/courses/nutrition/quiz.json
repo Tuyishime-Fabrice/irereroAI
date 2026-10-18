@@ -1,0 +1,56 @@
+{
+  "draft": true,
+  "note": "Draft questions; check each against the cited source before use.",
+  "items": [
+    {
+      "question": "What is stunting?",
+      "options": [
+        "Being too tall",
+        "Low height for age from long-term undernutrition",
+        "A type of game",
+        "A dental problem"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Which meal is most varied?",
+      "options": [
+        "Porridge only",
+        "Beans, vegetables, a staple and an egg",
+        "Tea and bread",
+        "Sweets"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "A child seems not to be growing. Who do you refer them to?",
+      "options": [
+        "Nobody",
+        "The community health worker or health centre",
+        "Another parent",
+        "The police"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Why does a meal at the centre help?",
+      "options": [
+        "It supports growth and attendance",
+        "It shortens the day",
+        "It replaces play",
+        "It has no effect"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What does the monthly check-in record about meals?",
+      "options": [
+        "The names of children who ate",
+        "The number of days a meal was served",
+        "The cost of food",
+        "Nothing"
+      ],
+      "answer": 1
+    }
+  ]
+}

@@ -28,25 +28,50 @@ def bilingual(key: str) -> str:
 
 
 theme.header(
-    "Caregiver home",
-    f"{centre['name']} · {sector_name} sector · monthly check-in and your courses",
+    "Caregiver learning",
+    f"{centre['name']} · monthly check-in and your courses",
     simulated=centre.status == SIMULATED,
-)
-check_tab, learn_tab = st.tabs(
-    ["Monthly check-in · Raporo y'ukwezi", "My learning · Amasomo yanjye"]
+    crumbs=["Muhanga", f"{sector_name} sector", "Caregiver learning"],
 )
 
+history = checkins.frame(eng, [user.centre_id])
+month = checkins.current_month()
+last = history.iloc[-1] if len(history) else None
+done = month in set(history.month)
+mine = progress.assignments(eng, [user.user_id])
+req = mine[mine.required_by.notna()]
+k1, k2, k3, k4 = st.columns(4)
+with k1:
+    theme.kpi("This month's check-in", "Submitted" if done else "Due", "Your centre", month,
+              "user input" if done else None, f"{len(history)} months recorded", "check" if done else "clock",
+              "teal" if done else "gold")  # fmt: skip
+with k2:
+    theme.kpi("Attendance, last check-in", theme.fmt_pct(last.attendance_rate) if last is not None else "–",
+              "Your centre's check-in", last.month if last is not None else None,
+              last.status if last is not None else None,
+              f"{theme.fmt_int(last.attendance_avg)} of {theme.fmt_int(last.enrolled)} children" if last is not None else None,
+              "users", "blue")  # fmt: skip
+with k3:
+    theme.kpi("Required courses done", f"{int(req.completed_at.notna().sum())} of {len(req)}", "LEARN", "2026",
+              None, "required on joining or by your officer", "book", "navy")  # fmt: skip
+with k4:
+    waiting = int((mine.status == "recommended").sum())
+    theme.kpi("Suggested courses", str(waiting), "LEARN triggers", "2026", None,
+              "waiting for your sector officer", "info", "purple")  # fmt: skip
+st.write("")
+check_col, learn_col = st.columns([3, 2])
+
 # --- check-in -----------------------------------------------------------------------------
-with check_tab:
-    history = checkins.frame(eng, [user.centre_id])
-    month = checkins.current_month()
-    last = history.iloc[-1] if len(history) else None
-    done = month in set(history.month)
-    st.markdown(
-        f"**{month}** · counts only, never children's names · about two minutes"
-        + (" · already submitted, you can correct it" if done else "")
-    )
-    with st.form("checkin"):
+with (
+    check_col,
+    theme.panel(
+        "Monthly check-in · Raporo y'ukwezi",
+        f"{month} · counts only, never children's names · about two minutes"
+        + (" · already submitted, you can correct it" if done else ""),
+        "clipboard",
+    ),
+):
+    with st.form("checkin", border=False):
         c1, c2 = st.columns(2)
         enrolled = c1.number_input(
             bilingual("enrolled"), 0, 500, int(last.enrolled) if last is not None else 0
@@ -96,42 +121,42 @@ with check_tab:
         try:
             checkins.submit(eng, user, entry)
             flagged = triggers.run(eng, data.diagnosis_now(data.target()))
-            mine = [f for f in flagged if f[0] == user.user_id]
+            new_flags = [f for f in flagged if f[0] == user.user_id]
             st.success("Check-in saved. Murakoze!")
-            for _, course_id, _ in mine:
+            for _, course_id, _ in new_flags:
                 st.info(
                     f"The course '{courses.at[course_id, 'title_en']}' is suggested for you. "
                     "Your sector officer will confirm it."
                 )
             history = checkins.frame(eng, [user.centre_id])
+            mine = progress.assignments(eng, [user.user_id])
         except ValueError as error:
             st.error(str(error))
-    st.markdown("**Your centre's check-ins**")
-    st.dataframe(
-        pd.DataFrame(
-            {
-                "Month": history.month,
-                "Enrolled": history.enrolled,
-                "Present (average)": history.attendance_avg,
-                "Attendance": (history.attendance_rate * 100).round(),
-                "Caregivers": history.caregivers_present,
-                "Meal days": history.meal_days_avg,
-                "Water": history.water_available.map({True: "yes", False: "no"}),
-                "Challenge": history.main_challenge.map(lambda k: CHALLENGES[k][0]),
-                "Status": history.status,
-            }
-        ).sort_values("Month", ascending=False),
-        hide_index=True,
-        use_container_width=True,
-        column_config={"Attendance": st.column_config.NumberColumn(format="%d%%")},
-    )
+    with st.expander("Your centre's check-ins"):
+        st.dataframe(
+            pd.DataFrame(
+                {
+                    "Month": history.month,
+                    "Enrolled": history.enrolled,
+                    "Present (average)": history.attendance_avg,
+                    "Attendance": (history.attendance_rate * 100).round(),
+                    "Caregivers": history.caregivers_present,
+                    "Meal days": history.meal_days_avg,
+                    "Water": history.water_available.map({True: "yes", False: "no"}),
+                    "Challenge": history.main_challenge.map(lambda k: CHALLENGES[k][0]),
+                    "Status": history.status,
+                }
+            ).sort_values("Month", ascending=False),
+            hide_index=True,
+            width="stretch",
+            column_config={"Attendance": st.column_config.NumberColumn(format="%d%%")},
+        )
 
 # --- learning -----------------------------------------------------------------------------
-with learn_tab:
-    mine = progress.assignments(eng, [user.user_id])
+with learn_col, theme.panel("My learning · Amasomo yanjye", "Your courses and progress", "book"):
     theme.note(progress.QUIZ_NOTE + " Your quiz scores are visible only to you.")
     if mine.empty:
-        st.info("No courses yet.")
+        st.markdown(theme.empty_state("No courses yet.", "book"), unsafe_allow_html=True)
     groups = [
         ("Required", mine[mine.status == "required"]),
         ("Suggested, waiting for your sector officer", mine[mine.status == "recommended"]),
@@ -140,16 +165,19 @@ with learn_tab:
     for title, rows in groups:
         if rows.empty:
             continue
-        st.markdown(f"#### {title}")
+        st.markdown(f"**{title}**")
         for a in rows.itertuples():
             course = courses.loc[a.course_id]
             n = int((lessons.course_id == a.course_id).sum())
             done_n = len(a.lessons_done or [])
             due = f" · due {a.due_date:%d %b %Y}" if pd.notna(a.due_date) else ""
-            st.markdown(f"**{course.title_en}** · *{course.title_rw}*{due}")
+            st.markdown(
+                f"{theme.pill(a.status)} **{course.title_en}**<br><span class='ir-note'><i>{course.title_rw}</i>{due}</span>",
+                unsafe_allow_html=True,
+            )
             st.progress(min(done_n / n, 1.0) if n else 0.0, text=f"{done_n} of {n} lessons")
 
-    st.divider()
+with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
     order = {"required": 0, "recommended": 1, "completed": 2}
     open_ids = mine[mine.status.isin(order)].sort_values("status", key=lambda s: s.map(order))
     if len(open_ids):

@@ -1,16 +1,18 @@
-"""Choropleth maps with pydeck. Colours come from a colour-blind-safe scale (viridis) and every
-map has a text legend; tooltips carry the value, source and status."""
+"""Choropleth maps with pydeck. Colours come from the brand's sequential ramp (one hue family,
+light to dark, so order survives colour-blindness and greyscale) and every map has a text
+legend; tooltips carry the value, source and status."""
 
 import copy
 from collections.abc import Callable, Mapping
+from html import escape
 
 import numpy as np
 import pydeck as pdk
 import streamlit as st
 
-from irerero.ui.theme import chip
+from irerero.ui.theme import RAMP
 
-VIRIDIS = ["#FDE725", "#7AD151", "#22A884", "#2A788E", "#414487"]  # low -> high
+VIRIDIS = list(RAMP)  # low -> high
 NO_DATA = "#D0D5DB"
 VIEW = pdk.ViewState(latitude=-1.95, longitude=29.9, zoom=7.2, min_zoom=6, max_zoom=13)
 
@@ -73,7 +75,7 @@ def choropleth(
         stroked=True,
         filled=True,
         get_fill_color="properties.fill",
-        get_line_color=[255, 255, 255, 230],
+        get_line_color=[255, 255, 255, 255],
         line_width_min_pixels=0.6,
         auto_highlight=True,
     )
@@ -88,13 +90,25 @@ def choropleth(
     )
     st.pydeck_chart(deck, height=height, key=key)
     if colours is None and len(edges) >= 2:
-        legend = " ".join(
-            chip(f"{fmt(edges[i])}–{fmt(edges[i + 1])}", palette[i]) for i in range(len(palette))
+        legend(
+            [(palette[i], f"{fmt(edges[i])}–{fmt(edges[i + 1])}") for i in range(len(palette))],
+            f"{label} (lighter = lower)",
         )
-        st.markdown(
-            f'<div class="ir-note">{label}, lighter = lower: {legend}</div>',
-            unsafe_allow_html=True,
-        )
+
+
+def legend(items: list[tuple[str, str]], title: str) -> None:
+    """Swatches with dark text beside each colour, so no reading depends on colour alone."""
+    swatches = "".join(
+        f'<span style="display:inline-flex;align-items:center;gap:.35rem;margin:.15rem .8rem .15rem 0;'
+        f'font-size:.78rem;color:#0F1B2A"><span style="width:12px;height:12px;border-radius:3px;'
+        f'background:{colour};border:1px solid rgba(15,27,42,.15)"></span>{escape(text)}</span>'
+        for colour, text in items
+    )
+    st.markdown(
+        f'<div style="margin-top:.3rem"><div class="ir-note" style="margin-bottom:.1rem">'
+        f"{escape(title)}</div>{swatches}</div>",
+        unsafe_allow_html=True,
+    )
 
 
 def view_for(geojson: dict, ids: set[str]) -> pdk.ViewState:

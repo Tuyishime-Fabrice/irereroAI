@@ -21,24 +21,41 @@ if not demo_mode():
 user = selector(data.districts())
 
 PAGES = {
-    "national": st.Page("views/national.py", title="National overview", icon=":material/public:"),
+    "national": st.Page("views/national.py", title="Overview", icon=":material/home:"),
     "priorities": st.Page(
-        "views/priorities.py", title="District priorities", icon=":material/format_list_numbered:"
+        "views/priorities.py", title="District priorities", icon=":material/bar_chart:"
     ),
-    "sector": st.Page("views/sector.py", title="Sector profile", icon=":material/troubleshoot:"),
-    "plan": st.Page("views/plan.py", title="Plan builder and tracker", icon=":material/checklist:"),
-    "caregiver": st.Page("views/caregiver.py", title="Caregiver home", icon=":material/home:"),
-    "officer": st.Page("views/officer.py", title="Training", icon=":material/school:"),
+    "sector": st.Page("views/sector.py", title="Sector diagnosis", icon=":material/troubleshoot:"),
+    "plan": st.Page(
+        "views/plan.py", title="Action plans & progress", icon=":material/trending_up:"
+    ),
+    "caregiver": st.Page(
+        "views/caregiver.py", title="Caregiver learning", icon=":material/school:"
+    ),
+    "officer": st.Page("views/officer.py", title="Caregiver learning", icon=":material/school:"),
     "brief": st.Page("views/brief.py", title="District brief", icon=":material/description:"),
     "admin": st.Page("views/admin.py", title="Admin", icon=":material/admin_panel_settings:"),
-    "methods": st.Page("views/methods.py", title="Data and methods", icon=":material/dataset:"),
+    "methods": st.Page("views/methods.py", title="Data & methods", icon=":material/database:"),
 }
 BY_ROLE = {
-    PLANNER: ["national", "priorities", "sector", "plan", "brief", "methods"],
-    ANALYST: ["national", "priorities", "sector", "plan", "brief", "methods"],
-    OFFICER: ["officer", "sector", "plan", "methods"],
-    CAREGIVER: ["caregiver", "methods"],
-    ADMIN: ["admin", "methods"],
+    PLANNER: {
+        "Plan and diagnose": ["national", "priorities", "sector"],
+        "Track": ["plan", "brief"],
+        "Reference": ["methods"],
+    },
+    ANALYST: {
+        "Plan and diagnose": ["national", "priorities", "sector"],
+        "Track": ["plan", "brief"],
+        "Reference": ["methods"],
+    },
+    OFFICER: {
+        "Learn": ["officer"],
+        "Diagnose and track": ["sector", "plan"],
+        "Reference": ["methods"],
+    },
+    CAREGIVER: {"Learn": ["caregiver"], "Reference": ["methods"]},
+    ADMIN: {"Manage": ["admin"], "Reference": ["methods"]},
 }
 
-st.navigation([PAGES[key] for key in BY_ROLE[user.role]]).run()
+sections = {name: [PAGES[key] for key in keys] for name, keys in BY_ROLE[user.role].items()}
+st.navigation(sections).run()

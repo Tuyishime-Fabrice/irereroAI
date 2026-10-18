@@ -23,7 +23,11 @@ from irerero.diagnose.peer import MODEL_LABELS
 from irerero.track import forecast
 from irerero.ui import data, theme
 
-theme.header("Data and methods", "Where every number comes from, and how far to trust it.")
+theme.header(
+    "Data & methods",
+    "Where every number comes from, and how far to trust it.",
+    crumbs=["Rwanda", "Data & methods"],
+)
 
 STATUS_MEANING = {
     "observed": "Counted directly in a census, yearbook or administrative record.",
@@ -33,16 +37,42 @@ STATUS_MEANING = {
     "simulated": "Invented stand-in while the real file is missing. Never a real value; left "
     "out of exports by default.",
 }
+loaded = data.sources()
+run = data.table("model_run")
+SHORT_MODEL = {
+    "linear": "Linear",
+    "lightgbm": "LightGBM",
+    "district_mean": "District mean",
+    "province_mean": "Province mean",
+}
+file_sets = [d for d in DATASETS if d.files]
+real_n = sum(bool(loaded.loaded.get(d.key, False)) for d in file_sets)
+k1, k2, k3, k4 = st.columns(4)
+with k1:
+    theme.kpi("Datasets with real files", f"{real_n} of {len(file_sets)}", "Data layer", None, None,
+              "the rest use labelled stand-ins", "database", "teal")  # fmt: skip
+with k2:
+    theme.kpi("Sectors with real boundaries", "416", "geoBoundaries (CC BY 4.0)", "2023", "published estimate",
+              "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
+with k3:
+    if len(run):
+        best = run[run.chosen].iloc[0]
+        theme.kpi("Peer model", SHORT_MODEL.get(best.model_id, best.model_id), "Leave-one-district-out CV",
+                  None, "model estimate", f"{MODEL_LABELS[best.model_id]} · MAE {best.metrics['mae_pp']} pts · R² {best.metrics['r2']}",
+                  "chart", "blue")  # fmt: skip
+with k4:
+    theme.kpi("Statuses in use", str(len(STATUSES)), "Provenance", None, None,
+              "every number carries one", "shield", "gold")  # fmt: skip
+st.write("")
 tabs = st.tabs(
     ["Sources", "Definitions", "Model card", "Validation", "Limitations", "NCDA connector"]
 )
 
 with tabs[0]:
-    st.subheader("Status legend")
+    st.markdown("#### Status legend")
     for status in STATUSES:
         st.markdown(f"{theme.badge(status)} {STATUS_MEANING[status]}", unsafe_allow_html=True)
-    st.subheader("Datasets")
-    loaded = data.sources()
+    st.markdown("#### Datasets")
     rows = []
     for d in DATASETS:
         state = (
@@ -65,7 +95,34 @@ with tabs[0]:
                 "In this build": state,
             }
         )
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    state_pill = {
+        "real file": ("approved", "Real file"),
+        "simulated stand-in": ("rejected", "Simulated stand-in"),
+        "simulated": ("rejected", "Simulated"),
+        "parameters": ("planned", "Parameters"),
+    }
+    st.markdown(
+        theme.table(
+            rows,
+            [
+                theme.Col("Dataset", "Dataset", strong=True),
+                theme.Col("Publisher", "Publisher"),
+                theme.Col("Period", "Period"),
+                theme.Col("Licence", "Licence"),
+                theme.Col("Used by", "Used by", fmt=lambda v, r: f"<span class='muted'>{v}</span>"),
+                theme.Col(
+                    "In this build",
+                    "In this build",
+                    fmt=lambda v, r: (
+                        theme.pill(*state_pill[v])
+                        if v in state_pill
+                        else theme.pill("edited", "Real shapes")
+                    ),
+                ),
+            ],
+        ),
+        unsafe_allow_html=True,
+    )
     theme.note(
         "File names, formats and required columns for each dataset are in DATA_SOURCES.md. "
         "Put a real file in data/raw/<dataset>/ and rebuild; nothing else changes."
@@ -102,7 +159,6 @@ with tabs[1]:
 """
     )
 
-run = data.table("model_run")
 with tabs[2]:
     if run.empty:
         st.info("The peer model has not run.")
@@ -134,7 +190,7 @@ with tabs[2]:
                     "Mean contribution (points)": list(m["importance_pp"].values()),
                 }
             )
-            st.dataframe(imp, hide_index=True, use_container_width=True)
+            st.dataframe(imp, hide_index=True, width="stretch")
 
 with tabs[3]:
     if not run.empty:
@@ -151,7 +207,7 @@ with tabs[3]:
                 for r in run.itertuples()
             ]
         )
-        st.dataframe(table, hide_index=True, use_container_width=True)
+        st.dataframe(table, hide_index=True, width="stretch")
         m = run[run.chosen].iloc[0].metrics
         moran = m.get("residual_moran", {})
         st.markdown(
@@ -229,7 +285,7 @@ with tabs[5]:
         by_sector["free places"] = (by_sector.capacity - by_sector.enrolled).clip(lower=0)
         by_sector.index = [names.get(g, g) for g in by_sector.index]
         st.dataframe(
-            by_sector.rename_axis("Sector").reset_index(), hide_index=True, use_container_width=True
+            by_sector.rename_axis("Sector").reset_index(), hide_index=True, width="stretch"
         )
         theme.note(
             "Free places in mapped centres show where existing supply could absorb children "

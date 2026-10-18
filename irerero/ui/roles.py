@@ -28,7 +28,11 @@ def selector(districts: dict[str, str]) -> User:
     """Sidebar role picker. In demo mode the planner's district can be changed, so every
     district can be explored; a deployed system would fix it per account."""
     with st.sidebar:
-        st.markdown("**Demo role** · fictional users, no personal data")
+        st.markdown(
+            '<div class="ir-side-label">Demo role</div><div class="ir-side-note">Fictional users, '
+            "no personal data. A deployment would sign people in.</div>",
+            unsafe_allow_html=True,
+        )
         labels = [ROLE_LABELS[u.role] for u in DEMO_USERS]
         old = current()
         index = next(i for i, u in enumerate(DEMO_USERS) if u.role == old.role)

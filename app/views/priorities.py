@@ -142,7 +142,6 @@ with (
                     num=True,
                 ),
                 Col("places", "Places", fmt=lambda v, r: theme.fmt_int(v), num=True),
-                Col("rooms", "Rooms", fmt=lambda v, r: theme.fmt_int(v), num=True),
                 Col("far_share", "> 1 km", fmt=lambda v, r: theme.fmt_pct(v), num=True),
                 Col(
                     "bottleneck",

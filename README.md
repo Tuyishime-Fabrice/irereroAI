@@ -211,7 +211,12 @@ the decisions.
 
 ## Team
 
-Two-person team. _Add names and roles._ Contact: fabricetuyishime2050@gmail.com
+| Name | Role |
+| --- | --- |
+| Mutimutuje Daniella Dewelly | Team leader and project manager |
+| Tuyishime Fabrice | Data scientist and developer |
+
+Contact: fabricetuyishime2050@gmail.com
 
 ## Repository layout
 

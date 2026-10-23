@@ -102,8 +102,8 @@ SIMULATED = "simulated"
 STATUSES = (OBSERVED, PUBLISHED, MODEL, USER, SIMULATED)
 
 # Brand colours from the IrereroAI logo, plus a colour-blind-safe status set (Okabe-Ito).
-NAVY = "#033665"
-GREEN = "#18977A"
+NAVY = "#0B2E50"
+GREEN = "#169B83"
 GOLD = "#ECA837"
 INK = "#0F1B2A"
 MUTED = "#5B6B7C"

@@ -63,10 +63,10 @@ with k3:
 with k4:
     theme.kpi("Statuses in use", str(len(STATUSES)), "Provenance", None, None,
               "every number carries one", "shield", "gold")  # fmt: skip
-st.write("")
-tabs = st.tabs(
-    ["Sources", "Definitions", "Model card", "Validation", "Limitations", "NCDA connector"]
-)
+with theme.panel(key="methods"):
+    tabs = st.tabs(
+        ["Sources", "Definitions", "Model card", "Validation", "Limitations", "NCDA connector"]
+    )
 
 with tabs[0]:
     st.markdown("#### Status legend")

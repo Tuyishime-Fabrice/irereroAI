@@ -55,7 +55,6 @@ with k3:
 with k4:
     theme.kpi("Overdue courses", str(int(mine.overdue.sum())), "LEARN progress", "2026", "simulated",
               "to follow up with caregivers", "clock", "purple")  # fmt: skip
-st.write("")
 
 left, right = st.columns([1, 1])
 # --- flags --------------------------------------------------------------------------------

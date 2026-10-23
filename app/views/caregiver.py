@@ -58,7 +58,6 @@ with k4:
     waiting = int((mine.status == "recommended").sum())
     theme.kpi("Suggested courses", str(waiting), "LEARN triggers", "2026", None,
               "waiting for your sector officer", "info", "purple")  # fmt: skip
-st.write("")
 check_col, learn_col = st.columns([3, 2])
 
 # --- check-in -----------------------------------------------------------------------------

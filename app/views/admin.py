@@ -5,7 +5,7 @@ from html import escape
 import streamlit as st
 
 from irerero import audit
-from irerero.config import RAW
+from irerero.config import INTERIM, RAW
 from irerero.data.registry import FILE_DATASETS
 from irerero.db.models import AppUser
 from irerero.ui import data, theme
@@ -74,7 +74,12 @@ with theme.panel("Users", "Fictional demo accounts and their roles", "users"):
             st.rerun()
     theme.note("Demo users are fictional. The demo role picker uses its own fixed demo accounts.")
 
-with theme.panel("Data files", "One folder per dataset under data/raw/", "database"):
+with theme.panel(
+    "Data files",
+    "One folder per dataset under data/raw/. Add received files with "
+    "python -m irerero.data.intake; it writes data/interim/intake_report.md.",
+    "database",
+):
     st.markdown(
         theme.table(
             [
@@ -83,6 +88,7 @@ with theme.panel("Data files", "One folder per dataset under data/raw/", "databa
                     "folder": f"data/raw/{d.key}/",
                     "files": ", ".join(d.files),
                     "present": d.present(RAW),
+                    "received": any((INTERIM / d.key).glob("*")),
                 }
                 for d in FILE_DATASETS
             ],
@@ -100,6 +106,8 @@ with theme.panel("Data files", "One folder per dataset under data/raw/", "databa
                     fmt=lambda v, r: (
                         theme.pill("approved", "Present")
                         if v
+                        else theme.pill("at risk", "Received, incomplete: simulated")
+                        if r["received"]
                         else theme.pill("rejected", "Missing: simulated")
                     ),
                 ),

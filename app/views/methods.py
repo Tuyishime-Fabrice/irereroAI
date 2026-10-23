@@ -52,8 +52,13 @@ with k1:
     theme.kpi("Datasets with real files", f"{real_n} of {len(file_sets)}", "Data layer", None, None,
               "the rest use labelled stand-ins", "database", "teal")  # fmt: skip
 with k2:
-    theme.kpi("Sectors with real boundaries", "416", "geoBoundaries (CC BY 4.0)", "2023", "published estimate",
-              "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
+    units = data.table("geo_unit")
+    sector_units = units[units.level == "sector"]
+    coded = int(sector_units.nisr_code.notna().sum())
+    theme.kpi("Sectors with real boundaries", str(len(sector_units)), "geoBoundaries (CC BY 4.0)",
+              "2023", "published estimate",
+              f"{coded} with NISR codes from the COD-AB gazetteer, to review" if coded
+              else "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
 with k3:
     if len(run):
         best = run[run.chosen].iloc[0]

@@ -90,25 +90,45 @@ def _rounded(geometry: dict) -> dict:
     return {"type": geometry["type"], "coordinates": walk(geometry["coordinates"])}
 
 
+def _pcodes() -> tuple[dict[tuple[str, str], str], dict[str, str]]:
+    """COD-AB codes by (district, sector) and by district name, from the committed reference
+    file written by scripts/import_gazetteer.py; empty if it is not there."""
+    path = REFERENCE / "pcodes_cod_ab.csv"
+    if not path.exists():
+        return {}, {}
+    codes = pd.read_csv(path, dtype=str).fillna("")
+    sectors = codes[codes.level == "sector"]
+    districts = codes[codes.level == "district"]
+    return (
+        dict(zip(zip(sectors.district, sectors.name, strict=True), sectors.pcode, strict=True)),
+        dict(zip(districts.name, districts.pcode, strict=True)),
+    )
+
+
 def _crosswalks(units: dict[str, gpd.GeoDataFrame]) -> None:
     REFERENCE.mkdir(parents=True, exist_ok=True)
     districts = units["district"].set_index("geo_id").name
     sectors = units["sector"]
+    sector_codes, district_codes = _pcodes()
+    sector_district = sectors.parent_id.map(districts)
     pd.DataFrame(
         {
             "geo_id": sectors.geo_id,
-            "nisr_sector_code": "",
+            "nisr_sector_code": [
+                sector_codes.get((d, n), "")
+                for d, n in zip(sector_district, sectors.name, strict=True)
+            ],
             "source": "*",
-            "source_district": sectors.parent_id.map(districts),
+            "source_district": sector_district,
             "source_sector": sectors.name,
             "reviewed": "no",
-            "note": "geoBoundaries spelling; add the NISR code and source spellings when reviewed",
+            "note": "geoBoundaries spelling; code from the COD-AB gazetteer by exact name match",
         }
     ).to_csv(REFERENCE / "sector_name_crosswalk.csv", index=False)
     pd.DataFrame(
         {
             "geo_id": districts.index,
-            "nisr_district_code": "",
+            "nisr_district_code": [district_codes.get(n, "") for n in districts.values],
             "source": "*",
             "source_district": districts.values,
             "reviewed": "no",

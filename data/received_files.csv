@@ -1,0 +1,11 @@
+received_on,package,file,bytes,sha256,staged_as,note
+2026-10-23,eicv7,eicv7_poverty.csv,6897,2a049f72f4304a271d8e80f469295c44085da1e17b563535cfc81ff2f283f4be,data/raw/eicv7/eicv7_poverty.csv,original kept in data/raw/_received/ (not in git)
+2026-10-23,mineduc_yearbook,preprimary_classrooms_by_district.csv,822,fed9a3e728eec4856f337e2a1df95fcc7429fcc919b617f9c23d387fa277f1e5,"data/interim/yearbook/ (incomplete, not loaded)",original kept in data/raw/_received/ (not in git)
+2026-10-23,mineduc_yearbook,preprimary_pupils_by_district.csv,1637,d4583cb2a8172501744dd5c0f10303d2a0bcf55e5b27e7fa74f13587fd21b13e,"data/interim/yearbook/ (incomplete, not loaded)",original kept in data/raw/_received/ (not in git)
+2026-10-23,mineduc_yearbook,preprimary_schools_by_district.csv,791,ecc0fa4568735c4707d066a8b3e5dc410e947dac5a8a2606e3a25f281834c281,"data/interim/yearbook/ (incomplete, not loaded)",original kept in data/raw/_received/ (not in git)
+2026-10-23,mineduc_yearbook,preprimary_teachers_by_district.csv,1238,57e5ccd6e2535565c6584555b59627696d810167d1513cfcb3567fdfcba2ddec,"data/interim/yearbook/ (incomplete, not loaded)",original kept in data/raw/_received/ (not in git)
+2026-10-23,mineduc_yearbook,ecd_and_preprimary_national_timeseries.csv,1963,cfa624493ef5aebcc381c0b90a6cda237f4c0af70a34f189515f0994b9a2df6b,"data/interim/yearbook/ (incomplete, not loaded)",original kept in data/raw/_received/ (not in git)
+2026-10-23,mineduc_yearbook,participation_rate_ages_3_5.csv,528,7e3c406ac53f00cd4887bfdfa96ae70b90172a3db100617daa7e1f2560512e1d,"data/interim/yearbook/ (incomplete, not loaded)",original kept in data/raw/_received/ (not in git)
+2026-10-23,mineduc_yearbook,preprimary_staff_qualifications.csv,871,00e0963fa79a1216c61f5627eb3836d893cc8d801ca3f4763f77006454aed6d7,"data/interim/yearbook/ (incomplete, not loaded)",original kept in data/raw/_received/ (not in git)
+2026-10-23,mineduc_yearbook,qualified_teachers_national.csv,474,bb9e66a1530e3682048be40511f98c6cd5b82c5b3b4bb7174248475458403e4a,"data/interim/yearbook/ (incomplete, not loaded)",original kept in data/raw/_received/ (not in git)
+2026-10-23,cod_ab_gazetteer,884fc9d4-rwa_gazetteer_rphc2012_v2.xlsx,161901,9296cbe1a805b11bc25a2ce2d881f9b08f766614462e3084c9a27d5b58be5629,data/reference/pcodes_cod_ab.csv (codes only),original kept in data/raw/_received/ (not in git)

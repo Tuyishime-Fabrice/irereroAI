@@ -3,6 +3,8 @@ an unconfigured deployment says so instead of answering, a question goes through
 to the local Messages API stand-in and the answer lands in the conversation, every role's home
 screen has the hero, and every other screen offers the compact entry button."""
 
+import sys
+
 import pytest
 from streamlit.testing.v1 import AppTest
 
@@ -127,3 +129,23 @@ def test_switching_role_starts_a_new_conversation(built_db, env, api):
     assert len(at.chat_message) >= 2
     at.sidebar.radio[0].set_value("National analyst").run()  # as a person would
     assert len(at.chat_message) == 0
+
+
+def test_a_deploy_that_changes_irerero_reloads_it(built_db, env):
+    """Streamlit reloads changed modules only from app/: after a deploy, the running server
+    must not call an old irerero function from a new screen (the sr_title TypeError)."""
+    env.delenv("ANTHROPIC_API_KEY", raising=False)
+    at = _app()
+    at.run()
+    saved = {n: m for n, m in sys.modules.items() if n.split(".")[0] == "irerero"}
+    old = sys.modules["irerero.ui.assistant"]
+    try:
+        sys.modules["irerero"].__sources__ = {}  # as if a file changed since it was loaded
+        at.run()
+        assert not at.exception, [e.message for e in at.exception]
+        assert sys.modules["irerero.ui.assistant"] is not old  # loaded afresh
+        assert 'class="ir-hero-art' in _html(at)
+    finally:  # the rest of the suite keeps the modules it imported
+        for n in [n for n in sys.modules if n.split(".")[0] == "irerero"]:
+            del sys.modules[n]
+        sys.modules.update(saved)

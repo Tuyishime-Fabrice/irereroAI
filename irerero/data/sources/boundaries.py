@@ -37,6 +37,14 @@ DATASET = Dataset(
     ),
 )
 GEOBOUNDARIES = "geoboundaries"
+# Provinces by NISR code, with the ids and names the rest of the app uses.
+PROVINCES = {
+    "RW1": ("P-CITY-OF-KIGALI", "City of Kigali"),
+    "RW2": ("P-SOUTHERN", "Southern Province"),
+    "RW3": ("P-WESTERN", "Western Province"),
+    "RW4": ("P-NORTHERN", "Northern Province"),
+    "RW5": ("P-EASTERN", "Eastern Province"),
+}
 
 
 def _codes(file: str, column: str) -> dict[str, str]:
@@ -70,7 +78,11 @@ def load(raw: Path = RAW) -> tuple[dict[str, gpd.GeoDataFrame], str, bool]:
     for level in LEVELS:
         frame = gpd.read_file(DATASET.folder(raw) / f"{level}s.geojson").to_crs(4326)
         if level == "province":
-            frame["geo_id"] = "P-" + frame.name.str.upper().str.replace(r"[^A-Z]+", "-", regex=True)
+            unknown = sorted(set(frame.nisr_code) - set(PROVINCES))
+            if unknown:
+                raise SchemaError(f"provinces.geojson: unknown province codes {unknown}")
+            frame["geo_id"] = frame.nisr_code.map(lambda c: PROVINCES[c][0])
+            frame["name"] = frame.nisr_code.map(lambda c: PROVINCES[c][1])
             frame["parent_id"] = "RW"
         else:
             lookup = sectors if level == "sector" else districts

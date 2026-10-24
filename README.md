@@ -17,7 +17,11 @@ NISR 2026 Big Data Hackathon, Track 3 (Open Innovation).
 > **Everything in the demo build is simulated except the boundaries.** The real NISR, MINEDUC,
 > RDHS, EICV, WorldPop and OSM files are not in this repository: their licences forbid
 > redistribution, and the team adds them locally. While a file is missing, the app shows a
-> labelled stand-in with a red **SIMULATED** badge and leaves it out of exports.
+> labelled stand-in with a red **SIMULATED** badge and leaves it out of exports. With the files
+> received so far (census 2022, NISR projections, COD-AB boundaries, EICV7) a local build has a
+> real 2026 estimate, priority ranking and peer benchmark; the trend, the distance layer and the
+> bottlenecks stay labelled simulated until the yearbooks, school points and stunting arrive.
+> Each part of a screen carries its own status.
 
 ## Problem and users
 
@@ -58,14 +62,15 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 144 tests
+make test      # 154 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
 sidebar.
 
 **Add the real data.** Run `make sources` to create `data/raw/<dataset>/` and list what is
-missing. Tables received in their own layout (the EICV7 chart, MINEDUC annexes) go through
+missing. Files received in their own layout (the EICV7 chart, MINEDUC annexes, census sample
+records, NISR single-age projections, COD-AB GeoJSON) go through
 `make intake FILES="<file or folder>"`, which keeps the original read-only, records its
 checksum, converts and checks it, and stages it only when complete
 ([what has been received](docs/data_inventory.md), [what is still needed](docs/data_requests.md)). Put each file where [DATA_SOURCES.md](DATA_SOURCES.md) says, with the columns it
@@ -147,7 +152,7 @@ measures as follows. These numbers show the pipeline works, not real-world accur
 - Residual Moran's I: 0.30 (p = 0.001).
 - 2029 trend back-test: MAE 0.95 points; 93% of districts inside the 80% range.
 
-The 144 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
+The 154 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
 (hand-checked), the model and rules, the audit entries for each decision and confirmation,
 simulated-value labelling and exclusion from exports, the training triggers on the planted
 problems, that every screen renders for every role, and the assistant end to end (figures,

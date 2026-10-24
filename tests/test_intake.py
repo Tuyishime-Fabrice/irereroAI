@@ -151,3 +151,78 @@ def test_yearbooks_that_repeat_a_year_merge_and_disagreements_fail(dirs):
                        dirs["raw"], dirs["interim"], dirs["manifest"])  # fmt: skip
     assert any("two files disagree" in c.text for c in clash[0].checks)
     assert len(list((dirs["raw"] / "_received" / "mineduc_yearbook").iterdir())) == 2
+
+
+# --- census sample, projections, boundaries --------------------------------------------------
+SECTORS = pd.read_csv("data/reference/sector_name_crosswalk.csv", dtype=str)
+SECTORS = SECTORS[SECTORS.source == "*"]
+
+
+def _census_sample(path: Path, drop: int = 0) -> Path:
+    """Made-up records: per sector two attending children (weight 10) and one never attended
+    (weight 5), and one record with attendance not stated."""
+    rows = []
+    for code in SECTORS.nisr_sector_code.iloc[drop:]:
+        sector = int(code.removeprefix("RW"))
+        for age, attendance, weight in ((3, 2, 10.0), (4, 2, 10.0), (5, 3, 5.0)):
+            rows.append([sector // 100, sector, age, attendance, weight])
+    rows.append([11, 1101, 3, 9, 7.0])
+    frame = pd.DataFrame(rows, columns=["district_code", "sector_code", "age_years",
+                                        "attendance_code", "population_weight"])  # fmt: skip
+    frame.to_csv(path / "children_age_3_5.csv", index=False)
+    return path / "children_age_3_5.csv"
+
+
+def test_census_records_become_weighted_sector_counts_and_nothing_else(dirs):
+    (result,) = _run(dirs, [_census_sample(dirs["in"])])
+    assert result.staged is not None, [c.text for c in result.checks]
+    staged = pd.read_csv(result.staged)
+    assert len(staged) == 416 and set(staged.basis) == {"sample"}
+    assert (staged.children_3_5_attending == 20).all() and (
+        staged.children_3_5_never_attended == 5
+    ).all()
+    assert (staged.children_3_5 == 25).all()  # the unstated record is left out, and said so
+    assert any("attendance not stated" in c.text for c in result.checks)
+    # only counts are staged: no record, weight or age reaches data/raw/<dataset>/
+    assert not {"population_weight", "age_years", "attendance_code"} & set(staged.columns)
+    original = next((dirs["raw"] / "_received" / "census_2022_sample").iterdir())
+    assert not original.stat().st_mode & stat.S_IWUSR
+    from irerero.config import MODEL
+    from irerero.data.sources import census
+
+    sectors, districts = census.load(dirs["raw"])
+    assert sectors.real and sectors.status == MODEL  # weighted from a sample: a model estimate
+    assert districts.frame.children_3_5.sum() == staged.children_3_5.sum()
+
+
+def test_census_records_missing_sectors_are_not_staged(dirs):
+    (result,) = _run(dirs, [_census_sample(dirs["in"], drop=3)])
+    assert result.staged is None
+    assert any(c.level == "fail" and "413 of 416" in c.text for c in result.checks)
+
+
+def _projection_sheets(off_by: int = 0) -> dict[str, pd.DataFrame]:
+    rows = []
+    for d in DISTRICTS:
+        for year in range(2023, 2033):
+            for age in [*map(str, range(80)), "80+"]:
+                female, male = (
+                    50,
+                    50 + (off_by if (d, year, age) == (DISTRICTS[0], 2023, "4") else 0),
+                )
+                rows += [[d, year, age, "Female", female], [d, year, age, "Male", male],
+                         [d, year, age, "Both sexes", 100]]  # fmt: skip
+    long = pd.DataFrame(rows, columns=["district", "year", "age", "sex", "population"])
+    return {intake.PROJECTION_SHEET: long}
+
+
+def test_single_age_projections_give_population_and_children_3_5():
+    frame, checks = intake.projections_from_sheets(_projection_sheets())
+    assert not [c for c in checks if c.level == "fail"]
+    assert len(frame) == 300 and (frame.population == 8100).all()
+    assert (frame.children_3_5 == 300).all()  # ages 3, 4 and 5, both sexes
+
+
+def test_single_age_projections_that_do_not_add_up_fail():
+    _, checks = intake.projections_from_sheets(_projection_sheets(off_by=3))
+    assert any(c.level == "fail" and "female + male" in c.text for c in checks)

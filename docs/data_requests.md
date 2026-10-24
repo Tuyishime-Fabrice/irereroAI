@@ -14,44 +14,44 @@ layout) or straight into `data/raw/<dataset>/` (tables typed into the template),
 
 | # | Dataset | From | Access | Unlocks | Priority |
 | --- | --- | --- | --- | --- | --- |
-| 1 | [Census 2022 sector tables](#1-census-2022-phc5-sector-tables) | NISR | Published PDFs; ask for CSV | The 2026 estimate, gap, places, priority, peer model: every PLAN and DIAGNOSE number | **1, essential** |
-| 2 | [Population projections 2023-2032 by district](#2-population-projections-2023-2032) | NISR | Published; ask for the tables | Calibrates the 2026 estimate; the denominator of every TRACK rate | **1, essential** |
-| 3 | [MINEDUC yearbooks, earlier years and qualified teachers](#3-mineduc-yearbooks) | MINEDUC | Published PDFs | The 2029 trend and status; the capacity factor | **1, essential** |
+| 3 | [MINEDUC yearbooks, earlier years and qualified teachers](#3-mineduc-yearbooks) | MINEDUC | Published PDFs | The 2029 trend and status; attendance moved since 2022; the capacity factor | **1, essential** |
+| 7 | [OpenStreetMap extract](#7-openstreetmap-rwanda) (or a MINEDUC school list with coordinates) | Geofabrik, MINEDUC | Open download | Real school points: the 1 km distance, the access factor and most bottlenecks | **1, essential** |
 | 4 | [Stunting by district](#4-stunting-under-5-by-district) | NISR, MoH, DHS Program | Published report | The wellbeing factor; the nutrition course trigger | 2 |
-| 5 | [COD-AB boundary files](#5-official-boundaries-cod-ab) | NISR via HDX | Open download | Official shapes and codes on every map | 2 |
+| 1 | [Census 2022 sector tables, the other columns](#1-census-2022-phc5-sector-tables) | NISR | Published PDFs; ask for CSV | The home-environment factor and richer peer model; a check of the sample counts | 2 |
 | 6 | [WorldPop under-5 rasters](#6-worldpop-under-5-2020) | WorldPop | Open download | Where children live inside a sector; the distance layer | 2 |
-| 7 | [OpenStreetMap extract](#7-openstreetmap-rwanda) | Geofabrik | Open download | Real school points and road distance | 2 |
+| 2 | [Projection variants](#2-population-projections-2023-2032) | NISR | Published; ask | Low and high variants for the 2026 range | 3 |
 | 8 | [NCDA ECD Mapping extract](#8-ncda-ecd-mapping-system-extract) | NCDA | Data sharing agreement | Real centres for LEARN and the supply connector | 3 |
 | 9 | [EICV7 sector rates and two checks](#9-eicv7-follow-up) | NISR | Published; ask | Poverty that separates sectors inside a district | 3 |
+| 5 | ~~COD-AB boundary files~~ | NISR via HDX | Received 24 Oct 2026 | Official shapes and codes on every map | done |
 
-Until items 1 to 3 arrive, every screen keeps its red SIMULATED notice, because the 2026
-estimate is built from them together.
+Received and in use: the census 2022 children aged 3 to 5 (sample records, weighted to sector
+counts), the NISR single-age projections, the COD-AB boundaries and the EICV7 district
+poverty table (see [data_inventory.md](data_inventory.md)). The 2026 estimate, the priority
+ranking and the peer benchmark are now real. What still carries the red SIMULATED label: the
+2028/29 trend (yearbook), the share of children more than 1 km from a school (school points)
+and the bottleneck diagnosis (yearbook, stunting, school points).
 
 ## 1. Census 2022 (PHC5) sector tables
 
-- **Ask for:** Fifth Population and Housing Census 2022, the 30 district profiles, **Table 2.5**
-  (children aged 3 to 5 by school attendance) **by sector**, with the district total rows.
-  Also, by sector: resident population, children aged 0 to 4, private households, households
-  with improved water, improved sanitation and electricity, share urban, and women aged 15+
-  with secondary education or more.
-- **Format:** CSV if NISR can share it; otherwise put the 30 PDFs in
-  `data/raw/census_2022/pdf/` and `make data` parses Table 2.5.
-- **Templates:** `census_2022_sectors.csv` (sector rows), `census_2022_districts.csv` (the
-  printed district totals, used to check that sectors add up).
-- **Required columns:** `sector_name`, `district_name`, `children_3_5`,
-  `children_3_5_attending`, `children_3_5_never_attended`. The rest are optional but feed the
-  home-environment factor and the peer model.
+**Received in part.** The sample records of children aged 3 to 5 give attending and never
+attended per sector (as weighted counts). Still wanted:
+
+- **Ask for:** by sector, from the 30 district profiles or as CSV: resident population,
+  children aged 0 to 4, private households, households with improved water, improved
+  sanitation and electricity, share urban, and women aged 15+ with secondary education or
+  more. These feed the home-environment factor (now "no data") and the peer model.
+- **Also:** the printed **Table 2.5 district totals** (children aged 3 to 5 attending and never
+  attended), to check the sample counts against the full count. With the full Table 2.5 by
+  sector, the counts become *observed* instead of a model estimate.
+- **Templates:** `census_2022_sectors.csv` (sector rows), `census_2022_districts.csv`.
 - **Where:** https://www.statistics.gov.rw/publication/2093
 
 ## 2. Population projections 2023-2032
 
-- **Ask for:** Rwanda Subnational Population Projections 2023-2032, **population by district
-  and year**, medium variant, with the low and high variants if published. A 3 to 5 (or single
-  age) breakdown by district would remove the assumption that the 3 to 5 share stays at its
-  2022 value.
-- **Template:** `nisr_projections_2023_2032.csv`. Required: `district_name`, `year`,
-  `population`.
-- **Where:** https://www.statistics.gov.rw
+**Received:** single-age projections by district, 2023 to 2032, one variant (read as the
+medium one). Still wanted: the **low and high variants**, if NISR publishes them, so the 2026
+range reflects projection uncertainty instead of a default error. Template:
+`nisr_projections_2023_2032.csv` (`population_low`, `population_high`).
 
 ## 3. MINEDUC yearbooks
 
@@ -90,12 +90,9 @@ teacher totals 2023/24 (each 10 below male + female). Details in
 
 ## 5. Official boundaries (COD-AB)
 
-- **Download:** the COD-AB administrative boundaries for Rwanda, levels 1 to 3, as GeoJSON in
-  EPSG:4326. The gazetteer already received gives the codes; this adds the official shapes.
-- **Files:** `data/raw/boundaries/provinces.geojson`, `districts.geojson`, `sectors.geojson`,
-  with the columns renamed to `nisr_code` (from `ADMx_PCODE`), `name` and `parent_nisr_code`.
-  Every code is already in the crosswalks, so they load as they are.
-- **Where:** https://data.humdata.org/dataset/cod-ab-rwa
+**Received** on 24 October 2026 and in use (5 provinces, 30 districts, 416 sectors). Before a
+production release, confirm with NISR that the 2006 administrative structure in the file is
+current.
 
 ## 6. WorldPop under 5, 2020
 
@@ -106,9 +103,11 @@ teacher totals 2023/24 (each 10 below male + female). Details in
 
 ## 7. OpenStreetMap Rwanda
 
-- **Download:** `rwanda-latest.osm.pbf`, and install the road extra with
-  `uv sync --extra osm`. OSM does not mark which schools have pre-primary, so a MINEDUC school
-  list with coordinates and a pre-primary flag would be a better source later.
+- **Download:** `rwanda-latest.osm.pbf` into `data/raw/osm/`, and install the road extra
+  with `uv sync --extra osm`. OSM does not mark which schools have pre-primary, so a MINEDUC
+  school list with coordinates and a pre-primary flag (ask MINEDUC's EMIS team) would be a
+  better source. Either one makes the 1 km distance, the access factor and most bottlenecks
+  real.
 - **Where:** https://download.geofabrik.de/africa/rwanda.html (ODbL 1.0)
 
 ## 8. NCDA ECD Mapping System extract

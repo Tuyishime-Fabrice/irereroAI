@@ -1,13 +1,23 @@
 """One build from the demo bundle into a throwaway database, shared by the data tests."""
 
+import os
+import tempfile
 from pathlib import Path
 
 import pytest
 from sqlalchemy import Engine, create_engine
 
-from irerero.db.models import Base
-from irerero.pipeline.build import build
-from irerero.pipeline.inputs import Inputs, load_inputs
+# Before anything imports irerero.config: the app tests build through the app, which reads
+# data/raw/ and writes data/processed/. Point both at empty folders so every test runs on the
+# demo bundle, whatever real files this machine holds, and leaves its build alone.
+_SCRATCH = Path(tempfile.mkdtemp(prefix="irerero-tests-"))
+os.environ["IRERERO_RAW"] = str(_SCRATCH / "raw")
+os.environ["IRERERO_PROCESSED"] = str(_SCRATCH / "processed")
+(_SCRATCH / "raw").mkdir()
+
+from irerero.db.models import Base  # noqa: E402
+from irerero.pipeline.build import build  # noqa: E402
+from irerero.pipeline.inputs import Inputs, load_inputs  # noqa: E402
 
 
 @pytest.fixture(scope="session")

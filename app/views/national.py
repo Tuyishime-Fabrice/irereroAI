@@ -4,7 +4,7 @@ import streamlit as st
 
 from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
-from irerero.plan.frame import any_simulated
+from irerero.plan.frame import distance_status, status_of
 from irerero.track import forecast, plans
 from irerero.ui import assistant, charts, data, maps, theme
 from irerero.ui.roles import PLANNER, current
@@ -12,8 +12,13 @@ from irerero.ui.theme import Col
 
 user = current()
 sectors = data.sectors()
-simulated = any_simulated(sectors)
-status = "simulated" if simulated else "model estimate"
+forecast_rows = data.table("forecast")
+# each part keeps its own status: the estimate (census, projections), the distance layer
+# (school points) and the outlook (yearbook trend) become real at different times
+status = status_of(sectors)
+far_status = distance_status(sectors)
+track_status = status_of(forecast_rows)
+simulated = "simulated" in (status, far_status, track_status)
 source = "IrereroAI 2026 estimate"
 
 theme.topbar(["Rwanda", "Overview"])
@@ -87,13 +92,13 @@ with k4:
         theme.fmt_pct(far),
         "IrereroAI distance layer",
         "2026",
-        status,
+        far_status,
         method,
         "route",
         "rose",
     )
 
-track_all = forecast.summary(data.table("forecast"), target)
+track_all = forecast.summary(forecast_rows, target)
 track = track_all.drop(index=forecast.NATIONAL)
 in_scope = set(scope.district_id)
 track = track[track.index.isin(in_scope)]
@@ -117,7 +122,8 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             f"Projected {TARGET_YEAR} enrolment",
             lambda v: theme.fmt_pct(v),
             tooltip={
-                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · {status}"
+                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · "
+                f"{track_status}"
                 for g, r in track.iterrows()
             },
             colours={g: STATUS_COLOURS[s] for g, s in track.status.items()},
@@ -161,8 +167,7 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
         )
 
 with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment, Rwanda", "trend"):
-    rows = data.table("forecast")
-    national = rows[rows.geo_id == forecast.NATIONAL]
+    national = forecast_rows[forecast_rows.geo_id == forecast.NATIONAL]
     observed = national[national.kind == "observed"].set_index("year")
     projected = national[national.kind == "projected"].set_index("year")
     st.markdown(charts.trend_legend(), unsafe_allow_html=True)
@@ -176,7 +181,7 @@ with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment,
     )
     theme.note(
         "Gross rate: MINEDUC pre-primary pupils per child aged 3–5. Linear trend with an 80% "
-        f"prediction range. Status: {status}."
+        f"prediction range. Status: {track_status}."
     )
 
 # --- districts and actions ----------------------------------------------------------------
@@ -231,8 +236,8 @@ with (
         unsafe_allow_html=True,
     )
     theme.note(
-        f"Status of every number: {status}. Rooms and places: National ECD Standards (2024). "
-        "Hover a KPI for its source and year."
+        f"Children, places and rooms: {status}; {TARGET_YEAR} status: {track_status}. Rooms and "
+        "places: National ECD Standards (2024). Hover a KPI for its source and year."
     )
 
 with (

@@ -6,10 +6,11 @@ from irerero.config import (
     COMPONENT_LABELS,
     COMPONENTS,
     PRESETS,
+    SIMULATED,
     STABILITY_DRAWS,
     TARGET_2029,
 )
-from irerero.plan.frame import any_simulated, ranked
+from irerero.plan.frame import distance_status, ranked, status_of
 from irerero.plan.priority import stability_label
 from irerero.ui import data, maps, theme
 from irerero.ui.roles import ANALYST, current
@@ -25,8 +26,16 @@ else:
     district_id = user.district_id
 frame = all_sectors[all_sectors.district_id == district_id]
 province = frame.province.iat[0] if len(frame) else ""
-simulated = any_simulated(frame)
-status = "simulated" if simulated else "model estimate"
+# the ranking reads the estimate, the peer gap and poverty; the table also shows distance
+# (school points) and the main bottleneck (every DIAGNOSE factor), each with its own status
+status = (
+    SIMULATED
+    if SIMULATED in (status_of(frame), *frame.peer_status.dropna().unique())
+    else status_of(frame)
+)
+far_status = distance_status(frame)
+diag_status = status_of(data.diagnosis_now(data.target()))
+simulated = SIMULATED in (status, far_status, diag_status)
 
 theme.header(
     "District priorities",
@@ -161,7 +170,9 @@ with (
     theme.note(
         f"Top-3 stability: share of {STABILITY_DRAWS} random weightings around the chosen "
         "weights in which the sector stays in the top 3 (green ≥ 80%, amber 40–80%, grey "
-        f"below). Distance: {result.distance_method.iloc[0] if len(result) else ''}."
+        f"below). Ranking and places: {status}; > 1 km: {far_status} "
+        f"({result.distance_method.iloc[0] if len(result) else ''}); main bottleneck: "
+        f"{diag_status}."
     )
     if user.can_decide:
         names = dict(zip(result.geo_id, result.name, strict=True))

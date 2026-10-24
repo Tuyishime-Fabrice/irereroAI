@@ -63,11 +63,14 @@ data/
 | `hh_electricity` | whole number ≥ 0 | no | Households with electricity |
 | `urban_share` | share, 0 to 1 | no | Share of the population living in urban areas |
 | `women_secondary_share` | share, 0 to 1 | no | Women aged 15+ with secondary education or more (proxy for mothers' education) |
+| `basis` | text | no | 'table' (printed Table 2.5, the default) or 'sample' (weighted from census sample records by `make intake`) |
 | `source_page` | text | no | Page or table the value was read from |
 
 Put the 30 district profile PDFs in data/raw/census_2022/pdf/ and run `make data`: Table 2.5 and the other tables are parsed into the two CSVs in data/interim/. Or type the CSVs directly into data/raw/census_2022/.
 
 census_2022_districts.csv holds the district total rows printed in each profile, so the build can check that sector rows add up.
+
+Census sample records of children aged 3 to 5 (with population weights) can stand in for Table 2.5: `make intake` weights them to sector counts and marks them basis = sample, which makes their status a model estimate.
 
 <a id="worldpop"></a>
 
@@ -114,7 +117,10 @@ Age group 0 is under 1 and group 1 is 1 to 4; both sexes are summed.
 | `population` | whole number ≥ 0 | yes | Projected population, medium variant |
 | `population_low` | whole number ≥ 0 | no | Low variant |
 | `population_high` | whole number ≥ 0 | no | High variant |
+| `children_3_5` | whole number ≥ 0 | no | Projected children aged 3 to 5 (from the single-age tables), medium variant |
 | `source_page` | text | no | Page or table the value was read from |
+
+With children_3_5 (the single-age tables give it), the 2026 estimate takes each district's children aged 3 to 5 straight from the projection; without it, from the projected population and the census 2022 age share.
 
 <a id="boundaries"></a>
 

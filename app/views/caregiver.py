@@ -32,6 +32,7 @@ theme.header(
     f"{centre['name']} · monthly check-in and your courses",
     simulated=centre.status == SIMULATED,
     crumbs=["Muhanga", f"{sector_name} sector", "Caregiver learning"],
+    assistant="caregiver",
 )
 
 history = checkins.frame(eng, [user.centre_id])

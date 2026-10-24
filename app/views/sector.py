@@ -52,6 +52,7 @@ theme.header(
     "Understand what is holding early childhood development back.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], row["name"]],
+    assistant="sector",
 )
 
 # --- selectors ----------------------------------------------------------------------------

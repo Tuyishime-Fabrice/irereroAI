@@ -33,6 +33,7 @@ theme.header(
     "Find where new pre-primary places are needed first, and how sure we can be of the order.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], "District priorities"],
+    assistant="priorities",
 )
 
 # --- filters ------------------------------------------------------------------------------

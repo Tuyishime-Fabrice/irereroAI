@@ -239,6 +239,29 @@ CSS = f"""
   }}
   .stApp [data-testid="stTabs"] [role="tab"] {{ min-height: 40px; }}
 
+  /* body text inside cards: 14px, one line height, 8px between paragraphs */
+  .stApp [class*="st-key-ir-"] [data-testid="stMarkdownContainer"] p,
+  .stApp [class*="st-key-ir-"] [data-testid="stMarkdownContainer"] li {{
+    font-size: 14px; line-height: 1.55;
+  }}
+  .stApp [class*="st-key-ir-"] [data-testid="stMarkdownContainer"] p {{ margin-bottom: 8px; }}
+  .stApp [class*="st-key-ir-"] [data-testid="stMarkdownContainer"] h4 {{
+    font-size: 16px; font-weight: 600; padding: 4px 0 0;
+  }}
+  ul.ir-list {{ margin: 0 0 4px; padding-left: 20px; }}
+  ul.ir-list li {{ margin: 0 0 6px; }}
+  .ir-sub {{ color: {INK}; font-size: 14px; font-weight: 600; margin: 8px 0 4px; }}
+  ol.ir-sources {{ margin: 0; padding-left: 0; list-style: none; color: {SLATE};
+    font-size: 13px; line-height: 1.6; }}
+
+  /* Streamlit alerts in the notice style */
+  .stApp [data-testid="stAlert"] [data-testid="stAlertContainer"] {{
+    border-radius: var(--ir-radius-sm); padding: 10px 14px;
+  }}
+  .stApp [data-testid="stAlert"] [data-testid="stMarkdownContainer"] p {{
+    font-size: 14px; line-height: 1.5; margin: 0;
+  }}
+
   /* cards: every keyed container (theme.panel) is a white card, 20px padding */
   .stApp [class*="st-key-ir-"] {{
     background: {SURFACE}; border: 1px solid {BORDER}; border-radius: var(--ir-radius);
@@ -279,10 +302,10 @@ CSS = f"""
   .ir-user .who b {{ color: {INK}; font-size: 14px; display: block; font-weight: 600; }}
   .ir-user .who span {{ color: {SLATE}; font-size: 12px; }}
   .stApp [data-testid="stMarkdownContainer"] h1.ir-title {{
-    font-size: 36px; font-weight: 700; color: {NAVY}; margin: 0; padding: 0;
+    font-size: 32px; font-weight: 700; color: {NAVY}; margin: 0; padding: 0;
     letter-spacing: -.02em; line-height: 1.2; text-wrap: balance;
   }}
-  .ir-subtitle {{ color: {SLATE}; font-size: 16px; line-height: 1.5; margin: 4px 0 0; }}
+  .ir-subtitle {{ color: {SLATE}; font-size: 15px; line-height: 1.5; margin: 4px 0 4px; }}
   .ir-tag {{ display: inline-block; vertical-align: middle; margin-left: 12px; font-size: 12px;
     font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: 0; }}
 
@@ -359,7 +382,7 @@ CSS = f"""
     gap: 12px; }}
   .ir-panel-head h3 {{ margin: 0; padding: 0; font-size: 18px; font-weight: 600; line-height: 1.35;
     color: {NAVY}; display: flex; gap: var(--s1); align-items: center; }}
-  .ir-panel-head h3 > span {{ display: inline-flex; flex: none; }}
+  .ir-panel-head h3 svg.ir-icon {{ margin-right: 8px; vertical-align: -3px; flex: none; }}
   .ir-panel-head p {{ margin: 4px 0 0; color: {SLATE}; font-size: 13px; line-height: 1.45; }}
 
   /* tables: wrap headers instead of hiding columns */
@@ -408,6 +431,105 @@ CSS = f"""
     display: flex; flex-direction: column; align-items: center; gap: var(--s1); }}
   .ir-empty .ir-icon {{ color: #9AA8B7; }}
 
+  /* --- IrereroAI assistant ------------------------------------------------------------ */
+  .ir-sr {{ position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
+  .stApp .st-key-ir-hero {{ background: linear-gradient(180deg, #F7FAFD 0%, {SURFACE} 75%);
+    padding: var(--s2) 20px; }}
+  .ir-robot {{ border-radius: var(--ir-radius); overflow: hidden; background: #EAF1F8;
+    aspect-ratio: 280 / 215; max-width: 280px; }}
+  .ir-robot img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
+  .st-key-ir-hero .ir-target .value {{ font-size: clamp(17px, 1.5vw, 20px); white-space: normal; }}
+  .st-key-ir-hero .ir-target {{ gap: 12px; padding: 14px 16px; }}
+  .ir-greet {{ margin: 4px 0 2px; }}
+  .ir-greet .hello {{ color: {SLATE}; font-size: 14px; }}
+  .ir-greet .ask {{ color: {NAVY}; font-size: 22px; font-weight: 700; line-height: 1.25; }}
+  .ir-greet .sub {{ color: {SLATE}; font-size: 14px; line-height: 1.5; display: flex;
+    flex-wrap: wrap; align-items: center; gap: 4px 12px; }}
+  .ir-greet .who {{ font-size: 12px; color: {INK}; border: 1px solid {BORDER};
+    border-radius: 999px; padding: 1px 10px; background: {SURFACE}; }}
+
+  /* notices: one at a time; auto-rotation pauses on hover or focus and stops once chosen */
+  .ir-notices {{ display: flex; flex-direction: column; gap: var(--s1); height: 100%; }}
+  .ir-slides {{ display: grid; flex: 1; }}
+  .ir-slide {{ grid-area: 1 / 1; display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 14px; border-radius: var(--ir-radius-sm); border: 1px solid #CFE7E0;
+    background: #EEF6F3; color: {INK}; font-size: 13px; line-height: 1.5;
+    opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility .35s; }}
+  .ir-slide.warn {{ background: #FEF3F2; border-color: #F5C2BC; color: #7A271A;
+    box-shadow: inset 3px 0 0 {SIM_RED}; }}
+  .ir-slide-ico {{ color: {TEAL_700}; flex: none; display: flex; margin-top: 1px; }}
+  .ir-slide.warn .ir-slide-ico {{ color: {SIM_RED}; }}
+  .ir-notices.single .s1,
+  .ir-notices:not(:has(input:checked)) .s1,
+  #irn-1:checked ~ .ir-slides .s1, #irn-2:checked ~ .ir-slides .s2 {{
+    opacity: 1; visibility: visible; }}
+  .ir-notice-tabs {{ display: flex; flex-wrap: wrap; gap: var(--s1); }}
+  .ir-notice-tabs label {{ display: inline-flex; align-items: center; gap: 6px;
+    min-height: 28px; padding: 2px 12px; border-radius: 999px; border: 1px solid {BORDER};
+    background: {SURFACE}; color: {SLATE}; font-size: 12px; font-weight: 600;
+    cursor: pointer; }}
+  .ir-notice-tabs .dot {{ width: 8px; height: 8px; border-radius: 50%; background: {SLATE_300}; }}
+  .ir-notices:not(:has(input:checked)) .t1,
+  #irn-1:checked ~ .ir-notice-tabs .t1 {{ color: {INK}; border-color: {TEAL_700}; }}
+  .ir-notices:not(:has(input:checked)) .t1 .dot,
+  #irn-1:checked ~ .ir-notice-tabs .t1 .dot {{ background: {TEAL_700}; }}
+  #irn-2:checked ~ .ir-notice-tabs .t2 {{ color: {INK}; border-color: {SIM_RED}; }}
+  #irn-2:checked ~ .ir-notice-tabs .t2 .dot {{ background: {SIM_RED}; }}
+  #irn-1:focus-visible ~ .ir-notice-tabs .t1, #irn-2:focus-visible ~ .ir-notice-tabs .t2 {{
+    outline: 2px solid {FOCUS}; outline-offset: 2px; }}
+  @media (prefers-reduced-motion: no-preference) {{
+    .ir-notices:not(:has(input:checked)) .s1 {{ animation: irn-show-a 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .s2 {{ animation: irn-show-b 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .t1 {{ animation: irn-tab-a 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .t2 {{ animation: irn-tab-b 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .t1 .dot {{ animation: irn-dot-a 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .t2 .dot {{ animation: irn-dot-b 16s infinite; }}
+    .ir-notices:hover *, .ir-notices:focus-within * {{ animation-play-state: paused !important; }}
+  }}
+  @keyframes irn-show-a {{ 0%, 46% {{ opacity: 1; visibility: visible; }}
+    50%, 96% {{ opacity: 0; visibility: hidden; }} 100% {{ opacity: 1; visibility: visible; }} }}
+  @keyframes irn-show-b {{ 0%, 46% {{ opacity: 0; visibility: hidden; }}
+    50%, 96% {{ opacity: 1; visibility: visible; }} 100% {{ opacity: 0; visibility: hidden; }} }}
+  @keyframes irn-tab-a {{ 0%, 48% {{ color: {INK}; border-color: {TEAL_700}; }}
+    50%, 98% {{ color: {SLATE}; border-color: {BORDER}; }} }}
+  @keyframes irn-tab-b {{ 0%, 48% {{ color: {SLATE}; border-color: {BORDER}; }}
+    50%, 98% {{ color: {INK}; border-color: {SIM_RED}; }} }}
+  @keyframes irn-dot-a {{ 0%, 48% {{ background: {TEAL_700}; }} 50%, 98% {{ background: {SLATE_300}; }} }}
+  @keyframes irn-dot-b {{ 0%, 48% {{ background: {SLATE_300}; }} 50%, 98% {{ background: {SIM_RED}; }} }}
+
+  /* question box and conversation */
+  .stApp [data-testid="stChatInput"] > div {{ border-radius: var(--ir-radius);
+    border: 1px solid {BORDER}; background: {SURFACE}; box-shadow: var(--ir-shadow); }}
+  .stApp [data-testid="stChatInput"]:focus-within > div {{ border-color: {NAVY};
+    box-shadow: 0 0 0 1px {NAVY}; }}
+  .stApp [data-testid="stChatInput"] textarea {{ font-size: 15px; }}
+  .stApp [data-testid="stChatInputSubmitButton"] {{ background: {TEAL_700}; color: #fff;
+    border-radius: var(--ir-radius-sm); }}
+  .stApp [data-testid="stChatInputSubmitButton"] svg {{ color: #fff; fill: #fff; }}
+  .stApp [data-testid="stChatInputSubmitButton"]:disabled {{ background: #DDE3EA;
+    color: {SLATE}; }}
+  .stApp [data-testid="stChatInputSubmitButton"]:disabled svg {{ color: {SLATE}; fill: {SLATE}; }}
+  .stApp [data-testid="stChatMessage"] {{ padding: 12px 14px; border-radius: var(--ir-radius);
+    gap: 12px; margin-bottom: var(--s1); background: {SURFACE}; border: 1px solid {BORDER}; }}
+  .stApp [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarCustom"]) {{
+    background: #EEF2F7; border-color: #EEF2F7; }}
+  .stApp [data-testid="stChatMessageAvatarCustom"] {{ background: {NAVY}; color: #fff;
+    border-radius: 50%; }}
+  .stApp [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] p,
+  .stApp [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] li {{
+    font-size: 14px; line-height: 1.6; }}
+  .ir-typing {{ display: flex; align-items: center; gap: 6px; color: {SLATE}; font-size: 13px;
+    min-height: 24px; }}
+  .ir-typing span {{ width: 6px; height: 6px; border-radius: 50%; background: {TEAL};
+    animation: ir-blink 1.2s infinite both; }}
+  .ir-typing span:nth-child(2) {{ animation-delay: .2s; }}
+  .ir-typing span:nth-child(3) {{ animation-delay: .4s; margin-right: 4px; }}
+  @keyframes ir-blink {{ 0%, 80%, 100% {{ opacity: .25; }} 40% {{ opacity: 1; }} }}
+  @media (prefers-reduced-motion: reduce) {{ .ir-typing span {{ animation: none; opacity: .6; }} }}
+  .stApp .st-key-ask-entry {{ display: flex; justify-content: flex-end; }}
+  .stApp [data-testid="stDialog"] [role="dialog"] {{ border-radius: var(--ir-radius); }}
+
   /* a collapsed sidebar leaves the logo and the open button floating over the page */
   .stApp:has(section[data-testid="stSidebar"][data-collapsed="true"]) .block-container,
   .stApp:has(section[data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stMainBlockContainer"] {{
@@ -437,6 +559,9 @@ CSS = f"""
     }}
     .ir-strip {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }}
     .ir-target .value {{ font-size: 20px; }}
+  }}
+  @media (max-width: 900px) {{
+    [data-testid="stColumn"]:has(> [data-testid="stVerticalBlock"] .ir-robot) {{ display: none; }}
     .ir-strip .lead {{ grid-column: 1 / -1; }}
     .ir-strip .cell:nth-child(2) {{ border-left: 0; padding-left: 0; }}
   }}
@@ -457,6 +582,8 @@ CSS = f"""
     .ir-bar-row > div:last-child {{ grid-column: 1 / -1; }}
     .ir-strip {{ grid-template-columns: 1fr 1fr; }}
     .ir-strip .cell {{ border-left: 0; padding-left: 0; }}
+    .ir-greet .ask {{ font-size: 20px; }}
+    .stApp .st-key-ask-entry {{ justify-content: flex-start; }}
     table.ir-table {{ font-size: 13px; }}
     table.ir-table th, table.ir-table td {{ padding: var(--s1) 10px; }}
   }}
@@ -541,9 +668,11 @@ def header(
     crumbs: Sequence[str] | None = None,
     aside: str | None = None,
     tag: str | None = None,
+    assistant: str | None = None,
 ) -> None:
-    """Top bar, page title and subtitle, an optional right-hand callout (HTML), the scope line
-    and, when needed, the simulated-data notice."""
+    """Top bar, page title and subtitle, an optional right-hand callout (HTML) or the "Ask
+    IrereroAI" button for page `assistant`, the scope line and, when needed, the
+    simulated-data notice."""
     topbar(crumbs or [title])
     tag_html = (
         f'<span class="ir-tag" style="background:#FCE8E6;color:{SIM_RED}">{escape(tag)}</span>'
@@ -557,6 +686,13 @@ def header(
         left, right = st.columns([3, 2], vertical_alignment="center")
         left.markdown(head, unsafe_allow_html=True)
         right.markdown(aside, unsafe_allow_html=True)
+    elif assistant:
+        from irerero.ui import assistant as ask
+
+        left, right = st.columns([4, 1], vertical_alignment="center", gap="medium")
+        left.markdown(head, unsafe_allow_html=True)
+        with right, st.container(key="ask-entry"):
+            ask.entry(assistant)
     else:
         st.markdown(head, unsafe_allow_html=True)
     definition()

@@ -28,6 +28,7 @@ theme.header(
     f"{sector_name} sector · confirm suggested courses, follow up training and centre check-ins.",
     simulated=True,
     crumbs=["Muhanga", f"{sector_name} sector", "Caregiver learning"],
+    assistant="officer",
 )
 TRIGGER_TEXT = {
     "checkin:no_water": "latest check-in: no water or handwashing",

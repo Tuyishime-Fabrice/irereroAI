@@ -27,6 +27,7 @@ theme.header(
     "Data & methods",
     "Where every number comes from, and how far to trust it.",
     crumbs=["Rwanda", "Data & methods"],
+    assistant="methods",
 )
 
 STATUS_MEANING = {
@@ -261,6 +262,9 @@ with tabs[4]:
 - **Kinyarwanda labels and course titles are drafts** awaiting review by a native speaker.
 - **Every value in this demo build that comes from a missing file is simulated**, labelled, and
   excluded from exports by default.
+- **The IrereroAI assistant is a language model.** It answers from this dashboard's figures and
+  labels their status, but it can still misread or misstate them: check an answer against the
+  screen before using it. It reads aggregates only and cannot change plans or data.
 """
     )
 

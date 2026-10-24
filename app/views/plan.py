@@ -54,6 +54,7 @@ theme.header(
     f"Track decisions, delivery and progress toward {theme.fmt_pct(target)} by {TARGET_YEAR}.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], "Action plans & progress"],
+    assistant="plan",
 )
 if user.role == ANALYST:
     with theme.panel(key="filters"):

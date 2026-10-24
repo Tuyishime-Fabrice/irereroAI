@@ -6,7 +6,7 @@ from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
 from irerero.plan.frame import any_simulated
 from irerero.track import forecast, plans
-from irerero.ui import charts, data, maps, theme
+from irerero.ui import assistant, charts, data, maps, theme
 from irerero.ui.roles import PLANNER, current
 from irerero.ui.theme import Col
 
@@ -16,21 +16,14 @@ simulated = any_simulated(sectors)
 status = "simulated" if simulated else "model estimate"
 source = "IrereroAI 2026 estimate"
 
-theme.header(
-    "Early Childhood Development Overview",
-    "Plan where to act. Understand why. Track progress to 2029.",
-    simulated=simulated,
-    crumbs=["Rwanda", "Overview"],
-    aside=theme.target_callout(
-        "NST2 target", f"{TARGET_2029.value:.0%} by {TARGET_YEAR}", "Pre-primary enrolment"
-    ),
-)
+theme.topbar(["Rwanda", "Overview"])
+assistant.hero(user, simulated)
 
 # --- filters ------------------------------------------------------------------------------
 with theme.panel(key="filters"):
     f1, f2, f3 = st.columns([1, 1, 1])
     provinces = ["All provinces", *sorted(sectors.province.dropna().unique())]
-    province = f1.selectbox("Province", provinces)
+    province = f1.selectbox("Province", provinces, key="ov-province")
     target_pct = f2.slider(
         "Target attendance (%)",
         30,

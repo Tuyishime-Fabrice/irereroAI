@@ -1,5 +1,7 @@
 """Charts shared by several screens, in the house style (Altair theme set in theme.setup)."""
 
+from html import escape
+
 import altair as alt
 import pandas as pd
 
@@ -61,7 +63,7 @@ def trend(
             color=alt.Color(
                 "series:N",
                 scale=alt.Scale(domain=domain, range=colours),
-                legend=alt.Legend(orient="top", title=None, symbolType="stroke"),
+                legend=None,  # trend_legend() draws it in HTML so it wraps on a phone
             ),
             strokeDash=alt.condition(
                 alt.datum.series == "Trend", alt.value([5, 4]), alt.value([1, 0])
@@ -87,3 +89,21 @@ def trend(
         .encode(x=x, y="value:Q", text="label")
     )
     return (area + lines + marks + labels).properties(height=height)
+
+
+def trend_legend(with_plan: bool = False) -> str:
+    """HTML legend for trend(): line style and colour, and the words, for every mark."""
+    items = [
+        ("", SERIES[0], "Observed (MINEDUC)"),
+        ("dash", SERIES_MUTED, "Trend, with 80% range"),
+    ]
+    if with_plan:
+        items.append(("", SERIES[1], "With added rooms"))
+    items.append(("diamond", GOLD_700, "NST2 milestone and target"))
+    spans = "".join(
+        f'<span><i class="{cls}" style="border-color:{colour}'
+        + (f";background:{colour}" if cls == "diamond" else "")
+        + f'"></i>{escape(text)}</span>'
+        for cls, colour, text in items
+    )
+    return f'<div class="ir-legend" role="list" aria-label="Chart legend">{spans}</div>'

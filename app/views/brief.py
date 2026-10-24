@@ -1,5 +1,7 @@
 """Screen 7. District brief: one printable page, every number cited; CSV and PDF exports."""
 
+from html import escape
+
 import pandas as pd
 import streamlit as st
 
@@ -39,6 +41,7 @@ theme.header(
     "One page for the district council. Use your browser's print, or download the PDF or CSV.",
     simulated=simulated,
     crumbs=["Rwanda", frame.province.iat[0] if len(frame) else "", name, "District brief"],
+    assistant="brief",
 )
 
 with theme.panel(key="filters"):
@@ -85,8 +88,12 @@ with theme.panel(
         f"{theme.fmt_pct(track.projected, 1)} in {TARGET_YEAR} (80% range "
         f"{theme.fmt_pct(track.low)}-{theme.fmt_pct(track.high)}): {track.status} [4]",
     ]
-    for line in lines:
-        st.markdown(f"- {line}  ·  {theme.badge(status)}", unsafe_allow_html=True)
+    st.markdown(
+        '<ul class="ir-list">'
+        + "".join(f"<li>{escape(line)} {theme.badge(status)}</li>" for line in lines)
+        + "</ul>",
+        unsafe_allow_html=True,
+    )
 
     st.markdown(f"**Top 5 sectors ({preset})** [1] [2] [3] [5]")
     top = result.head(5)
@@ -153,9 +160,12 @@ with theme.panel(
         )
         st.markdown(f"**Training.** {training_line}")
 
-    st.markdown("**Sources**")
-    for n, text in refs.items():
-        st.markdown(f"[{n}] {text}")
+    st.markdown(
+        '<div class="ir-sub">Sources</div><ol class="ir-sources">'
+        + "".join(f"<li>[{n}] {escape(text)}</li>" for n, text in refs.items())
+        + "</ol>",
+        unsafe_allow_html=True,
+    )
     theme.note(
         f"{DEFINITION} Status of every number: {status}. Priority is relative to other sectors "
         "in the district. Associations, not causes. Decisions are made by people."

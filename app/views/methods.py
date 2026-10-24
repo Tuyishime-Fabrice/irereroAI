@@ -27,6 +27,7 @@ theme.header(
     "Data & methods",
     "Where every number comes from, and how far to trust it.",
     crumbs=["Rwanda", "Data & methods"],
+    assistant="methods",
 )
 
 STATUS_MEANING = {
@@ -52,8 +53,13 @@ with k1:
     theme.kpi("Datasets with real files", f"{real_n} of {len(file_sets)}", "Data layer", None, None,
               "the rest use labelled stand-ins", "database", "teal")  # fmt: skip
 with k2:
-    theme.kpi("Sectors with real boundaries", "416", "geoBoundaries (CC BY 4.0)", "2023", "published estimate",
-              "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
+    units = data.table("geo_unit")
+    sector_units = units[units.level == "sector"]
+    coded = int(sector_units.nisr_code.notna().sum())
+    theme.kpi("Sectors with real boundaries", str(len(sector_units)), "geoBoundaries (CC BY 4.0)",
+              "2023", "published estimate",
+              f"{coded} with NISR codes from the COD-AB gazetteer, to review" if coded
+              else "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
 with k3:
     if len(run):
         best = run[run.chosen].iloc[0]
@@ -63,10 +69,10 @@ with k3:
 with k4:
     theme.kpi("Statuses in use", str(len(STATUSES)), "Provenance", None, None,
               "every number carries one", "shield", "gold")  # fmt: skip
-st.write("")
-tabs = st.tabs(
-    ["Sources", "Definitions", "Model card", "Validation", "Limitations", "NCDA connector"]
-)
+with theme.panel(key="methods"):
+    tabs = st.tabs(
+        ["Sources", "Definitions", "Model card", "Validation", "Limitations", "NCDA connector"]
+    )
 
 with tabs[0]:
     st.markdown("#### Status legend")
@@ -256,6 +262,9 @@ with tabs[4]:
 - **Kinyarwanda labels and course titles are drafts** awaiting review by a native speaker.
 - **Every value in this demo build that comes from a missing file is simulated**, labelled, and
   excluded from exports by default.
+- **The IrereroAI assistant is a language model.** It answers from this dashboard's figures and
+  labels their status, but it can still misread or misstate them: check an answer against the
+  screen before using it. It reads aggregates only and cannot change plans or data.
 """
     )
 

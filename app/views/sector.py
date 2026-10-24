@@ -52,6 +52,7 @@ theme.header(
     "Understand what is holding early childhood development back.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], row["name"]],
+    assistant="sector",
 )
 
 # --- selectors ----------------------------------------------------------------------------
@@ -89,17 +90,11 @@ with k3:
     theme.kpi("Target", theme.fmt_pct(target), "NST2", "2028/29", None,
               f"{theme.fmt_int(places)} places short", "target", "gold")  # fmt: skip
 with k4:
-    tone = "teal" if row.bottleneck == "NONE" else "rose"
-    bg, fg = theme.TONES[tone]
-    st.markdown(
-        f'<div class="ir-callout" style="background:{bg};border-color:{fg}33;height:100%">'
-        f'<div style="display:flex;gap:.6rem;align-items:center;color:{fg};font-weight:700;'
-        f'font-size:1.05rem">{theme.icon("alert" if tone == "rose" else "check", 22)}Main bottleneck: '
-        f"{escape(theme.PILLS[row.bottleneck][1])}</div>"
-        f'<div style="color:#0F1B2A;font-size:.86rem;margin-top:.35rem">{escape(row.intervention)}</div></div>',
-        unsafe_allow_html=True,
+    theme.alert(
+        f"Main bottleneck: {theme.PILLS[row.bottleneck][1]}",
+        row.intervention,
+        "teal" if row.bottleneck == "NONE" else "rose",
     )
-st.write("")
 
 # --- factors and decision -----------------------------------------------------------------
 left, right = st.columns([3, 2])

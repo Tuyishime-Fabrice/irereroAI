@@ -23,19 +23,24 @@ ICON = ASSETS / "icon.png"
 ICON_LIGHT = ASSETS / "icon-light.png"
 
 # --- tokens -------------------------------------------------------------------------------
-NAVY = "#033665"
-NAVY_900 = "#0B2D4F"  # sidebar
-TEAL = "#18977A"
-TEAL_700 = "#12785F"
+# Brand: navy for navigation and headings, teal for actions and positive indicators, gold for
+# targets. TEAL (brand) passes 3:1 for icons, tracks and chart marks; TEAL_700 carries filled
+# buttons, the active nav item and teal text (5.3:1 with white).
+NAVY = "#0B2E50"
+NAVY_900 = NAVY  # sidebar
+NAVY_700 = "#14406B"
+TEAL = "#169B83"
+TEAL_700 = "#0F7A67"
 GOLD = "#ECA837"
-GOLD_700 = "#A86A06"
+GOLD_700 = "#8A5A00"
 INK = "#0F1B2A"
 SLATE = "#5B6B7C"
 SLATE_300 = "#CBD5E1"
-BORDER = "#E2E8F0"
+BORDER = "#DDE3EA"
 SURFACE = "#FFFFFF"
-CANVAS = "#F4F7FA"
+CANVAS = "#F4F7FB"
 SIM_RED = "#B42318"
+FOCUS = NAVY  # focus ring on light surfaces; gold on the navy sidebar
 
 # Chart series (validated with the dataviz palette checks: lightness band, chroma, CVD and
 # contrast all pass on white). Used in this order; never cycled.
@@ -133,196 +138,454 @@ def icon(name: str, size: int = 20, stroke: float = 2) -> str:
 
 
 # --- page chrome --------------------------------------------------------------------------
+# Spacing follows an 8px scale (--s1 8px ... --s4 32px). Cards pad 20px; Streamlit's own gap
+# between blocks and columns is 16px. Sizes are in px so they do not drift with the root size.
 CSS = f"""
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   :root {{
-    --ir-navy: {NAVY}; --ir-teal: {TEAL}; --ir-gold: {GOLD}; --ir-ink: {INK};
-    --ir-slate: {SLATE}; --ir-border: {BORDER}; --ir-canvas: {CANVAS};
-    --ir-font: Inter, "Source Sans Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --ir-navy: {NAVY}; --ir-teal: {TEAL}; --ir-teal-700: {TEAL_700}; --ir-gold: {GOLD};
+    --ir-ink: {INK}; --ir-slate: {SLATE}; --ir-border: {BORDER}; --ir-canvas: {CANVAS};
+    --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px;
+    --ir-radius: 12px; --ir-radius-sm: 8px;
+    --ir-shadow: 0 1px 2px rgba(16,24,40,.05);
+    --ir-sidebar: 248px;
   }}
-  .stApp, .stApp p, .stApp li, .stApp label, .stApp input, .stApp textarea, .stApp button,
-  .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp td, .stApp th,
-  .stApp [data-testid="stMarkdownContainer"], .stApp [data-baseweb="select"] {{
-    font-family: var(--ir-font);
-  }}
+  .stApp {{ background: {CANVAS}; color: {INK}; }}
   .stApp h1, .stApp h2, .stApp h3, .stApp h4 {{ color: {NAVY}; letter-spacing: -.01em; }}
-  .stApp h3 {{ font-size: 1.15rem; font-weight: 700; }}
   header[data-testid="stHeader"] {{ background: transparent; }}
-  .block-container {{ padding-top: 1.2rem; padding-bottom: 3rem; max-width: 1360px; }}
-
-  /* sidebar */
-  section[data-testid="stSidebar"] {{ border-right: 0; }}
-  section[data-testid="stSidebar"] [data-testid="stSidebarNav"] a {{
-    border-radius: 8px; margin: 1px 0; padding: .3rem .7rem; min-height: 2.3rem;
+  .block-container, [data-testid="stMainBlockContainer"] {{
+    padding: var(--s3) var(--s4) 48px; max-width: 1440px;
   }}
-  [data-testid="stSidebarLogo"], [data-testid="stHeaderLogo"] {{ height: 2.4rem; max-width: 13rem; }}
-  [data-testid="stNavSectionHeader"] p {{ color: #9FB3C8 !important; font-size: .72rem;
-    font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }}
+
+  /* sidebar: 248px, one icon column, 40px rows */
+  section[data-testid="stSidebar"][data-collapsed="false"] {{
+    width: var(--ir-sidebar) !important; min-width: var(--ir-sidebar) !important;
+    max-width: var(--ir-sidebar) !important;
+  }}
+  section[data-testid="stSidebar"] {{ border-right: 0; }}
+  section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{ padding: 0 0 var(--s3); }}
+  section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {{
+    padding: var(--s2) var(--s2) var(--s3);
+  }}
+  section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] {{ padding: var(--s2) var(--s2) var(--s1); margin: 0; }}
+  section[data-testid="stSidebar"] [data-testid="stSidebarNav"] {{ padding: 0 var(--s1); }}
+  [data-testid="stSidebarLogo"], [data-testid="stHeaderLogo"] {{ height: 32px; max-width: 180px; }}
+  section[data-testid="stSidebar"] [data-testid="stSidebarNav"] a {{
+    border-radius: var(--ir-radius-sm); margin: 2px 0; padding: 0 12px; min-height: 40px;
+    gap: 12px; align-items: center;
+  }}
   section[data-testid="stSidebar"] [data-testid="stSidebarNav"] a span {{
-    color: #D6E2EE; font-weight: 500;
+    color: #D6E2EE; font-weight: 500; font-size: 14px;
   }}
   section[data-testid="stSidebar"] [data-testid="stSidebarNav"] a:hover {{
-    background: rgba(255,255,255,.07);
+    background: rgba(255,255,255,.08);
   }}
   section[data-testid="stSidebar"] [data-testid="stSidebarNav"] a[aria-current="page"] {{
-    background: {TEAL};
+    background: {TEAL_700}; box-shadow: inset 3px 0 0 {TEAL};
   }}
   section[data-testid="stSidebar"] [data-testid="stSidebarNav"] a[aria-current="page"] span {{
     color: #fff; font-weight: 600;
+  }}
+  [data-testid="stNavSectionHeader"] {{ padding: 0 12px; margin-top: var(--s2); }}
+  [data-testid="stNavSectionHeader"] p, [data-testid="stNavSectionHeader"] span {{
+    color: #A9BCD0 !important; font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .08em;
   }}
   section[data-testid="stSidebar"] [data-testid="stSidebarNavSeparator"] {{
     border-color: rgba(255,255,255,.12);
   }}
   section[data-testid="stSidebar"] header [data-testid="stSidebarNavSeparator"] {{ display:none; }}
+  section[data-testid="stSidebar"] [role="radiogroup"] label {{ min-height: 32px; align-items: center; }}
+  section[data-testid="stSidebar"] [role="radiogroup"] label p {{ font-size: 14px; }}
+  section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {{ color: #D6E2EE; }}
   .ir-side-label {{
-    color: #9FB3C8; font-size: .72rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: .08em; margin: .2rem 0 .3rem;
+    color: #A9BCD0; font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .08em; margin: var(--s1) 0 4px;
   }}
-  .ir-side-note {{ color: #9FB3C8; font-size: .75rem; line-height: 1.4; }}
+  .ir-side-note {{ color: #A9BCD0; font-size: 12px; line-height: 1.45; }}
 
-  /* cards: every bordered container is a white card */
-  .stApp [class*="st-key-ir-"] {{
-    background: {SURFACE}; border: 1px solid {BORDER}; border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(16,24,40,.04); padding: 1rem 1.1rem;
+  /* focus: always visible, 2px, never colour alone */
+  .stApp a:focus-visible, .stApp button:focus-visible, .stApp [role="radio"]:focus-visible,
+  .stApp [role="switch"]:focus-visible, .stApp [role="slider"]:focus-visible,
+  .stApp [role="tab"]:focus-visible, .stApp summary:focus-visible,
+  .stApp input:focus-visible, .stApp textarea:focus-visible {{
+    outline: 2px solid {FOCUS} !important; outline-offset: 2px;
   }}
-  .stApp [class*="st-key-ir-"] [class*="st-key-ir-"] {{ box-shadow: none; }}
-  .stApp [data-testid="stExpander"] details {{
-    background: {SURFACE}; border-color: {BORDER}; border-radius: 10px;
+  .stApp [data-baseweb="select"] > div:focus-within {{
+    outline: 2px solid {FOCUS}; outline-offset: 1px;
   }}
+  section[data-testid="stSidebar"] a:focus-visible, section[data-testid="stSidebar"] button:focus-visible,
+  section[data-testid="stSidebar"] [role="radio"]:focus-visible,
+  section[data-testid="stSidebar"] [data-baseweb="select"] > div:focus-within {{
+    outline: 2px solid {GOLD} !important; outline-offset: 2px;
+  }}
+
+  /* widgets: labels stay readable when a control is locked to the user's area */
+  .stApp [data-testid="stWidgetLabel"] {{ min-height: 24px; }}
+  .stApp [data-testid="stWidgetLabel"] p {{ font-size: 14px; font-weight: 500; color: {INK}; }}
+  .stApp [data-testid="stSelectbox"] input[data-disabled="true"],
+  .stApp [data-testid="stSelectbox"] input:disabled {{
+    color: {SLATE}; -webkit-text-fill-color: {SLATE}; opacity: 1;
+  }}
+  .stApp [data-baseweb="select"] > div {{ min-height: 40px; }}
   .stButton button, .stDownloadButton button, .stFormSubmitButton button {{
-    border-radius: 8px; font-weight: 600;
+    border-radius: var(--ir-radius-sm); font-weight: 600; min-height: 40px; padding: 0 var(--s2);
   }}
-  .stButton button:focus-visible, .stDownloadButton button:focus-visible {{
-    outline: 2px solid {GOLD}; outline-offset: 2px;
+  .stApp [data-testid="stPageLink"] a {{ min-height: 32px; padding: 0 4px; }}
+  .stApp [data-testid="stPageLink"] a p {{ color: {TEAL_700}; font-weight: 600; font-size: 14px; }}
+  [data-testid="stDataFrame"] {{ border-radius: var(--ir-radius-sm); overflow: hidden; }}
+  .stApp [data-testid="stExpander"] details {{
+    background: {SURFACE}; border-color: {BORDER}; border-radius: var(--ir-radius-sm);
   }}
-  [data-testid="stDataFrame"] {{ border-radius: 10px; overflow: hidden; }}
+  .stApp [data-testid="stTabs"] [role="tab"] {{ min-height: 40px; }}
+
+  /* body text inside cards: 14px, one line height, 8px between paragraphs */
+  .stApp [class*="st-key-ir-"] [data-testid="stMarkdownContainer"] p,
+  .stApp [class*="st-key-ir-"] [data-testid="stMarkdownContainer"] li {{
+    font-size: 14px; line-height: 1.55;
+  }}
+  .stApp [class*="st-key-ir-"] [data-testid="stMarkdownContainer"] p {{ margin-bottom: 8px; }}
+  .stApp [class*="st-key-ir-"] [data-testid="stMarkdownContainer"] h4 {{
+    font-size: 16px; font-weight: 600; padding: 4px 0 0;
+  }}
+  ul.ir-list {{ margin: 0 0 4px; padding-left: 20px; }}
+  ul.ir-list li {{ margin: 0 0 6px; }}
+  .ir-sub {{ color: {INK}; font-size: 14px; font-weight: 600; margin: 8px 0 4px; }}
+  ol.ir-sources {{ margin: 0; padding-left: 0; list-style: none; color: {SLATE};
+    font-size: 13px; line-height: 1.6; }}
+
+  /* Streamlit alerts in the notice style */
+  .stApp [data-testid="stAlert"] [data-testid="stAlertContainer"] {{
+    border-radius: var(--ir-radius-sm); padding: 10px 14px;
+  }}
+  .stApp [data-testid="stAlert"] [data-testid="stMarkdownContainer"] p {{
+    font-size: 14px; line-height: 1.5; margin: 0;
+  }}
+
+  /* cards: every keyed container (theme.panel) is a white card, 20px padding */
+  .stApp [class*="st-key-ir-"] {{
+    background: {SURFACE}; border: 1px solid {BORDER}; border-radius: var(--ir-radius);
+    box-shadow: var(--ir-shadow); padding: 20px; box-sizing: border-box;
+  }}
+  .stApp [class*="st-key-ir-"] [class*="st-key-ir-"] {{ box-shadow: none; padding: var(--s2); }}
+
+  /* one row, one height: cards in the same row of columns fill the row */
+  [data-testid="stColumn"] > [data-testid="stVerticalBlock"] {{ height: 100%; }}
+  [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"]:last-child:has(> [class*="st-key-ir-"]) {{
+    flex: 1 1 auto;
+  }}
+  [data-testid="stLayoutWrapper"] > [class*="st-key-ir-"] {{ height: 100%; }}
+  [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:has(.ir-fill) {{
+    flex: 1 1 auto;
+  }}
+  [data-testid="stElementContainer"]:has(.ir-fill) > div,
+  [data-testid="stElementContainer"]:has(.ir-fill) > div > div,
+  [data-testid="stMarkdownContainer"]:has(> .ir-fill) {{ height: 100%; }}
 
   /* top bar and page header */
   .ir-topbar {{
-    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    padding: .2rem 0 .9rem; border-bottom: 1px solid {BORDER}; margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
+    min-height: 48px; padding-bottom: 12px; border-bottom: 1px solid {BORDER};
+    margin-bottom: var(--s1);
   }}
-  .ir-crumbs {{ color: {SLATE}; font-size: .85rem; display: flex; flex-wrap: wrap; gap: .35rem;
-    align-items: center; }}
+  .ir-crumbs {{ color: {SLATE}; font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 6px;
+    align-items: center; min-width: 0; }}
   .ir-crumbs .sep {{ color: {SLATE_300}; }}
   .ir-crumbs .here {{ color: {INK}; font-weight: 600; }}
   .ir-crumbs .app {{ color: {SLATE}; font-weight: 600; letter-spacing: .08em;
-    text-transform: uppercase; font-size: .74rem; margin-right: .4rem; }}
-  .ir-user {{ display: flex; align-items: center; gap: .7rem; white-space: nowrap; }}
-  .ir-user .bell {{ color: {SLATE}; position: relative; display: flex; }}
-  .ir-avatar {{ width: 34px; height: 34px; border-radius: 50%; background: {NAVY};
+    text-transform: uppercase; font-size: 12px; margin-right: 4px; }}
+  .ir-user {{ display: flex; align-items: center; gap: 12px; white-space: nowrap; flex: none; }}
+  .ir-avatar {{ width: 36px; height: 36px; border-radius: 50%; background: {NAVY};
     color: #fff; display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: .8rem; }}
-  .ir-user .who {{ line-height: 1.15; }}
-  .ir-user .who b {{ color: {INK}; font-size: .86rem; display: block; }}
-  .ir-user .who span {{ color: {SLATE}; font-size: .76rem; }}
-  .stApp h1.ir-title {{ padding: 0 !important; }}
-  .ir-title {{ font-size: 1.95rem; font-weight: 800; color: {NAVY}; margin: 0;
-    letter-spacing: -.02em; line-height: 1.15; }}
-  .ir-subtitle {{ color: {SLATE}; font-size: 1.05rem; margin: .3rem 0 .2rem; }}
-  .ir-tag {{ display: inline-block; vertical-align: middle; margin-left: .6rem; font-size: .75rem;
-    font-weight: 600; padding: .15rem .55rem; border-radius: 999px; }}
+    font-weight: 700; font-size: 13px; }}
+  .ir-user .who {{ line-height: 1.3; }}
+  .ir-user .who b {{ color: {INK}; font-size: 14px; display: block; font-weight: 600; }}
+  .ir-user .who span {{ color: {SLATE}; font-size: 12px; }}
+  .stApp [data-testid="stMarkdownContainer"] h1.ir-title {{
+    font-size: 32px; font-weight: 700; color: {NAVY}; margin: 0; padding: 0;
+    letter-spacing: -.02em; line-height: 1.2; text-wrap: balance;
+  }}
+  .ir-subtitle {{ color: {SLATE}; font-size: 15px; line-height: 1.5; margin: 4px 0 4px; }}
+  .ir-tag {{ display: inline-block; vertical-align: middle; margin-left: 12px; font-size: 12px;
+    font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: 0; }}
 
-  /* notices */
-  .ir-scope {{ display: flex; gap: .55rem; align-items: flex-start; background: #EEF5F3;
-    border: 1px solid #CFE7E0; color: {INK}; font-size: .82rem; padding: .5rem .75rem;
-    border-radius: 10px; margin: .7rem 0 .5rem; }}
-  .ir-scope .ir-icon {{ color: {TEAL_700}; flex: none; margin-top: 1px; }}
-  .ir-banner {{ display: flex; gap: .55rem; align-items: flex-start; background: #FEF3F2;
-    border: 1px solid #F5C2BC; border-left: 4px solid {SIM_RED}; color: #7A271A;
-    font-size: .82rem; padding: .5rem .75rem; border-radius: 10px; margin: .2rem 0 .8rem; }}
-  .ir-banner .ir-icon {{ color: {SIM_RED}; flex: none; margin-top: 1px; }}
-  .ir-callout {{ border-radius: 12px; padding: .9rem 1rem; border: 1px solid; }}
+  /* notices: compact, one style, icon + words */
+  .ir-notice {{ display: flex; gap: 10px; align-items: flex-start; font-size: 13px;
+    line-height: 1.5; padding: 10px 14px; border-radius: var(--ir-radius-sm); border: 1px solid; }}
+  .ir-notice .ir-icon {{ flex: none; margin-top: 1px; }}
+  .ir-scope {{ background: #EEF6F3; border-color: #CFE7E0; color: {INK}; }}
+  .ir-scope .ir-icon {{ color: {TEAL_700}; }}
+  .ir-banner {{ background: #FEF3F2; border-color: #F5C2BC; color: #7A271A;
+    box-shadow: inset 3px 0 0 {SIM_RED}; }}
+  .ir-banner .ir-icon {{ color: {SIM_RED}; }}
+  .ir-callout {{ border-radius: var(--ir-radius); padding: var(--s2) 20px; border: 1px solid; }}
+  .ir-target {{ background: #FDF6E7; border-color: #F3DDB0; display: flex; gap: var(--s2);
+    align-items: center; }}
+  .ir-target .ico {{ color: {GOLD_700}; flex: none; display: flex; }}
+  .ir-target .label {{ font-weight: 600; color: {INK}; font-size: 14px; }}
+  .ir-target .detail {{ color: {SLATE}; font-size: 13px; }}
+  .ir-target .value {{ font-weight: 700; color: {NAVY}; font-size: 24px; line-height: 1.2;
+    margin-top: 2px; white-space: nowrap; }}
 
-  /* badges, pills, chips */
-  .ir-badge {{ display: inline-block; padding: .05rem .45rem; border-radius: 4px;
-    font-size: .68rem; font-weight: 700; letter-spacing: .04em; vertical-align: middle;
-    line-height: 1.5; }}
+  /* badges, pills, chips: always a word */
+  .ir-badge {{ display: inline-block; padding: 1px 6px; border-radius: 4px;
+    font-size: 11px; font-weight: 700; letter-spacing: .04em; vertical-align: middle;
+    line-height: 1.5; white-space: nowrap; }}
   .ir-sim {{ background: {SIM_RED}; color: #fff; }}
   .ir-status {{ background: #E6EDF3; color: {NAVY}; font-weight: 600; }}
-  .ir-pill {{ display: inline-block; padding: .12rem .6rem; border-radius: 6px; font-size: .8rem;
+  .ir-pill {{ display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px;
     font-weight: 600; white-space: nowrap; line-height: 1.5; }}
-  .ir-chip {{ display: inline-block; border-radius: 999px; padding: .08rem .6rem; font-size: .78rem;
+  .ir-chip {{ display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12px;
     font-weight: 600; color: #fff; }}
   .ir-num {{ border-bottom: 1px dotted {SLATE}; cursor: help; }}
-  .ir-note {{ color: {SLATE}; font-size: .8rem; line-height: 1.45; }}
+  .ir-note {{ color: {SLATE}; font-size: 13px; line-height: 1.5; }}
 
-  /* KPI cards */
-  .ir-kpi {{ background: {SURFACE}; border: 1px solid {BORDER}; border-radius: 12px;
-    padding: 1rem 1.1rem; display: flex; gap: .9rem; align-items: flex-start; height: 100%;
-    box-shadow: 0 1px 2px rgba(16,24,40,.04); }}
-  .ir-kpi .ico {{ width: 42px; height: 42px; border-radius: 50%; display: flex; flex: none;
+  /* KPI cards: icon + label, value, detail, then source and status pinned to the bottom */
+  .ir-kpi, .ir-card {{ background: {SURFACE}; border: 1px solid {BORDER};
+    border-radius: var(--ir-radius); padding: 20px; display: flex; flex-direction: column;
+    height: 100%; box-sizing: border-box; box-shadow: var(--ir-shadow); min-width: 0; }}
+  .ir-kpi .head {{ display: flex; gap: 12px; align-items: center; min-height: 40px;
+    margin-bottom: 12px; }}
+  .ir-kpi .ico {{ width: 40px; height: 40px; border-radius: 10px; display: flex; flex: none;
     align-items: center; justify-content: center; }}
-  .ir-kpi .label {{ color: {INK}; font-size: .86rem; font-weight: 600; }}
-  .ir-kpi .value {{ color: {NAVY}; font-size: 1.65rem; font-weight: 800; line-height: 1.15;
-    letter-spacing: -.02em; margin: .1rem 0; }}
-  .ir-kpi .detail {{ color: {SLATE}; font-size: .8rem; }}
-  .ir-kpi .src {{ color: {SLATE}; font-size: .7rem; margin-top: .35rem; }}
-  .ir-card {{ border: 1px solid {BORDER}; border-radius: 12px; padding: .8rem 1rem;
-    height: 100%; background: {SURFACE}; }}
-  .ir-card .label {{ color: {SLATE}; font-size: .8rem; }}
-  .ir-card .value {{ color: {NAVY}; font-size: 1.55rem; font-weight: 800; line-height: 1.25; }}
-  .ir-card .range {{ color: {SLATE}; font-size: .8rem; }}
-  .ir-card .src {{ color: {SLATE}; font-size: .72rem; margin-top: .3rem; }}
+  .ir-kpi .label, .ir-card .label {{ color: {INK}; font-size: 14px; font-weight: 600;
+    line-height: 1.35; }}
+  .ir-kpi .value, .ir-card .value {{ color: {NAVY}; font-size: 28px; font-weight: 700;
+    line-height: 1.15; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere; }}
+  .ir-kpi .detail, .ir-card .range {{ color: {SLATE}; font-size: 13px; line-height: 1.45;
+    margin-top: 4px; }}
+  .ir-kpi .src, .ir-card .src {{ color: {SLATE}; font-size: 12px; line-height: 1.4;
+    margin-top: auto; padding-top: 12px; display: flex; flex-wrap: wrap; gap: 4px 8px;
+    align-items: center; }}
+  .ir-card {{ padding: var(--s2); }}
+  .ir-card .label {{ color: {SLATE}; font-weight: 500; }}
+  .ir-card .value {{ font-size: 24px; margin-top: 4px; }}
+  .ir-alert {{ height: 100%; box-sizing: border-box; display: flex; flex-direction: column;
+    gap: var(--s1); }}
+  .ir-alert .title {{ display: flex; gap: var(--s1); align-items: center; font-weight: 700;
+    font-size: 16px; }}
+  .ir-alert .body {{ color: {INK}; font-size: 14px; line-height: 1.5; }}
+
+  /* stat strip: a headline figure split into cells (Action plans banner) */
+  .ir-strip {{ display: grid; grid-template-columns: minmax(260px, 2fr) repeat(3, minmax(140px, 1fr));
+    gap: var(--s2); align-items: center; }}
+  .ir-strip .lead {{ display: flex; gap: var(--s2); align-items: center; }}
+  .ir-strip .lead b {{ color: {NAVY}; font-size: 18px; font-weight: 700; line-height: 1.3;
+    display: block; }}
+  .ir-strip .cell {{ border-left: 1px solid #CFE7E0; padding-left: var(--s2); }}
+  .ir-strip .cell .v {{ color: {NAVY}; font-size: 24px; font-weight: 700; line-height: 1.2;
+    font-variant-numeric: tabular-nums; }}
 
   /* panel headers */
   .ir-panel-head {{ display: flex; justify-content: space-between; align-items: flex-start;
-    gap: .8rem; margin-bottom: .4rem; }}
-  .ir-panel-head h3 {{ margin: 0; padding: 0; font-size: 1.12rem; font-weight: 700;
-    color: {NAVY}; display: flex; gap: .5rem; align-items: center; }}
-  .ir-panel-head h3 .ir-icon {{ margin-right: .45rem; flex: none; }}
-  .ir-panel-head p {{ margin: .15rem 0 0; color: {SLATE}; font-size: .85rem; }}
+    gap: 12px; }}
+  .ir-panel-head h3 {{ margin: 0; padding: 0; font-size: 18px; font-weight: 600; line-height: 1.35;
+    color: {NAVY}; display: flex; gap: var(--s1); align-items: center; }}
+  .ir-panel-head h3 svg.ir-icon {{ margin-right: 8px; vertical-align: -3px; flex: none; }}
+  .ir-panel-head p {{ margin: 4px 0 0; color: {SLATE}; font-size: 13px; line-height: 1.45; }}
 
-  /* tables */
-  .ir-table-wrap {{ overflow-x: auto; border: 1px solid {BORDER}; border-radius: 10px; }}
-  table.ir-table {{ width: 100%; border-collapse: collapse; font-size: .88rem; }}
-  table.ir-table th {{ background: #F7F9FB; color: {INK}; font-weight: 600; font-size: .8rem;
-    text-align: left; padding: .6rem .75rem; border-bottom: 1px solid {BORDER};
-    white-space: nowrap; }}
-  table.ir-table td {{ padding: .55rem .75rem; border-bottom: 1px solid #EEF2F6; color: {INK};
-    vertical-align: middle; }}
+  /* tables: wrap headers instead of hiding columns */
+  .ir-table-wrap {{ overflow-x: auto; border: 1px solid {BORDER}; border-radius: var(--ir-radius-sm); }}
+  table.ir-table {{ width: 100%; border-collapse: collapse; font-size: 14px; }}
+  table.ir-table th {{ background: #F7F9FB; color: {INK}; font-weight: 600; font-size: 12px;
+    text-align: left; padding: 10px 12px; border-bottom: 1px solid {BORDER};
+    line-height: 1.3; vertical-align: bottom; }}
+  table.ir-table td {{ padding: 10px 12px; border-bottom: 1px solid #EEF2F6; color: {INK};
+    vertical-align: middle; line-height: 1.45; }}
   table.ir-table tr:last-child td {{ border-bottom: 0; }}
-  table.ir-table tr:hover td {{ background: #FAFCFD; }}
+  table.ir-table tbody tr:hover td {{ background: #FAFCFD; }}
   table.ir-table .num {{ text-align: right; font-variant-numeric: tabular-nums;
     white-space: nowrap; }}
+  table.ir-table th.num {{ white-space: normal; }}
   table.ir-table .strong {{ font-weight: 600; }}
   table.ir-table .muted {{ color: {SLATE}; }}
+  table.ir-table code {{ font-size: 12px; background: #EEF2F6; color: {INK}; padding: 1px 6px;
+    border-radius: 4px; white-space: nowrap; }}
 
   /* factor bars */
-  .ir-bar-row {{ display: grid; grid-template-columns: 40px 1fr 42%; gap: .7rem;
-    align-items: center; padding: .55rem 0; border-bottom: 1px solid #EEF2F6; }}
+  .ir-bar-row {{ display: grid; grid-template-columns: 40px 1fr 42%; gap: 12px;
+    align-items: center; padding: 10px 0; border-bottom: 1px solid #EEF2F6; }}
   .ir-bar-row:last-child {{ border-bottom: 0; }}
   .ir-bar-row .ico {{ width: 36px; height: 36px; border-radius: 10px; display: flex;
     align-items: center; justify-content: center; }}
-  .ir-bar-row .name {{ font-weight: 600; color: {INK}; font-size: .9rem; }}
-  .ir-bar-row .sub {{ color: {SLATE}; font-size: .76rem; }}
-  .ir-bar-track {{ background: #EEF2F6; border-radius: 6px; height: 12px; position: relative; }}
-  .ir-bar-fill {{ height: 12px; border-radius: 6px; }}
-  .ir-bar-mark {{ position: absolute; top: -3px; width: 2px; height: 18px; background: {SLATE};
+  .ir-bar-row .name {{ font-weight: 600; color: {INK}; font-size: 14px; }}
+  .ir-bar-row .sub {{ color: {SLATE}; font-size: 12px; line-height: 1.4; }}
+  .ir-bar-track {{ background: #EEF2F6; border-radius: 6px; height: 10px; position: relative; }}
+  .ir-bar-fill {{ height: 10px; border-radius: 6px; }}
+  .ir-bar-mark {{ position: absolute; top: -4px; width: 2px; height: 18px; background: {SLATE};
     left: 75%; }}
-  .ir-bar-val {{ font-size: .78rem; color: {INK}; margin-top: .2rem; font-weight: 600; }}
+  .ir-bar-val {{ font-size: 12px; color: {INK}; margin-top: 4px; font-weight: 600; }}
 
   /* timeline */
   .ir-timeline {{ margin: 0; padding: 0; list-style: none; }}
-  .ir-timeline li {{ display: grid; grid-template-columns: 14px 1fr; gap: .6rem;
-    padding: .45rem 0; }}
-  .ir-timeline .dot {{ width: 10px; height: 10px; border-radius: 50%; margin-top: .35rem; }}
-  .ir-timeline .when {{ color: {SLATE}; font-size: .75rem; }}
-  .ir-timeline .what {{ color: {INK}; font-size: .86rem; font-weight: 600; }}
-  .ir-timeline .why {{ color: {SLATE}; font-size: .8rem; }}
+  .ir-timeline li {{ display: grid; grid-template-columns: 14px 1fr; gap: 10px;
+    padding: var(--s1) 0; border-bottom: 1px solid #EEF2F6; }}
+  .ir-timeline li:last-child {{ border-bottom: 0; }}
+  .ir-timeline .dot {{ width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; }}
+  .ir-timeline .when {{ color: {SLATE}; font-size: 12px; }}
+  .ir-timeline .what {{ color: {INK}; font-size: 14px; font-weight: 600; }}
+  .ir-timeline .why {{ color: {SLATE}; font-size: 13px; }}
 
-  .ir-empty {{ text-align: center; color: {SLATE}; padding: 1.4rem .8rem; font-size: .88rem; }}
-  .ir-empty .ir-icon {{ color: {SLATE_300}; margin-bottom: .3rem; }}
+  .ir-empty {{ text-align: center; color: {SLATE}; padding: var(--s3) var(--s2); font-size: 14px;
+    display: flex; flex-direction: column; align-items: center; gap: var(--s1); }}
+  .ir-empty .ir-icon {{ color: #9AA8B7; }}
 
-  @media (max-width: 760px) {{
-    .block-container {{ padding-left: 1rem; padding-right: 1rem; padding-top: 3.2rem; }}
-    .ir-title {{ font-size: 1.55rem; }}
-    .ir-kpi .value {{ font-size: 1.45rem; }}
-    .ir-user .who {{ display: none; }}
-    .ir-topbar {{ flex-wrap: wrap; }}
+  /* --- IrereroAI assistant ------------------------------------------------------------ */
+  .ir-sr {{ position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
+  .stApp .st-key-ir-hero {{ background: linear-gradient(180deg, #F7FAFD 0%, {SURFACE} 75%);
+    padding: var(--s2) 20px; }}
+  .ir-robot {{ border-radius: var(--ir-radius); overflow: hidden; background: #EAF1F8;
+    aspect-ratio: 280 / 215; max-width: 280px; }}
+  .ir-robot img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
+  .st-key-ir-hero .ir-target .value {{ font-size: clamp(17px, 1.5vw, 20px); white-space: normal; }}
+  .st-key-ir-hero .ir-target {{ gap: 12px; padding: 14px 16px; }}
+  .ir-greet {{ margin: 4px 0 2px; }}
+  .ir-greet .hello {{ color: {SLATE}; font-size: 14px; }}
+  .ir-greet .ask {{ color: {NAVY}; font-size: 22px; font-weight: 700; line-height: 1.25; }}
+  .ir-greet .sub {{ color: {SLATE}; font-size: 14px; line-height: 1.5; display: flex;
+    flex-wrap: wrap; align-items: center; gap: 4px 12px; }}
+  .ir-greet .who {{ font-size: 12px; color: {INK}; border: 1px solid {BORDER};
+    border-radius: 999px; padding: 1px 10px; background: {SURFACE}; }}
+
+  /* notices: one at a time; auto-rotation pauses on hover or focus and stops once chosen */
+  .ir-notices {{ display: flex; flex-direction: column; gap: var(--s1); height: 100%; }}
+  .ir-slides {{ display: grid; flex: 1; }}
+  .ir-slide {{ grid-area: 1 / 1; display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 14px; border-radius: var(--ir-radius-sm); border: 1px solid #CFE7E0;
+    background: #EEF6F3; color: {INK}; font-size: 13px; line-height: 1.5;
+    opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility .35s; }}
+  .ir-slide.warn {{ background: #FEF3F2; border-color: #F5C2BC; color: #7A271A;
+    box-shadow: inset 3px 0 0 {SIM_RED}; }}
+  .ir-slide-ico {{ color: {TEAL_700}; flex: none; display: flex; margin-top: 1px; }}
+  .ir-slide.warn .ir-slide-ico {{ color: {SIM_RED}; }}
+  .ir-notices.single .s1,
+  .ir-notices:not(:has(input:checked)) .s1,
+  #irn-1:checked ~ .ir-slides .s1, #irn-2:checked ~ .ir-slides .s2 {{
+    opacity: 1; visibility: visible; }}
+  .ir-notice-tabs {{ display: flex; flex-wrap: wrap; gap: var(--s1); }}
+  .ir-notice-tabs label {{ display: inline-flex; align-items: center; gap: 6px;
+    min-height: 28px; padding: 2px 12px; border-radius: 999px; border: 1px solid {BORDER};
+    background: {SURFACE}; color: {SLATE}; font-size: 12px; font-weight: 600;
+    cursor: pointer; }}
+  .ir-notice-tabs .dot {{ width: 8px; height: 8px; border-radius: 50%; background: {SLATE_300}; }}
+  .ir-notices:not(:has(input:checked)) .t1,
+  #irn-1:checked ~ .ir-notice-tabs .t1 {{ color: {INK}; border-color: {TEAL_700}; }}
+  .ir-notices:not(:has(input:checked)) .t1 .dot,
+  #irn-1:checked ~ .ir-notice-tabs .t1 .dot {{ background: {TEAL_700}; }}
+  #irn-2:checked ~ .ir-notice-tabs .t2 {{ color: {INK}; border-color: {SIM_RED}; }}
+  #irn-2:checked ~ .ir-notice-tabs .t2 .dot {{ background: {SIM_RED}; }}
+  #irn-1:focus-visible ~ .ir-notice-tabs .t1, #irn-2:focus-visible ~ .ir-notice-tabs .t2 {{
+    outline: 2px solid {FOCUS}; outline-offset: 2px; }}
+  @media (prefers-reduced-motion: no-preference) {{
+    .ir-notices:not(:has(input:checked)) .s1 {{ animation: irn-show-a 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .s2 {{ animation: irn-show-b 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .t1 {{ animation: irn-tab-a 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .t2 {{ animation: irn-tab-b 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .t1 .dot {{ animation: irn-dot-a 16s infinite; }}
+    .ir-notices:not(:has(input:checked)) .t2 .dot {{ animation: irn-dot-b 16s infinite; }}
+    .ir-notices:hover *, .ir-notices:focus-within * {{ animation-play-state: paused !important; }}
+  }}
+  @keyframes irn-show-a {{ 0%, 46% {{ opacity: 1; visibility: visible; }}
+    50%, 96% {{ opacity: 0; visibility: hidden; }} 100% {{ opacity: 1; visibility: visible; }} }}
+  @keyframes irn-show-b {{ 0%, 46% {{ opacity: 0; visibility: hidden; }}
+    50%, 96% {{ opacity: 1; visibility: visible; }} 100% {{ opacity: 0; visibility: hidden; }} }}
+  @keyframes irn-tab-a {{ 0%, 48% {{ color: {INK}; border-color: {TEAL_700}; }}
+    50%, 98% {{ color: {SLATE}; border-color: {BORDER}; }} }}
+  @keyframes irn-tab-b {{ 0%, 48% {{ color: {SLATE}; border-color: {BORDER}; }}
+    50%, 98% {{ color: {INK}; border-color: {SIM_RED}; }} }}
+  @keyframes irn-dot-a {{ 0%, 48% {{ background: {TEAL_700}; }} 50%, 98% {{ background: {SLATE_300}; }} }}
+  @keyframes irn-dot-b {{ 0%, 48% {{ background: {SLATE_300}; }} 50%, 98% {{ background: {SIM_RED}; }} }}
+
+  /* question box and conversation */
+  .stApp [data-testid="stChatInput"] > div {{ border-radius: var(--ir-radius);
+    border: 1px solid {BORDER}; background: {SURFACE}; box-shadow: var(--ir-shadow); }}
+  .stApp [data-testid="stChatInput"]:focus-within > div {{ border-color: {NAVY};
+    box-shadow: 0 0 0 1px {NAVY}; }}
+  .stApp [data-testid="stChatInput"] textarea {{ font-size: 15px; }}
+  .stApp [data-testid="stChatInputSubmitButton"] {{ background: {TEAL_700}; color: #fff;
+    border-radius: var(--ir-radius-sm); }}
+  .stApp [data-testid="stChatInputSubmitButton"] svg {{ color: #fff; fill: #fff; }}
+  .stApp [data-testid="stChatInputSubmitButton"]:disabled {{ background: #DDE3EA;
+    color: {SLATE}; }}
+  .stApp [data-testid="stChatInputSubmitButton"]:disabled svg {{ color: {SLATE}; fill: {SLATE}; }}
+  .stApp [data-testid="stChatMessage"] {{ padding: 12px 14px; border-radius: var(--ir-radius);
+    gap: 12px; margin-bottom: var(--s1); background: {SURFACE}; border: 1px solid {BORDER}; }}
+  .stApp [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarCustom"]) {{
+    background: #EEF2F7; border-color: #EEF2F7; }}
+  .stApp [data-testid="stChatMessageAvatarCustom"] {{ background: {NAVY}; color: #fff;
+    border-radius: 50%; }}
+  .stApp [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] p,
+  .stApp [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] li {{
+    font-size: 14px; line-height: 1.6; }}
+  .ir-typing {{ display: flex; align-items: center; gap: 6px; color: {SLATE}; font-size: 13px;
+    min-height: 24px; }}
+  .ir-typing span {{ width: 6px; height: 6px; border-radius: 50%; background: {TEAL};
+    animation: ir-blink 1.2s infinite both; }}
+  .ir-typing span:nth-child(2) {{ animation-delay: .2s; }}
+  .ir-typing span:nth-child(3) {{ animation-delay: .4s; margin-right: 4px; }}
+  @keyframes ir-blink {{ 0%, 80%, 100% {{ opacity: .25; }} 40% {{ opacity: 1; }} }}
+  @media (prefers-reduced-motion: reduce) {{ .ir-typing span {{ animation: none; opacity: .6; }} }}
+  .stApp .st-key-ask-entry {{ display: flex; justify-content: flex-end; }}
+  .stApp [data-testid="stDialog"] [role="dialog"] {{ border-radius: var(--ir-radius); }}
+
+  /* a collapsed sidebar leaves the logo and the open button floating over the page */
+  .stApp:has(section[data-testid="stSidebar"][data-collapsed="true"]) .block-container,
+  .stApp:has(section[data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stMainBlockContainer"] {{
+    padding-top: 64px;
+  }}
+
+  /* chart legends in HTML, so they wrap on a phone instead of being clipped */
+  .ir-legend {{ display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 4px 0 0; font-size: 12px;
+    color: {INK}; align-items: center; }}
+  .ir-legend span {{ display: inline-flex; align-items: center; gap: 6px; }}
+  .ir-legend i {{ display: inline-block; width: 18px; height: 0; border-top: 3px solid; }}
+  .ir-legend i.dash {{ border-top-style: dashed; }}
+  .ir-legend i.diamond {{ width: 9px; height: 9px; border: 0; transform: rotate(45deg); }}
+
+  /* tablet: KPI rows go 2 by 2 and side-by-side panels stack */
+  @media (max-width: 1180px) {{
+    .block-container, [data-testid="stMainBlockContainer"] {{ padding-left: var(--s3); padding-right: var(--s3); }}
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-kpi) {{ flex-wrap: wrap; }}
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-kpi) > [data-testid="stColumn"] {{
+      flex: 1 1 calc(50% - 8px) !important; min-width: calc(50% - 8px) !important;
+    }}
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"] > [class*="st-key-ir-"]) {{
+      flex-wrap: wrap;
+    }}
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"] > [class*="st-key-ir-"]) > [data-testid="stColumn"] {{
+      flex: 1 1 100% !important; min-width: 100% !important;
+    }}
+    .ir-strip {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }}
+    .ir-target .value {{ font-size: 20px; }}
+  }}
+  @media (max-width: 900px) {{
+    [data-testid="stColumn"]:has(> [data-testid="stVerticalBlock"] .ir-robot) {{ display: none; }}
+    .ir-strip .lead {{ grid-column: 1 / -1; }}
+    .ir-strip .cell:nth-child(2) {{ border-left: 0; padding-left: 0; }}
+  }}
+  /* phone: 16px gutters, one column, smaller title */
+  @media (max-width: 640px) {{
+    .block-container, [data-testid="stMainBlockContainer"] {{
+      padding: var(--s3) var(--s2) var(--s4);
+    }}
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-kpi) > [data-testid="stColumn"] {{
+      flex: 1 1 100% !important; min-width: 100% !important;
+    }}
+    .stApp [data-testid="stMarkdownContainer"] h1.ir-title {{ font-size: 28px; }}
+    .ir-subtitle {{ font-size: 15px; }}
+    .ir-kpi .value {{ font-size: 26px; }}
+    .stApp [class*="st-key-ir-"] {{ padding: var(--s2); }}
+    .ir-user .who, .ir-crumbs .app {{ display: none; }}
     .ir-bar-row {{ grid-template-columns: 36px 1fr; }}
     .ir-bar-row > div:last-child {{ grid-column: 1 / -1; }}
+    .ir-strip {{ grid-template-columns: 1fr 1fr; }}
+    .ir-strip .cell {{ border-left: 0; padding-left: 0; }}
+    .ir-greet .ask {{ font-size: 20px; }}
+    .stApp .st-key-ask-entry {{ justify-content: flex-start; }}
+    table.ir-table {{ font-size: 13px; }}
+    table.ir-table th, table.ir-table td {{ padding: var(--s1) 10px; }}
   }}
 </style>
 """
@@ -334,8 +597,10 @@ def _altair_theme() -> None:
     def theme() -> dict[str, Any]:
         return {
             "config": {
-                "font": "Inter, Source Sans Pro, sans-serif",
+                "font": "Inter, sans-serif",
                 "background": "transparent",
+                # room for the last x label and the target labels, so nothing is clipped
+                "padding": {"left": 4, "right": 20, "top": 8, "bottom": 4},
                 "view": {"stroke": None},
                 "axis": {
                     "labelColor": SLATE,
@@ -344,10 +609,17 @@ def _altair_theme() -> None:
                     "gridColor": "#EEF2F6",
                     "domainColor": SLATE_300,
                     "tickColor": SLATE_300,
-                    "labelFontSize": 11,
-                    "titleFontSize": 11,
+                    "labelFontSize": 12,
+                    "titleFontSize": 12,
+                    "labelPadding": 6,
                 },
-                "legend": {"labelColor": INK, "titleColor": SLATE, "labelFontSize": 11},
+                "legend": {
+                    "labelColor": INK,
+                    "titleColor": SLATE,
+                    "labelFontSize": 12,
+                    "symbolSize": 120,
+                    "symbolStrokeWidth": 3,
+                },
                 "range": {"category": list(SERIES)},
             }
         }
@@ -370,19 +642,19 @@ def topbar(crumbs: Sequence[str]) -> None:
 
     user = current()
     parts = ['<span class="app">ECD planning · Rwanda</span>']
-    for i, crumb in enumerate(crumbs):
+    shown = [c for c in crumbs if c]
+    for i, crumb in enumerate(shown):
         if i:
-            parts.append('<span class="sep">›</span>')
-        cls = "here" if i == len(crumbs) - 1 else ""
-        parts.append(f'<span class="{cls}">{escape(crumb)}</span>')
+            parts.append('<span class="sep" aria-hidden="true">›</span>')
+        attrs = ' class="here" aria-current="page"' if i == len(shown) - 1 else ""
+        parts.append(f"<span{attrs}>{escape(crumb)}</span>")
     words = [w for w in ROLE_LABELS[user.role].split() if w[0].isalpha()]
     initials = "".join(w[0] for w in words[:2]).upper()
     area = user.district_id or "All districts"
     area = area.removeprefix("D-").title() if user.district_id else area
     st.markdown(
-        f'<div class="ir-topbar"><div class="ir-crumbs">{"".join(parts)}</div>'
-        f'<div class="ir-user"><span class="bell" title="Notifications">{icon("bell", 20)}</span>'
-        f'<span class="ir-avatar" aria-hidden="true">{initials}</span>'
+        f'<div class="ir-topbar"><nav class="ir-crumbs" aria-label="Breadcrumb">{"".join(parts)}'
+        f'</nav><div class="ir-user"><span class="ir-avatar" aria-hidden="true">{initials}</span>'
         f'<span class="who"><b>{escape(ROLE_LABELS[user.role])}</b>'
         f"<span>{escape(area)} · demo</span></span></div></div>",
         unsafe_allow_html=True,
@@ -396,9 +668,11 @@ def header(
     crumbs: Sequence[str] | None = None,
     aside: str | None = None,
     tag: str | None = None,
+    assistant: str | None = None,
 ) -> None:
-    """Top bar, page title and subtitle, an optional right-hand callout (HTML), the scope line
-    and, when needed, the simulated-data notice."""
+    """Top bar, page title and subtitle, an optional right-hand callout (HTML) or the "Ask
+    IrereroAI" button for page `assistant`, the scope line and, when needed, the
+    simulated-data notice."""
     topbar(crumbs or [title])
     tag_html = (
         f'<span class="ir-tag" style="background:#FCE8E6;color:{SIM_RED}">{escape(tag)}</span>'
@@ -412,6 +686,13 @@ def header(
         left, right = st.columns([3, 2], vertical_alignment="center")
         left.markdown(head, unsafe_allow_html=True)
         right.markdown(aside, unsafe_allow_html=True)
+    elif assistant:
+        from irerero.ui import assistant as ask
+
+        left, right = st.columns([4, 1], vertical_alignment="center", gap="medium")
+        left.markdown(head, unsafe_allow_html=True)
+        with right, st.container(key="ask-entry"):
+            ask.entry(assistant)
     else:
         st.markdown(head, unsafe_allow_html=True)
     definition()
@@ -421,18 +702,19 @@ def header(
 
 def definition() -> None:
     st.markdown(
-        f'<div class="ir-scope">{icon("info", 16)}<div><b>Scope.</b> {escape(DEFINITION)} '
-        "Census, MINEDUC and NCDA enrolment figures are never added together.</div></div>",
+        f'<div class="ir-notice ir-scope" role="note">{icon("info", 16)}<div><b>Scope.</b> '
+        f"{escape(DEFINITION)} Census, MINEDUC and NCDA enrolment figures are never added "
+        "together.</div></div>",
         unsafe_allow_html=True,
     )
 
 
 def simulated_banner() -> None:
     st.markdown(
-        f'<div class="ir-banner">{icon("alert", 16)}<div><span class="ir-badge ir-sim">SIMULATED'
-        "</span>&nbsp; Some values on this screen are simulated stand-ins for data files not yet "
-        "loaded. They show the method, not the real situation, and are left out of exports by "
-        "default.</div></div>",
+        f'<div class="ir-notice ir-banner" role="status">{icon("alert", 16)}<div>'
+        '<span class="ir-badge ir-sim">SIMULATED</span>&nbsp; Some values on this screen are '
+        "simulated stand-ins for data files not yet loaded. They show the method, not the real "
+        "situation, and are left out of exports by default.</div></div>",
         unsafe_allow_html=True,
     )
 
@@ -440,12 +722,9 @@ def simulated_banner() -> None:
 def target_callout(label: str, value: str, detail: str) -> str:
     """Gold target card for the page header aside."""
     return (
-        f'<div class="ir-callout" style="background:#FDF6E7;border-color:#F3DDB0;display:flex;'
-        f'gap:.9rem;align-items:center"><span style="color:{GOLD_700}">{icon("target", 34, 1.8)}'
-        f'</span><div><div style="font-weight:700;color:{INK};font-size:.9rem">{escape(label)}</div>'
-        f'<div style="color:{SLATE};font-size:.8rem">{escape(detail)}</div>'
-        f'<div style="font-weight:800;color:{NAVY};font-size:1.35rem">{escape(value)}</div>'
-        "</div></div>"
+        f'<div class="ir-callout ir-target"><span class="ico">{icon("target", 32, 1.8)}</span>'
+        f'<div><div class="label">{escape(label)}</div><div class="detail">{escape(detail)}</div>'
+        f'<div class="value">{escape(value)}</div></div></div>'
     )
 
 
@@ -485,16 +764,18 @@ def kpi(
     icon_name: str = "chart",
     tone: str = "teal",
 ) -> None:
-    """KPI card: tinted icon, label, value, detail line, and source with status on hover."""
+    """KPI card: tinted icon and label, value, detail line, and source with status pinned to
+    the bottom so cards in a row line up. The full provenance is also on hover."""
     bg, fg = TONES[tone]
     tip = escape(provenance(source, period, status), quote=True)
     detail_html = f'<div class="detail">{escape(detail)}</div>' if detail else ""
     st.markdown(
-        f'<div class="ir-kpi" title="{tip}"><div class="ico" style="background:{bg};color:{fg}">'
-        f'{icon(icon_name, 22)}</div><div style="min-width:0"><div class="label">{escape(label)}'
-        f'</div><div class="value">{escape(value)}</div>{detail_html}'
-        f'<div class="src">{escape(provenance(source, period, None))} {badge(status)}</div>'
-        "</div></div>",
+        f'<div class="ir-kpi ir-fill" title="{tip}"><div class="head">'
+        f'<div class="ico" style="background:{bg};color:{fg}">{icon(icon_name, 20)}</div>'
+        f'<div class="label">{escape(label)}</div></div>'
+        f'<div class="value">{escape(value)}</div>{detail_html}'
+        f'<div class="src"><span>{escape(provenance(source, period, None))}</span>'
+        f"{badge(status)}</div></div>",
         unsafe_allow_html=True,
     )
 
@@ -511,9 +792,39 @@ def card(
     tip = escape(provenance(source, period, status), quote=True)
     detail_html = f'<div class="range">{escape(detail)}</div>' if detail else ""
     st.markdown(
-        f'<div class="ir-card" title="{tip}"><div class="label">{escape(label)}</div>'
+        f'<div class="ir-card ir-fill" title="{tip}"><div class="label">{escape(label)}</div>'
         f'<div class="value">{escape(value)}</div>{detail_html}'
-        f'<div class="src">{escape(provenance(source, period, None))} {badge(status)}</div></div>',
+        f'<div class="src"><span>{escape(provenance(source, period, None))}</span>'
+        f"{badge(status)}</div></div>",
+        unsafe_allow_html=True,
+    )
+
+
+def alert(title: str, body: str, tone: str = "rose") -> None:
+    """A tinted callout that fills its column, e.g. the main bottleneck beside the KPIs. The
+    icon and the title say the state; the tint only repeats it."""
+    bg, fg = TONES[tone]
+    ico = "check" if tone == "teal" else "alert"
+    st.markdown(
+        f'<div class="ir-callout ir-alert ir-fill" role="status" style="background:{bg};'
+        f'border-color:{fg}40"><div class="title" style="color:{fg}">{icon(ico, 20)}'
+        f'{escape(title)}</div><div class="body">{escape(body)}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def stat_strip(lead_title: str, lead_note: str, cells: Sequence[tuple[str, str, str]]) -> None:
+    """A target banner: an icon and headline, then (label, value, note HTML) cells."""
+    body = "".join(
+        f'<div class="cell"><div class="ir-note">{escape(label)}</div><div class="v">'
+        f'{escape(value)}</div><div class="ir-note">{note}</div></div>'
+        for label, value, note in cells
+    )
+    st.markdown(
+        f'<div class="ir-callout ir-strip" style="background:#EEF6F3;border-color:#CFE7E0">'
+        f'<div class="lead"><span style="color:{TEAL_700}">{icon("target", 36, 1.8)}</span>'
+        f'<div><b>{escape(lead_title)}</b><div class="ir-note">{escape(lead_note)}</div></div>'
+        f"</div>{body}</div>",
         unsafe_allow_html=True,
     )
 
@@ -527,11 +838,14 @@ def panel(
     key: str | None = None,
 ) -> Iterator[Any]:
     """A white card with a title row. Streamlit widgets go inside the `with` block. The key
-    (from the title unless given) must be unique on the page."""
+    (from the title unless given) must be unique on the page. Cards in the same row of
+    columns stretch to the same height."""
     slug = re.sub(r"[^a-z0-9]+", "-", (key or title or "panel").lower()).strip("-")
     with st.container(key=f"ir-{slug}") as box:
         if title:
-            ico = f'<span style="color:{NAVY}">{icon(icon_name, 20)}</span>' if icon_name else ""
+            ico = (
+                f'<span style="color:{TEAL_700}">{icon(icon_name, 20)}</span>' if icon_name else ""
+            )
             sub = f"<p>{escape(subtitle)}</p>" if subtitle else ""
             st.markdown(
                 f'<div class="ir-panel-head"><div><h3>{ico}{escape(title)}</h3>{sub}</div>'

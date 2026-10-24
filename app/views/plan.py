@@ -12,6 +12,7 @@ from irerero.config import (
     PROJECTION_YEARS,
     SIMULATED,
     TARGET_2027,
+    TARGET_2029,
     TARGET_YEAR,
     YEARBOOK_YEARS,
 )
@@ -53,6 +54,7 @@ theme.header(
     f"Track decisions, delivery and progress toward {theme.fmt_pct(target)} by {TARGET_YEAR}.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], "Action plans & progress"],
+    assistant="plan",
 )
 if user.role == ANALYST:
     with theme.panel(key="filters"):
@@ -62,29 +64,21 @@ if user.role == ANALYST:
 first = observed.value.iloc[0]
 delta = (summary.latest - first) * 100
 m = projected.loc[MILESTONE_YEAR]
-st.markdown(
-    f"""<div class="ir-callout" style="background:#EAF6F2;border-color:#CFE7E0;display:flex;
-    flex-wrap:wrap;gap:1.2rem;align-items:center;justify-content:space-between">
-    <div style="display:flex;gap:.8rem;align-items:center;min-width:260px;flex:2">
-      <span style="color:{theme.TEAL_700}">{theme.icon("target", 40, 1.8)}</span>
-      <div><div style="font-weight:800;color:{theme.NAVY};font-size:1.1rem">NST2 target:
-      65% pre-primary enrolment by 2028/29</div><div class="ir-note">Gross rate (MINEDUC pupils
-      per child aged 3–5) · {districts[district_id]} · status: {status_label}</div></div></div>
-    <div style="flex:1;min-width:150px;border-left:1px solid #CFE7E0;padding-left:1rem">
-      <div class="ir-note">Current ({latest_year})</div>
-      <div style="font-weight:800;color:{theme.NAVY};font-size:1.6rem">{theme.fmt_pct(summary.latest, 1)}</div>
-      <div class="ir-note">{delta:+.1f} pts since {observed.index[0]}</div></div>
-    <div style="flex:1;min-width:150px;border-left:1px solid #CFE7E0;padding-left:1rem">
-      <div class="ir-note">{MILESTONE_YEAR} milestone</div>
-      <div style="font-weight:800;color:{theme.NAVY};font-size:1.6rem">{TARGET_2027.value:.1%}</div>
-      <div class="ir-note">projected {theme.fmt_pct(m.value, 1)}</div></div>
-    <div style="flex:1;min-width:150px;border-left:1px solid #CFE7E0;padding-left:1rem">
-      <div class="ir-note">{TARGET_YEAR} target</div>
-      <div style="font-weight:800;color:{theme.NAVY};font-size:1.6rem">{theme.fmt_pct(target)}</div>
-      <div>{theme.pill(summary.status)}</div></div></div>""",
-    unsafe_allow_html=True,
-)
-st.write("")
+theme.stat_strip(
+    f"NST2 target: {TARGET_2029.value:.0%} pre-primary enrolment by {TARGET_YEAR}",
+    f"Gross rate (MINEDUC pupils per child aged 3–5) · {districts[district_id]} · "
+    f"status: {status_label}",
+    [
+        (
+            f"Current ({latest_year})",
+            theme.fmt_pct(summary.latest, 1),
+            f"{delta:+.1f} pts since {observed.index[0]}",
+        ),
+        (f"{MILESTONE_YEAR} milestone", f"{TARGET_2027.value:.1%}",
+         f"projected {theme.fmt_pct(m.value, 1)}"),
+        (f"{TARGET_YEAR} target", theme.fmt_pct(target), theme.pill(summary.status)),
+    ],
+)  # fmt: skip
 
 # --- KPIs ---------------------------------------------------------------------------------
 need = forecast.places_per_year(
@@ -134,7 +128,6 @@ with k4:
     else:
         theme.kpi("Required training completed", "–", "LEARN pilot", None, None,
                   "pilot runs in Muhanga only", "cap", "purple")  # fmt: skip
-st.write("")
 
 # --- trend with what-if, and recent decisions ---------------------------------------------
 left, right = st.columns([3, 2])
@@ -162,6 +155,7 @@ with (
         help="Approved plan rooms spread over the three school years to 2028/29 by default.",
     )
     with_plan = forecast.whatif(projected.value, kids, total_rooms, MILESTONE_YEAR)
+    st.markdown(charts.trend_legend(with_plan=True), unsafe_allow_html=True)
     st.altair_chart(
         charts.trend(observed, projected, target, with_plan, height=300), width="stretch"
     )

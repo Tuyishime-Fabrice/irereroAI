@@ -33,6 +33,7 @@ theme.header(
     "Find where new pre-primary places are needed first, and how sure we can be of the order.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], "District priorities"],
+    assistant="priorities",
 )
 
 # --- filters ------------------------------------------------------------------------------
@@ -61,11 +62,12 @@ with theme.panel(key="filters"):
 target = target_pct / 100
 
 kpi_row = st.container()  # filled once the ranking is known
-main, side = st.columns([2.2, 1])
+main, side = st.columns([5, 3])
+weights_col, why_col = st.columns([1, 1])
 
-# --- weights (right) are read before the ranking (left) is drawn --------------------------
+# --- weights are read before the ranking above them is drawn ------------------------------
 with (
-    side,
+    weights_col,
     theme.panel(
         "How ranking works", "Each component is a percentile among the district's sectors.", "scale"
     ),
@@ -116,7 +118,6 @@ with kpi_row:
             "rooms",
             "gold",
         )
-    st.write("")
 
 # --- ranking table ------------------------------------------------------------------------
 with (
@@ -179,7 +180,7 @@ with (
             )
         st.page_link("views/plan.py", label="Go to action plans", icon=":material/arrow_forward:")
 
-# --- map and explanation (right) ----------------------------------------------------------
+# --- map (right of the ranking) and explanation (below) ----------------------------------
 with (
     side,
     theme.panel(f"{districts[district_id]} map", "Priority score (higher = act first)", "pin"),
@@ -195,11 +196,11 @@ with (
             for r in result.itertuples()
         },
         view=maps.view_for(geo, set(result.geo_id)),
-        height=360,
+        height=500,
         key="priority-map",
     )
 
-with side, theme.panel("Why this order", "Top three sectors, component by component", "info"):
+with why_col, theme.panel("Why this order", "Top three sectors, component by component", "info"):
     st.markdown(
         "<span class='ir-note'><b>Weights used:</b> "
         + " · ".join(f"{COMPONENT_LABELS[c]} {w:.0%}" for c, w in used.items())

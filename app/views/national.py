@@ -6,7 +6,7 @@ from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
 from irerero.plan.frame import any_simulated
 from irerero.track import forecast, plans
-from irerero.ui import charts, data, maps, theme
+from irerero.ui import assistant, charts, data, maps, theme
 from irerero.ui.roles import PLANNER, current
 from irerero.ui.theme import Col
 
@@ -16,19 +16,14 @@ simulated = any_simulated(sectors)
 status = "simulated" if simulated else "model estimate"
 source = "IrereroAI 2026 estimate"
 
-theme.header(
-    "Early Childhood Development Overview",
-    "Plan where to act. Understand why. Track progress to 2029.",
-    simulated=simulated,
-    crumbs=["Rwanda", "Overview"],
-    aside=theme.target_callout("NST2 target", "65% by 2028/29", "Pre-primary enrolment"),
-)
+theme.topbar(["Rwanda", "Overview"])
+assistant.hero(user, simulated)
 
 # --- filters ------------------------------------------------------------------------------
 with theme.panel(key="filters"):
     f1, f2, f3 = st.columns([1, 1, 1])
     provinces = ["All provinces", *sorted(sectors.province.dropna().unique())]
-    province = f1.selectbox("Province", provinces)
+    province = f1.selectbox("Province", provinces, key="ov-province")
     target_pct = f2.slider(
         "Target attendance (%)",
         30,
@@ -98,7 +93,6 @@ with k4:
         "rose",
     )
 
-st.write("")
 track_all = forecast.summary(data.table("forecast"), target)
 track = track_all.drop(index=forecast.NATIONAL)
 in_scope = set(scope.district_id)
@@ -107,11 +101,12 @@ track = track[track.index.isin(in_scope)]
 # --- map and outlook ----------------------------------------------------------------------
 left, right = st.columns([3, 2])
 with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "pin"):
-    view = st.radio(
-        "Map",
-        [f"{TARGET_YEAR} status", "Places needed", "Attendance rate"],
-        horizontal=True,
-        label_visibility="collapsed",
+    views = [f"{TARGET_YEAR} status", "Places needed", "Attendance rate"]
+    view = (
+        st.segmented_control(
+            "Map layer", views, default=views[0], label_visibility="collapsed", key="map-view"
+        )
+        or views[0]  # clicking the selected segment clears it; keep showing a layer
     )
     geo_d, geo_s = data.geojson("district"), data.geojson("sector")
     zoom = maps.view_for(geo_d, in_scope) if province != "All provinces" else None
@@ -127,7 +122,7 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             },
             colours={g: STATUS_COLOURS[s] for g, s in track.status.items()},
             view=zoom,
-            height=420,
+            height=400,
             key="national-status",
         )
         counts = track.status.value_counts()
@@ -146,7 +141,7 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
                 for r in needs.itertuples()
             },
             view=zoom,
-            height=420,
+            height=400,
             key="national-sectors",
         )
     else:
@@ -161,7 +156,7 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             lambda v: theme.fmt_pct(v),
             tooltip={k: status for k in rates.index},
             view=zoom,
-            height=420,
+            height=400,
             key="national-districts",
         )
 
@@ -170,7 +165,8 @@ with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment,
     national = rows[rows.geo_id == forecast.NATIONAL]
     observed = national[national.kind == "observed"].set_index("year")
     projected = national[national.kind == "projected"].set_index("year")
-    st.altair_chart(charts.trend(observed, projected, target, height=330), width="stretch")
+    st.markdown(charts.trend_legend(), unsafe_allow_html=True)
+    st.altair_chart(charts.trend(observed, projected, target, height=320), width="stretch")
     nat = track_all.loc[forecast.NATIONAL]
     st.markdown(
         f"Projected **{theme.fmt_pct(nat.projected, 1)}** by {TARGET_YEAR} "

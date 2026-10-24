@@ -167,7 +167,8 @@ def main() -> int:
     simulated = [s for s in missing if s != "boundaries"]
     print(f"Simulated stand-ins used for: {', '.join(simulated) or 'nothing'}")
     if "boundaries" in set(missing):
-        print("Boundaries: geoBoundaries shapes (real, no NISR codes yet)")
+        coded = tables["geo_unit"].query("level == 'sector'").nisr_code.notna().sum()
+        print(f"Boundaries: geoBoundaries shapes (real); {coded} of 416 sectors carry NISR codes")
     return 0
 
 

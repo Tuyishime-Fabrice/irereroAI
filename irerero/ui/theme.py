@@ -17,6 +17,9 @@ import streamlit as st
 from irerero.config import DEFINITION, ROOT, SIMULATED
 
 ASSETS = ROOT / "app" / "assets"
+# Streamlit Community Cloud runs apps from /mount/src and draws its own buttons over the
+# top right corner, so the account button moves left of them there.
+ON_COMMUNITY_CLOUD = str(ROOT).startswith("/mount/src/")
 LOGO = ASSETS / "logo.png"
 LOGO_LIGHT = ASSETS / "logo-light.png"
 ICON = ASSETS / "icon.png"
@@ -282,25 +285,36 @@ CSS = f"""
   [data-testid="stElementContainer"]:has(.ir-fill) > div > div,
   [data-testid="stMarkdownContainer"]:has(> .ir-fill) {{ height: 100%; }}
 
-  /* top bar and page header */
+  /* top bar: one line, the breadcrumb and a small account button */
   .ir-topbar {{
     display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
-    min-height: 48px; padding-bottom: 12px; border-bottom: 1px solid {BORDER};
+    min-height: 32px; padding-bottom: var(--s1); border-bottom: 1px solid {BORDER};
     margin-bottom: var(--s1);
   }}
-  .ir-crumbs {{ color: {SLATE}; font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 6px;
-    align-items: center; min-width: 0; }}
+  /* Community Cloud overlays Share, star and edit at the top right of the app */
+  .ir-topbar.ir-cloud {{ padding-right: 168px; }}
+  .ir-crumbs {{ color: {SLATE}; font-size: 13px; min-width: 0; flex: 1;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+  .ir-crumbs span {{ margin-right: 6px; }}
   .ir-crumbs .sep {{ color: {SLATE_300}; }}
   .ir-crumbs .here {{ color: {INK}; font-weight: 600; }}
   .ir-crumbs .app {{ color: {SLATE}; font-weight: 600; letter-spacing: .08em;
-    text-transform: uppercase; font-size: 12px; margin-right: 4px; }}
-  .ir-user {{ display: flex; align-items: center; gap: 12px; white-space: nowrap; flex: none; }}
-  .ir-avatar {{ width: 36px; height: 36px; border-radius: 50%; background: {NAVY};
+    text-transform: uppercase; font-size: 12px; margin-right: 10px; }}
+  .ir-user {{ position: relative; flex: none; border-radius: 50%; cursor: pointer; outline: none; }}
+  .ir-avatar {{ width: 32px; height: 32px; border-radius: 50%; background: {NAVY};
     color: #fff; display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 13px; }}
-  .ir-user .who {{ line-height: 1.3; }}
-  .ir-user .who b {{ color: {INK}; font-size: 14px; display: block; font-weight: 600; }}
-  .ir-user .who span {{ color: {SLATE}; font-size: 12px; }}
+    font-weight: 700; font-size: 12px; transition: box-shadow .15s; }}
+  .ir-user:hover .ir-avatar {{ box-shadow: 0 0 0 3px #D6E2EE; }}
+  .ir-user:focus-visible .ir-avatar {{ box-shadow: 0 0 0 3px {TEAL_700}; }}
+  .ir-user-menu {{ display: none; position: absolute; right: 0; top: calc(100% + 8px);
+    z-index: 1000; min-width: 220px; padding: 12px 16px; background: {SURFACE};
+    border: 1px solid {BORDER}; border-radius: var(--ir-radius-sm); line-height: 1.4;
+    box-shadow: 0 8px 24px rgba(16,24,40,.12); cursor: default; white-space: normal; }}
+  .ir-user:focus-within .ir-user-menu {{ display: block; }}
+  .ir-user-menu b {{ display: block; color: {INK}; font-size: 14px; font-weight: 600; }}
+  .ir-user-menu span {{ display: block; color: {SLATE}; font-size: 13px; }}
+  .ir-user-menu .note {{ margin-top: 8px; padding-top: 8px; border-top: 1px solid {BORDER};
+    font-size: 12px; }}
   .stApp [data-testid="stMarkdownContainer"] h1.ir-title {{
     font-size: 32px; font-weight: 700; color: {NAVY}; margin: 0; padding: 0;
     letter-spacing: -.02em; line-height: 1.2; text-wrap: balance;
@@ -596,7 +610,8 @@ CSS = f"""
     .ir-subtitle {{ font-size: 15px; }}
     .ir-kpi .value {{ font-size: 26px; }}
     .stApp [class*="st-key-ir-"] {{ padding: var(--s2); }}
-    .ir-user .who, .ir-crumbs .app {{ display: none; }}
+    .ir-crumbs .app {{ display: none; }}
+    .ir-topbar.ir-cloud {{ padding-right: 112px; }}
     .ir-bar-row {{ grid-template-columns: 36px 1fr; }}
     .ir-bar-row > div:last-child {{ grid-column: 1 / -1; }}
     .ir-strip {{ grid-template-columns: 1fr 1fr; }}
@@ -669,13 +684,18 @@ def topbar(crumbs: Sequence[str]) -> None:
         parts.append(f"<span{attrs}>{escape(crumb)}</span>")
     words = [w for w in ROLE_LABELS[user.role].split() if w[0].isalpha()]
     initials = "".join(w[0] for w in words[:2]).upper()
+    role = ROLE_LABELS[user.role]
     area = user.district_id or "All districts"
     area = area.removeprefix("D-").title() if user.district_id else area
-    st.markdown(
-        f'<div class="ir-topbar"><nav class="ir-crumbs" aria-label="Breadcrumb">{"".join(parts)}'
-        f'</nav><div class="ir-user"><span class="ir-avatar" aria-hidden="true">{initials}</span>'
-        f'<span class="who"><b>{escape(ROLE_LABELS[user.role])}</b>'
-        f"<span>{escape(area)} · demo</span></span></div></div>",
+    cloud = " ir-cloud" if ON_COMMUNITY_CLOUD else ""
+    st.markdown(  # the account details open on click (focus) and close on a click elsewhere
+        f'<div class="ir-topbar{cloud}"><nav class="ir-crumbs" aria-label="Breadcrumb">'
+        f'{"".join(parts)}</nav><div class="ir-user" tabindex="0" role="button" '
+        f'aria-label="Account: {escape(role)}, {escape(area)}, demo">'
+        f'<span class="ir-avatar" aria-hidden="true">{initials}</span>'
+        f'<div class="ir-user-menu" aria-hidden="true"><b>{escape(role)}</b>'
+        f'<span>{escape(area)} · demo account</span><span class="note">Fictional user. '
+        "Switch role under Demo role in the sidebar.</span></div></div></div>",
         unsafe_allow_html=True,
     )
 

@@ -62,7 +62,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 154 tests
+make test      # 165 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
@@ -82,6 +82,13 @@ Python 3.11 under Advanced settings; it installs from `requirements.txt`, plus `
 by LightGBM) from `packages.txt`. The first start builds the analysis tables (under a minute). Add `DATABASE_URL` (Supabase or Neon Postgres) in
 the app's Secrets, so plans, check-ins and the audit log survive restarts. Without it, the app
 uses SQLite, which resets when the container restarts.
+
+**Real data on the deployed app, kept private.** The repository never holds received data.
+`make bundle` zips the staged tables (never the originals or the census records); the team
+keeps the zip in a private repository, and three secrets (`IRERERO_DATA_URL`,
+`IRERERO_DATA_TOKEN`, `IRERERO_DATA_SHA256`) let the app fetch it, check its SHA-256 and every
+file, and build from it. Without them, or if a check fails, the app stays on the demo data.
+Steps: [docs/deploy_private_data.md](docs/deploy_private_data.md).
 
 ## Data sources and licences
 
@@ -152,7 +159,7 @@ measures as follows. These numbers show the pipeline works, not real-world accur
 - Residual Moran's I: 0.30 (p = 0.001).
 - 2029 trend back-test: MAE 0.95 points; 93% of districts inside the 80% range.
 
-The 154 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
+The 165 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
 (hand-checked), the model and rules, the audit entries for each decision and confirmation,
 simulated-value labelling and exclusion from exports, the training triggers on the planted
 problems, that every screen renders for every role, and the assistant end to end (figures,

@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install sources intake data test lint format app check docs
+.PHONY: help install sources intake data bundle test lint format app check docs
 
 help:  ## List the targets
 	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-9s %s\n", $$1, $$2}'
@@ -15,6 +15,9 @@ intake:  ## Bring received files in safely: make intake FILES="path/to/file-or-f
 
 data:  ## Rebuild every analysis table from data/raw/, demo data where files are missing
 	uv run python -m irerero.pipeline.build
+
+bundle:  ## Zip the staged tables (never the originals) for a private deployment
+	uv run python -m irerero.data.bundle
 
 test:  ## Run the test suite
 	uv run pytest

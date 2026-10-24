@@ -8,6 +8,7 @@ import streamlit as st
 from sqlalchemy import Engine, func, select
 
 from irerero.config import PROCESSED
+from irerero.data import bundle
 from irerero.db.models import Estimate2026
 from irerero.db.session import engine
 from irerero.db.store import read
@@ -19,21 +20,47 @@ def eng() -> Engine:
     return engine()
 
 
+BUILT_FROM = PROCESSED / ".built_from"  # the data bundle the tables were built from
+
+
 def _built(e: Engine) -> bool:
     with e.connect() as conn:
         count = conn.execute(select(func.count()).select_from(Estimate2026)).scalar_one()
-    return count > 0 and (PROCESSED / "sectors.geojson").exists()
+    source = BUILT_FROM.read_text() if BUILT_FROM.exists() else ""
+    return (
+        count > 0
+        and (PROCESSED / "sectors.geojson").exists()
+        and source == (bundle.current() or "")
+    )
+
+
+def _secrets() -> dict:
+    try:
+        return dict(st.secrets)
+    except Exception:  # no secrets file in this deployment
+        return {}
+
+
+@st.cache_resource(show_spinner="Loading the private data bundle...")
+def _fetch_bundle(sha256: str | None) -> str:
+    """Once per server process and bundle. A failure is not cached: the next visit retries."""
+    return bundle.sync(_secrets())
 
 
 def ensure_built() -> None:
     if st.session_state.get("_built"):
         return
     e = eng()
+    try:
+        _fetch_bundle(bundle.settings(_secrets())["IRERERO_DATA_SHA256"])
+    except bundle.BundleError as error:
+        st.warning(f"The private data bundle was not used: {error}. The app shows what it has.")
     if not _built(e):
         from irerero.pipeline.build import build
 
         with st.spinner("First start: building the analysis tables (about a minute)..."):
             build(eng=e)
+        BUILT_FROM.write_text(bundle.current() or "")
         st.cache_data.clear()
     from irerero.pipeline.app_seed import seed
 

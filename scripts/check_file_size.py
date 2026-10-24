@@ -8,8 +8,10 @@ import sys
 from pathlib import Path
 
 MAX_BYTES = 500 * 1024
-BLOCKED_SUFFIXES = {".dta", ".sav", ".tif", ".tiff", ".pbf", ".gpkg", ".shp", ".parquet", ".pkl"}
-BLOCKED_DIRS = ("data/raw/", "data/interim/", "data/processed/")
+BLOCKED_SUFFIXES = {
+    ".dta", ".sav", ".tif", ".tiff", ".pbf", ".gpkg", ".shp", ".parquet", ".pkl", ".zip"
+}  # fmt: skip
+BLOCKED_DIRS = ("data/raw/", "data/interim/", "data/processed/", "data/bundle/")
 ALLOWED_LARGE = {"uv.lock"}
 
 

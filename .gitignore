@@ -3,6 +3,8 @@
 data/raw/
 data/interim/
 data/processed/
+data/bundle/
+*.zip
 *.dta
 *.sav
 *.tif

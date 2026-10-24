@@ -43,6 +43,35 @@ LABELS = {
 }
 
 
+# where each indicator comes from; "estimate" and "distance" are IrereroAI's own layers
+SOURCES = {
+    "attendance_2022": "census_2022",
+    "nonattendance": "estimate",
+    "far_share": "distance",
+    "urban_share": "census_2022",
+    "women_secondary_share": "census_2022",
+    "water_share": "census_2022",
+    "sanitation_share": "census_2022",
+    "electricity_share": "census_2022",
+    "log_density": "census_2022",
+    "poverty": "eicv7",
+    "pupils_per_teacher": "yearbook",
+    "pupils_per_classroom": "yearbook",
+    "qualified_share": "yearbook",
+    "stunting": "rdhs_2025",
+}
+
+
+def simulated_features(obs: pd.DataFrame, estimates: pd.DataFrame) -> set[str]:
+    """The indicators that rest on a simulated stand-in."""
+    sources = set(obs[obs.status == SIMULATED].source_id)
+    if (estimates.status == SIMULATED).any():
+        sources |= {"estimate", "distance"}
+    if estimates.distance_method.astype(str).str.contains("simulated").any():
+        sources.add("distance")
+    return {feature for feature, source in SOURCES.items() if source in sources}
+
+
 def _wide(obs: pd.DataFrame, period: str | None = None) -> pd.DataFrame:
     rows = obs if period is None else obs[obs.reference_period == period]
     rows = rows.sort_values("reference_period").groupby(["geo_id", "indicator_id"]).tail(1)
@@ -90,6 +119,6 @@ def sector_features(
     stunting = _wide(obs[obs.indicator_id == "stunting_u5"])
     out["stunting"] = district.map(_col(stunting, "stunting_u5")).astype(float)
 
-    simulated = obs[obs.status == SIMULATED].source_id.unique()
-    out["inputs_simulated"] = len(simulated) > 0 or (est.status == SIMULATED).any()
+    # the rules read every indicator above, so any simulated one makes the diagnosis simulated
+    out["inputs_simulated"] = bool(simulated_features(obs, estimates))
     return out

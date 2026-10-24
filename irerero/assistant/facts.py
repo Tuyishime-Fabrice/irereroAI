@@ -25,8 +25,9 @@ from irerero.config import (
     TARGET_YEAR,
     YEARBOOK_YEARS,
 )
+from irerero.diagnose.features import LABELS
 from irerero.plan import gap
-from irerero.plan.frame import any_simulated, ranked
+from irerero.plan.frame import distance_status, ranked, status_of
 from irerero.plan.priority import stability_label
 from irerero.track import forecast
 
@@ -69,7 +70,7 @@ def _int(x: float | None) -> int | None:
 
 
 def _status(frame: pd.DataFrame) -> str:
-    return SIMULATED if any_simulated(frame) else "model estimate"
+    return status_of(frame)
 
 
 def find_district(t: Tables, name: str) -> str:
@@ -209,6 +210,7 @@ def overview(t: Tables, target: float, province: str | None = None) -> dict[str,
                 (needs.far_share * needs.children_3_5).sum() / children, 0
             ),
             "distance_method": needs.distance_method.mode().iat[0] if len(needs) else None,
+            "distance_status": distance_status(scope),
         },
         "national_trend": {
             "status": _forecast_status(t, NATIONAL),
@@ -350,8 +352,13 @@ def district(
     weights = dict(zip(COMPONENTS, PRESETS.get(preset, PRESETS["Balanced"]), strict=True))
     result, used = ranked(frame, target, weights)
     diag = t.diagnosis.set_index("geo_id")
+    rank_status = (
+        SIMULATED if SIMULATED in (status, *frame.peer_status.dropna().unique()) else status
+    )
     out["priority"] = {
-        "status": status,
+        "status": rank_status,
+        "more_than_1km_status": distance_status(frame),
+        "main_bottleneck_status": _status(t.diagnosis[t.diagnosis.district_id == district_id]),
         "preset": preset if preset in PRESETS else "Balanced",
         "weights_used": {COMPONENT_LABELS[c]: round(w, 2) for c, w in used.items()},
         "how": "Weighted percentile ranks within the district (volume, equity, peer gap, "
@@ -396,6 +403,11 @@ def sector(t: Tables, geo_id: str, target: float) -> dict[str, Any]:
         "sector": r["name"],
         "district": r.district,
         "status": SIMULATED if r.status == SIMULATED else "model estimate",
+        "status_note": "status is the diagnosis's (its rules read every factor); "
+        "estimate_status covers the children and attendance figures",
+        "estimate_status": r.estimate_status,
+        "peer_benchmark_status": r.peer_status,
+        "simulated_indicators": [LABELS.get(k, k) for k in r.simulated_inputs],
         "children_3_5_2026": _int(r.children_3_5),
         "children_3_5_range": [_int(r.children_low), _int(r.children_high)],
         "attending_2026_pct": _pct(r.attendance_rate),

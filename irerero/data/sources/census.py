@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from irerero.config import OBSERVED, RAW
+from irerero.config import MODEL, OBSERVED, RAW
 from irerero.data.crosswalk import district_ids, sector_ids
 from irerero.data.sources.base import Loaded, folder, status
 from irerero.data.sources.census_pdf import parse_profiles
@@ -29,6 +29,16 @@ COUNTS = (
     ),
     Column("hh_electricity", "integer", "Households with electricity", required=False),
 )
+# How the counts were obtained. Printed Table 2.5 counts are observed; counts weighted from
+# census sample records (one row per child) are IrereroAI's tabulation, a model estimate.
+TABLE, SAMPLE = "table", "sample"
+BASIS = Column(
+    "basis",
+    "text",
+    f"'{TABLE}' (printed Table 2.5, the default) or '{SAMPLE}' (weighted from census sample "
+    "records by `make intake`)",
+    required=False,
+)
 SECTOR_COLUMNS = (
     *NAME_COLUMNS,
     *COUNTS,
@@ -39,6 +49,7 @@ SECTOR_COLUMNS = (
         "Women aged 15+ with secondary education or more (proxy for mothers' education)",
         required=False,
     ),
+    BASIS,
     PAGE_COLUMN,
 )
 DISTRICT_COLUMNS = (*DISTRICT_COLUMN, *COUNTS, PAGE_COLUMN)
@@ -63,6 +74,9 @@ DATASET = Dataset(
         "the CSVs directly into data/raw/census_2022/.",
         "census_2022_districts.csv holds the district total rows printed in each profile, so "
         "the build can check that sector rows add up.",
+        "Census sample records of children aged 3 to 5 (with population weights) can stand in "
+        "for Table 2.5: `make intake` weights them to sector counts and marks them basis = "
+        "sample, which makes their status a model estimate.",
     ),
 )
 
@@ -90,7 +104,7 @@ def load(raw: Path = RAW) -> tuple[Loaded, Loaded]:
         names = ", ".join(sectors.loc[bad, "sector_name"].head(5))
         raise SchemaError(f"census: attending + never attended != total for {names}")
     files = (directory / "census_2022_sectors.csv", directory / "census_2022_districts.csv")
-    return (
-        Loaded(sectors, status(DATASET, real), real, files),
-        Loaded(districts, status(DATASET, real), real, files),
-    )
+    state = status(DATASET, real)
+    if real and (sectors.basis == SAMPLE).any():
+        state = MODEL
+    return Loaded(sectors, state, real, files), Loaded(districts, state, real, files)

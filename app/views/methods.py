@@ -56,10 +56,15 @@ with k2:
     units = data.table("geo_unit")
     sector_units = units[units.level == "sector"]
     coded = int(sector_units.nisr_code.notna().sum())
-    theme.kpi("Sectors with real boundaries", str(len(sector_units)), "geoBoundaries (CC BY 4.0)",
-              "2023", "published estimate",
-              f"{coded} with NISR codes from the COD-AB gazetteer, to review" if coded
-              else "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
+    if bool(loaded.loaded.get("boundaries", False)):
+        theme.kpi("Sectors with real boundaries", str(len(sector_units)),
+                  "COD-AB boundaries (NISR via HDX)", "2022", "observed",
+                  f"{coded} with official NISR codes", "pin", "navy")  # fmt: skip
+    else:
+        theme.kpi("Sectors with real boundaries", str(len(sector_units)),
+                  "geoBoundaries (CC BY 4.0)", "2023", "published estimate",
+                  f"{coded} with NISR codes from the COD-AB gazetteer, to review" if coded
+                  else "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
 with k3:
     if len(run):
         best = run[run.chosen].iloc[0]
@@ -135,16 +140,24 @@ with tabs[0]:
     )
 
 with tabs[1]:
+    estimates = data.table("estimate_2026")
+    method = estimates.method.iat[0] if len(estimates) else "not built"
     st.markdown(f"**Scope.** {DEFINITION}")
     st.markdown(
         f"""
-- **Children aged 3 to 5 (2026):** NISR district projection × the district's census 3-5
-  share, split across sectors by WorldPop under-5 (× census age ratio) or, while WorldPop is
-  missing, by census sector shares. Range from the projection range and the disagreement
-  between the two splits.
+- **Children aged 3 to 5 (2026):** NISR's projected children aged 3 to 5 per district (from
+  the single-age tables; otherwise the projected population × the census 3-5 share), split
+  across sectors by WorldPop under-5 (× census age ratio) or, while WorldPop is missing, by
+  census sector shares. Range from the projection range and the disagreement between the two
+  splits. Method in use: *{method}*.
 - **Attending (2026):** the sector's census 2022 attendance rate moved by the district's
-  change in MINEDUC pupils per child since 2021/22. Counts from different sources are never
-  added together.
+  change in MINEDUC pupils per child since 2021/22. While the census is real and the yearbook
+  series is not, the rate stays at its 2022 value: a real census is never moved by a
+  simulated trend. Counts from different sources are never added together.
+- **Census counts from sample records:** when the census arrives as sample records of
+  children aged 3 to 5 with population weights (not printed Table 2.5), each sector's count is
+  the sum of the weights, so it is a model estimate. Sectors resting on fewer than 100
+  sampled children carry about ±10 points of uncertainty on their attendance rate.
 - **Places** = max(0, ceil(t × P) − A); **rooms** = ceil(places / {CHILDREN_PER_ROOM.value:g});
   **caregivers** between places / {CAREGIVER_RATIO_HIGH.value:g} and places /
   {CAREGIVER_RATIO_LOW.value:g}. {CHILDREN_PER_ROOM.citation}.
@@ -238,10 +251,15 @@ with tabs[3]:
         f"30 districts; observed value inside the 80% range for "
         f"**{summary.backtest_inside.mean():.0%}** of districts."
     )
+    if (data.table("model_output").status == "simulated").any():
+        st.warning(
+            "The peer model's validation above is computed on simulated inputs: it tests the "
+            "method, not the real-world accuracy."
+        )
     if (data.table("forecast").status == "simulated").any():
         st.warning(
-            "Validation numbers above are computed on simulated data: they test the "
-            "method, not the real-world accuracy."
+            "The trend back-test runs on the simulated yearbook series: it tests the method, "
+            "not the real-world accuracy."
         )
 
 with tabs[4]:
@@ -250,8 +268,12 @@ with tabs[4]:
 - **Census attendance may leave out home-based ECD.** The gap is the formal pre-primary gap.
 - **Five yearbook points make a short trend.** The 2029 range assumes the trend continues;
   policy changes, fee changes or a new data series can break it.
-- **The 3-5 share of the population is held at its 2022 value** to 2029; falling fertility
-  would lower it, so 2029 children (and places needed) may be overstated.
+- **Children aged 3 to 5 to 2029** come from NISR's single-age projections when they are
+  loaded; otherwise the 3-5 share is held at its 2022 value, and falling fertility would make
+  2029 children (and places needed) overstated.
+- **Attendance in 2026 is the 2022 census rate** until the MINEDUC series is complete: real
+  growth in enrolment since 2022 is not yet in the 2026 figures, so places needed may be
+  overstated where enrolment has grown.
 - **OSM does not say which schools have pre-primary.** Distance uses all schools and
   kindergartens; where roads are thin, straight-line distance understates the walk.
 - **District context.** Capacity and stunting are district values applied to every sector.

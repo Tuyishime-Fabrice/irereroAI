@@ -11,7 +11,7 @@ sources:  ## Create the data/raw/ folders and list which source files are presen
 	uv run python -m irerero.data
 
 intake:  ## Bring received files in safely: make intake FILES="path/to/file-or-folder ..."
-	uv run python -m irerero.data.intake $(FILES)
+	uv run --with openpyxl python -m irerero.data.intake $(FILES)
 
 data:  ## Rebuild every analysis table from data/raw/, demo data where files are missing
 	uv run python -m irerero.pipeline.build

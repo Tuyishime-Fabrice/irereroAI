@@ -6,7 +6,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from irerero.config import SIMULATED, WEAK_FACTOR
+from irerero.config import MODEL, SIMULATED, WEAK_FACTOR
 from irerero.diagnose.features import LABELS, LEVEL
 from irerero.diagnose.peer import MODEL_LABELS
 from irerero.diagnose.rules import COURSES, FACTOR_LABELS
@@ -40,8 +40,24 @@ st.session_state["sector_id"] = geo_id
 
 row = diag.set_index("geo_id").loc[geo_id]
 peers = diag[diag.district_id == district_id]
-simulated = row.status == SIMULATED
-status = SIMULATED if simulated else "model estimate"
+# the estimate, the peer benchmark and the diagnosis rules each keep their own status, and
+# each factor is simulated while one of its indicators is
+est_status, peer_status, status = row.estimate_status, row.peer_status, row.status
+stand_ins = set(row.simulated_inputs)
+FACTOR_INPUTS = {
+    "access": {"nonattendance", "far_share"},
+    "capacity": {"pupils_per_teacher", "pupils_per_classroom", "qualified_share"},
+    "wellbeing": {"stunting"},
+    "home": {"water_share", "sanitation_share", "women_secondary_share"},
+    "poverty": {"poverty"},
+}
+
+
+def factor_status(factor: str) -> str:
+    return SIMULATED if FACTOR_INPUTS[factor] & stand_ins else MODEL
+
+
+simulated = SIMULATED in (est_status, peer_status, status)
 run = data.table("model_run")
 chosen = run[run.chosen].iloc[0] if len(run) else None
 fallback = bool(row.fallback)
@@ -81,11 +97,11 @@ places = gap.places(target, row.children_3_5, row.attending)
 k1, k2, k3, k4 = st.columns([1, 1, 1, 1.4])
 with k1:
     theme.kpi("Children aged 3–5", theme.fmt_int(row.children_3_5), "IrereroAI 2026 estimate",
-              "2026", status, f"range {theme.fmt_int(row.children_low)}–{theme.fmt_int(row.children_high)}",
+              "2026", est_status, f"range {theme.fmt_int(row.children_low)}–{theme.fmt_int(row.children_high)}",
               "users", "teal")  # fmt: skip
 with k2:
     theme.kpi("Attending pre-primary", theme.fmt_pct(row.attendance_rate), "IrereroAI 2026 estimate",
-              "2026", status, f"census 2022: {theme.fmt_pct(row.attendance_2022)}", "school", "blue")  # fmt: skip
+              "2026", est_status, f"census 2022: {theme.fmt_pct(row.attendance_2022)}", "school", "blue")  # fmt: skip
 with k3:
     theme.kpi("Target", theme.fmt_pct(target), "NST2", "2028/29", None,
               f"{theme.fmt_int(places)} places short", "target", "gold")  # fmt: skip
@@ -124,6 +140,8 @@ with (
         label = "no data" if pd.isna(value) else f"{value:.2f} · {level}"
         if not pd.isna(value) and value >= WEAK_FACTOR:
             label += " · worst quarter"
+        if not pd.isna(value) and factor_status(f) == SIMULATED:
+            label += " · simulated"
         items.append(Bar(FACTOR_LABELS[f], sub, value, label, ico, tone, theme.TONES[tone][1]))
     st.markdown(theme.bars(items, marker=WEAK_FACTOR), unsafe_allow_html=True)
     theme.note(
@@ -211,7 +229,7 @@ with (
     )
     theme.note(
         f"Dot: observed (this sector: gold diamond). Bar: 80% interval; tick: expected value, "
-        f"fitted without the sector's own district. Status: {status}."
+        f"fitted without the sector's own district. Status: {peer_status}."
     )
 
 with (
@@ -267,6 +285,7 @@ evidence = [
         "level": level(row.access),
         "action": "Build or expand rooms where children are far from a school; expand nearby schools otherwise.",
         "source": "IrereroAI estimate (census 2022, NISR projections, OSM)",
+        "status": factor_status("access"),
     },
     {
         "factor": "Caregiver capacity",
@@ -274,6 +293,7 @@ evidence = [
         "level": level(row.capacity),
         "action": f"Recruit and train caregivers; assign the LEARN course '{COURSES['CAPACITY']}'.",
         "source": "MINEDUC yearbook 2024/25; LEARN progress",
+        "status": factor_status("capacity"),
     },
     {
         "factor": "Child wellbeing",
@@ -281,6 +301,7 @@ evidence = [
         "level": level(row.wellbeing),
         "action": f"Link with nutrition programmes; assign '{COURSES['NUTRITION']}'.",
         "source": "RDHS 2025",
+        "status": factor_status("wellbeing"),
     },
     {
         "factor": "Water and sanitation",
@@ -288,6 +309,7 @@ evidence = [
         "level": level(row.home),
         "action": f"Coordinate with WASH programmes near ECD centres; assign '{COURSES['WASH']}'.",
         "source": "Census 2022",
+        "status": factor_status("home"),
     },
     {
         "factor": "Poverty",
@@ -295,10 +317,13 @@ evidence = [
         "level": level(row.poverty_score),
         "action": "Check fees and costs with parents; associated with lower attendance, not a proven cause.",
         "source": "EICV7 2023/24",
+        "status": factor_status("poverty"),
     },
 ]
 with theme.panel(
-    "Evidence and recommended response", f"Status of every value: {status}", "clipboard"
+    "Evidence and recommended response",
+    f"Bottleneck and actions: {status}; each row shows the status of its evidence",
+    "clipboard",
 ):
     st.markdown(
         theme.table(
@@ -309,6 +334,7 @@ with theme.panel(
                 Col("level", "Level", fmt=lambda v, r: theme.pill(v)),
                 Col("action", "Suggested action"),
                 Col("source", "Source", fmt=lambda v, r: f"<span class='muted'>{escape(v)}</span>"),
+                Col("status", "Status", fmt=lambda v, r: theme.badge(v)),
             ],
         ),
         unsafe_allow_html=True,

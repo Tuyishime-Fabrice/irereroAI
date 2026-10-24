@@ -4,14 +4,19 @@ import pandas as pd
 
 from irerero.config import MODEL, SIMULATED, TARGET_2029
 from irerero.diagnose import moran, peer, rules
-from irerero.diagnose.features import sector_features
+from irerero.diagnose.features import sector_features, simulated_features
 from irerero.pipeline.inputs import Inputs
 
 
 def run(inputs: Inputs, tables: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
     features = sector_features(tables["observation"], tables["geo_unit"], tables["estimate_2026"])
     result = peer.fit(features)
+    # the diagnosis rules read every factor; the peer model only census attendance and the
+    # features it kept (none when it falls back to the district average)
     status = SIMULATED if features.inputs_simulated.any() else MODEL
+    used = {"attendance_2022", *([] if result.fallback else result.features)}
+    simulated = simulated_features(tables["observation"], tables["estimate_2026"])
+    peer_status = SIMULATED if used & simulated else MODEL
 
     residuals = result.output.observed - result.output.expected
     result.diagnostics["residual_moran"] = moran.residual_moran(inputs.sectors, residuals)
@@ -42,7 +47,7 @@ def run(inputs: Inputs, tables: dict[str, pd.DataFrame]) -> dict[str, pd.DataFra
     output = result.output.assign(
         model_id="district_mean" if result.fallback else result.chosen,
         drivers=[result.drivers.get(g, []) for g in result.output.index],
-        status=status,
+        status=peer_status,
     )
     output = output.rename_axis("geo_id").reset_index()
 

@@ -21,7 +21,7 @@ from irerero.roles import ANALYST, OFFICER, ROLE_LABELS, User
 from irerero.ui import data, theme
 
 STATE = "_assistant"
-ROBOT = theme.ASSETS / "assistant.webp"
+ART = theme.ASSETS / "assistant-bg.webp"
 PAGES = {
     "national": "Overview",
     "priorities": "District priorities",
@@ -34,6 +34,16 @@ PAGES = {
     "admin": "Admin",
 }
 PLACEHOLDER = "Ask about your overview, district gaps or targets…"
+# the hero's line and question box on each role's home screen
+HERO = {
+    "national": ("Understand your data. Explore district gaps. Plan your next steps.", PLACEHOLDER),
+    "officer": ("Understand your sector. Follow up training. Plan your next visits.",
+                "Ask about your sector, courses or check-ins…"),
+    "caregiver": ("Understand pre-primary. Work through your courses. Prepare your check-in.",
+                  "Ask about your courses or the monthly check-in…"),
+    "admin": ("See which data are real. Check what is still simulated.",
+              "Ask which datasets are real files and which are stand-ins…"),
+}  # fmt: skip
 PRIVACY = (
     "Answers are written by an AI model (Claude) from this dashboard's figures. Check them "
     "before you use them, and don't type personal information."
@@ -159,8 +169,8 @@ def context(page: str, user: User, t: facts.Tables) -> chat.Context:
 
 # --- pieces -------------------------------------------------------------------------------
 @cache
-def _robot_uri() -> str:
-    return "data:image/webp;base64," + base64.b64encode(ROBOT.read_bytes()).decode()
+def _art_uri() -> str:
+    return "data:image/webp;base64," + base64.b64encode(ART.read_bytes()).decode()
 
 
 def _first_name() -> str | None:
@@ -339,7 +349,7 @@ def question_box(page: str, user: User, scope: str) -> None:
     cfg = config()
     full = _questions(state) >= chat.MAX_QUESTIONS
     busy = bool(state["pending"])
-    placeholder = PLACEHOLDER
+    placeholder = HERO.get(page, HERO["national"])[1]
     if not cfg.ready:
         placeholder = "IrereroAI is not set up on this deployment yet"
     elif full:
@@ -367,7 +377,7 @@ def question_box(page: str, user: User, scope: str) -> None:
 
 
 def _conversation_card(page: str, user: User) -> None:
-    """Below the Overview hero, once there is something to show."""
+    """Below the hero on a role's home screen, once there is something to show."""
     state = _state(user)
     if not state["display"] and not state["pending"]:
         return
@@ -395,21 +405,23 @@ def _conversation_card(page: str, user: User) -> None:
         theme.note(PRIVACY)
 
 
-def hero(user: User, simulated: bool) -> None:
-    """The Overview's top area: illustration, notices, greeting, question box, NST2 target."""
-    st.markdown(
-        '<h1 class="ir-title ir-sr">Early Childhood Development Overview</h1>',
+def hero(user: User, simulated: bool, page: str = "national", sr_title: str | None = None) -> None:
+    """The assistant's top area on each role's home screen: the robot scene as the backdrop
+    of its left side, the notices, greeting, question box and NST2 target."""
+    if sr_title:
+        st.markdown(f'<h1 class="ir-title ir-sr">{escape(sr_title)}</h1>', unsafe_allow_html=True)
+    st.markdown(  # the scene is decorative, so it is a background, not an image
+        f"<style>.ir-hero-art {{ background-image: url({_art_uri()}); }}</style>",
         unsafe_allow_html=True,
     )
     area = data.districts().get(user.district_id, "") if user.district_id else "All districts"
+    line = HERO.get(page, HERO["national"])[0]
     with st.container(key="ir-hero"):
-        art, main = st.columns([1.05, 4], vertical_alignment="center", gap="medium")
+        art, main = st.columns([1.3, 4], gap="small")
         art.markdown(
-            f'<div class="ir-robot"><img src="{_robot_uri()}" alt="" width="280" '
-            'height="215"></div>',
-            unsafe_allow_html=True,
+            '<div class="ir-hero-art ir-fill" aria-hidden="true"></div>', unsafe_allow_html=True
         )
-        with main:
+        with main, st.container(key="hero-body"):
             notices, target = st.columns([2.6, 1.3], gap="small")
             notices.markdown(notices_html(simulated), unsafe_allow_html=True)
             target.markdown(
@@ -421,14 +433,13 @@ def hero(user: User, simulated: bool) -> None:
             )  # fmt: skip
             st.markdown(
                 f'<div class="ir-greet"><div class="hello">{escape(greeting(user))}</div>'
-                '<div class="ask">Ask IrereroAI</div><div class="sub">Understand your data. '
-                "Explore district gaps. Plan your next steps."
+                f'<div class="ask">Ask IrereroAI</div><div class="sub">{escape(line)}'
                 f'<span class="who">{escape(ROLE_LABELS[user.role])} · {escape(area)}</span>'
                 "</div></div>",
                 unsafe_allow_html=True,
             )
-            question_box("national", user, "app")
-    _conversation_card("national", user)
+            question_box(page, user, "app")
+    _conversation_card(page, user)
 
 
 @st.dialog("Ask IrereroAI", width="large")

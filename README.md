@@ -58,7 +58,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 138 tests
+make test      # 143 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
@@ -147,7 +147,7 @@ measures as follows. These numbers show the pipeline works, not real-world accur
 - Residual Moran's I: 0.30 (p = 0.001).
 - 2029 trend back-test: MAE 0.95 points; 93% of districts inside the 80% range.
 
-The 138 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
+The 143 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
 (hand-checked), the model and rules, the audit entries for each decision and confirmation,
 simulated-value labelling and exclusion from exports, the training triggers on the planted
 problems, that every screen renders for every role, and the assistant end to end (figures,
@@ -211,7 +211,8 @@ SMS/USSD, and any cost optimiser in RWF.
 
 Planners can ask questions about the dashboard in plain language ("Why is this district
 behind the target?", "How many places are needed?", "What does the scope warning mean?").
-On the Overview the question box sits at the top of the page; every other screen has an
+On each role's home screen (the Overview, Caregiver learning for sector officers and
+caregivers, Admin) the question box sits at the top of the page; every other screen has an
 **Ask IrereroAI** button that opens the same conversation in a dialog.
 
 - **Answers come from the dashboard's own figures.** The assistant (Claude, through the

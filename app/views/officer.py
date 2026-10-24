@@ -29,6 +29,7 @@ theme.header(
     simulated=True,
     crumbs=["Muhanga", f"{sector_name} sector", "Caregiver learning"],
     assistant="officer",
+    hero=True,
 )
 TRIGGER_TEXT = {
     "checkin:no_water": "latest check-in: no water or handwashing",

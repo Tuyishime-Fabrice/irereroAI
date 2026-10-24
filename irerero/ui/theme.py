@@ -573,12 +573,16 @@ CSS = f"""
     [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-hero-art) > [data-testid="stColumn"]:first-child,
     [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-hero-art) > [data-testid="stColumn"]:last-child {{
       flex: 1 1 100% !important; min-width: 100% !important; }}
-    .ir-hero-art {{ min-height: 180px; background-position: 35% 30%;
-      -webkit-mask-image: linear-gradient(180deg, #000 65%, transparent 100%);
-      mask-image: linear-gradient(180deg, #000 65%, transparent 100%); }}
+    .ir-hero-art {{ min-height: 260px; background-position: 50% 22%;
+      -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+      mask-image: linear-gradient(180deg, #000 72%, transparent 100%); }}
     .stApp .st-key-hero-body {{ padding: 0 16px 16px; }}
     .ir-strip .lead {{ grid-column: 1 / -1; }}
     .ir-strip .cell:nth-child(2) {{ border-left: 0; padding-left: 0; }}
+  }}
+  /* narrow phones: zoom in on the robot so it fills the width */
+  @media (max-width: 480px) {{
+    .ir-hero-art {{ min-height: 300px; background-size: 165% auto; background-position: 62% 12%; }}
   }}
   /* phone: 16px gutters, one column, smaller title */
   @media (max-width: 640px) {{

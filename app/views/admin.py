@@ -19,6 +19,7 @@ theme.header(
     "Users and roles, data files. Plan decisions are not editable here.",
     crumbs=["Rwanda", "Admin"],
     assistant="admin",
+    hero=True,
 )
 
 with theme.panel("Users", "Fictional demo accounts and their roles", "users"):

@@ -17,7 +17,7 @@ status = "simulated" if simulated else "model estimate"
 source = "IrereroAI 2026 estimate"
 
 theme.topbar(["Rwanda", "Overview"])
-assistant.hero(user, simulated)
+assistant.hero(user, simulated, sr_title="Early Childhood Development Overview")
 
 # --- filters ------------------------------------------------------------------------------
 with theme.panel(key="filters"):

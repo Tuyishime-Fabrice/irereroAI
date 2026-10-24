@@ -434,11 +434,18 @@ CSS = f"""
   /* --- IrereroAI assistant ------------------------------------------------------------ */
   .ir-sr {{ position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
-  .stApp .st-key-ir-hero {{ background: linear-gradient(180deg, #F7FAFD 0%, {SURFACE} 75%);
-    padding: var(--s2) 20px; }}
-  .ir-robot {{ border-radius: var(--ir-radius); overflow: hidden; background: #EAF1F8;
-    aspect-ratio: 280 / 215; max-width: 280px; }}
-  .ir-robot img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
+  .stApp [class*="st-key-ir-"].st-key-ir-hero {{ padding: 0; overflow: hidden;
+    background: linear-gradient(90deg, #E8EEF5 0%, #F3F6FA 40%, {SURFACE} 100%); }}
+  [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-hero-art) {{ gap: 0; flex-wrap: nowrap; }}
+  [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-hero-art) > [data-testid="stColumn"]:first-child {{
+    flex: 0 0 min(380px, 33%) !important; min-width: 0 !important; }}
+  [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-hero-art) > [data-testid="stColumn"]:last-child {{ flex: 1 1 0 !important; min-width: 0 !important; }}
+  .ir-hero-art {{ height: 100%; min-height: 300px; background-repeat: no-repeat;
+    background-size: cover; background-position: 30% 40%;
+    -webkit-mask-image: linear-gradient(90deg, #000 60%, transparent 100%);
+    mask-image: linear-gradient(90deg, #000 60%, transparent 100%); }}
+  [data-testid="stMarkdownContainer"]:has(> .ir-hero-art) {{ margin-bottom: 0; }}
+  .stApp .st-key-hero-body {{ padding: 20px 20px 16px 4px; }}
   .st-key-ir-hero .ir-target .value {{ font-size: clamp(17px, 1.5vw, 20px); white-space: normal; }}
   .st-key-ir-hero .ir-target {{ gap: 12px; padding: 14px 16px; }}
   .ir-greet {{ margin: 4px 0 2px; }}
@@ -561,7 +568,15 @@ CSS = f"""
     .ir-target .value {{ font-size: 20px; }}
   }}
   @media (max-width: 900px) {{
-    [data-testid="stColumn"]:has(> [data-testid="stVerticalBlock"] .ir-robot) {{ display: none; }}
+    /* the scene becomes a band across the top, fading into the panel below */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-hero-art) {{ flex-wrap: wrap; }}
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-hero-art) > [data-testid="stColumn"]:first-child,
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .ir-hero-art) > [data-testid="stColumn"]:last-child {{
+      flex: 1 1 100% !important; min-width: 100% !important; }}
+    .ir-hero-art {{ min-height: 180px; background-position: 35% 30%;
+      -webkit-mask-image: linear-gradient(180deg, #000 65%, transparent 100%);
+      mask-image: linear-gradient(180deg, #000 65%, transparent 100%); }}
+    .stApp .st-key-hero-body {{ padding: 0 16px 16px; }}
     .ir-strip .lead {{ grid-column: 1 / -1; }}
     .ir-strip .cell:nth-child(2) {{ border-left: 0; padding-left: 0; }}
   }}
@@ -669,10 +684,12 @@ def header(
     aside: str | None = None,
     tag: str | None = None,
     assistant: str | None = None,
+    hero: bool = False,
 ) -> None:
     """Top bar, page title and subtitle, an optional right-hand callout (HTML) or the "Ask
     IrereroAI" button for page `assistant`, the scope line and, when needed, the
-    simulated-data notice."""
+    simulated-data notice. With `hero`, a role's home screen: the assistant's hero (which
+    carries the notices) above the title instead of the button."""
     topbar(crumbs or [title])
     tag_html = (
         f'<span class="ir-tag" style="background:#FCE8E6;color:{SIM_RED}">{escape(tag)}</span>'
@@ -682,6 +699,13 @@ def header(
     head = f'<h1 class="ir-title">{escape(title)}{tag_html}</h1>' + (
         f'<p class="ir-subtitle">{escape(subtitle)}</p>' if subtitle else ""
     )
+    if hero and assistant:
+        from irerero.ui import assistant as ask
+        from irerero.ui.roles import current
+
+        ask.hero(current(), simulated, page=assistant)
+        st.markdown(head, unsafe_allow_html=True)
+        return
     if aside:
         left, right = st.columns([3, 2], vertical_alignment="center")
         left.markdown(head, unsafe_allow_html=True)

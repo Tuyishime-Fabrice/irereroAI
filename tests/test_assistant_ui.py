@@ -1,7 +1,7 @@
 """The assistant in the running app (Streamlit AppTest): the Overview hero keeps both notices,
 an unconfigured deployment says so instead of answering, a question goes through the real SDK
-to the local Messages API stand-in and the answer lands in the conversation, and every other
-screen offers the compact entry button."""
+to the local Messages API stand-in and the answer lands in the conversation, every role's home
+screen has the hero, and every other screen offers the compact entry button."""
 
 import pytest
 from streamlit.testing.v1 import AppTest
@@ -11,7 +11,7 @@ from irerero.roles import DEMO_USERS
 from tests import fake_anthropic
 
 APP = str(ROOT / "app" / "streamlit_app.py")
-PLANNER = DEMO_USERS[0]
+PLANNER, ANALYST, OFFICER, CAREGIVER, ADMIN = DEMO_USERS
 
 
 @pytest.fixture(scope="module")
@@ -101,6 +101,21 @@ def test_other_screens_offer_the_compact_entry(built_db, env, page):
     assert not at.exception, [e.message for e in at.exception]
     assert any(b.label.startswith("Ask IrereroAI") for b in at.button)
     assert not at.chat_input  # no banner on these screens: the question box is in the dialog
+
+
+@pytest.mark.parametrize(
+    "user", [PLANNER, ANALYST, OFFICER, CAREGIVER, ADMIN], ids=lambda u: u.role
+)
+def test_every_role_home_has_the_hero(built_db, env, user):
+    env.delenv("ANTHROPIC_API_KEY", raising=False)
+    at = _app(user)
+    at.run()
+    assert not at.exception, [e.message for e in at.exception]
+    page = _html(at)
+    assert 'class="ir-hero-art' in page and "Ask IrereroAI" in page
+    assert DEFINITION in page and "NST2 target" in page
+    assert len(at.chat_input) == 1  # the question box, not the compact button
+    assert not any(b.label.startswith("Ask IrereroAI") for b in at.button)
 
 
 def test_switching_role_starts_a_new_conversation(built_db, env, api):

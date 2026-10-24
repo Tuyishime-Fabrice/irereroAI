@@ -21,6 +21,7 @@ database or the screens.
 | Nothing is filled in | A conversion that lacks years or columns stays in `data/interim/`; the app keeps its red SIMULATED stand-in for that dataset rather than mixing real and invented values in one series |
 | Sources stay cited | Each staged row keeps its `source_page`; every number in the app and in exports shows its source, period and status |
 | Small numbers | Exports show counts under 10 children as "fewer than 10" (unchanged) |
+| A deployment gets aggregates only | `make bundle` zips the staged tables, never `_received/`; the zip lives in a private repository and the app checks its SHA-256 and every file before use ([deploy_private_data.md](deploy_private_data.md)) |
 | On request, remove | Delete `data/raw/_received/<package>/`, `data/raw/<dataset>/` and `data/interim/`, run `make data`; the app returns to the stand-ins. The manifest rows can stay as a record of receipt, or be removed |
 
 A cloud session's disk is temporary: the team's own copies remain the master copies. Re-run

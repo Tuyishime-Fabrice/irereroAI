@@ -3,12 +3,37 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
 import streamlit as st
 
-from irerero.ui import data, theme
-from irerero.ui.roles import ADMIN, ANALYST, CAREGIVER, OFFICER, PLANNER, demo_mode, selector
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+
+def _sources() -> dict[str, int]:
+    return {str(p): p.stat().st_mtime_ns for p in (ROOT / "irerero").rglob("*.py")}
+
+
+# Streamlit reloads changed modules only from app/, so after a deploy updates irerero/ the
+# running server would mix new screens with old modules (a new keyword reaching an old
+# function). If any irerero source changed since it was loaded, load it all afresh.
+_stamp = _sources()
+if "irerero" in sys.modules and getattr(sys.modules["irerero"], "__sources__", None) != _stamp:
+    for _name in [n for n in sys.modules if n == "irerero" or n.startswith("irerero.")]:
+        del sys.modules[_name]
+
+import irerero  # noqa: E402
+from irerero.ui import data, theme  # noqa: E402
+from irerero.ui.roles import (  # noqa: E402
+    ADMIN,
+    ANALYST,
+    CAREGIVER,
+    OFFICER,
+    PLANNER,
+    demo_mode,
+    selector,
+)
+
+irerero.__sources__ = _stamp
 
 st.set_page_config(page_title="IrereroAI", page_icon=str(theme.ICON), layout="wide")
 theme.setup()

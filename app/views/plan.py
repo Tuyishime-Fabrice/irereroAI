@@ -231,7 +231,10 @@ with right, theme.panel("Recent decisions & updates", "From the append-only audi
         what = f"{label}{': ' + sector if sector else ''}{extra}"
         why = theme.text(r.reason) + f" · {r.role.replace('_', ' ')}"
         entries.append((f"{r.at:%d %b %Y, %H:%M} UTC", what, why.strip(" ·"), tone))
-    st.markdown(theme.timeline(entries), unsafe_allow_html=True)
+    # The newest entry glows once when it was written moments ago, i.e. a decision just recorded.
+    just_now = len(log) and (audit.now() - log["at"].iloc[0]).total_seconds() < 30
+    fresh = ("a" if len(log) % 2 else "b") if just_now else ""
+    st.markdown(theme.timeline(entries, fresh), unsafe_allow_html=True)
     if len(log) > 7:
         theme.note(f"{len(log) - 7} older entries in the full audit log below.")
 

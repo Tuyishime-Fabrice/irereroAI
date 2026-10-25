@@ -104,6 +104,7 @@ def test_plan_page_with_decisions(built_db):
     assert not at.exception, [e.message for e in at.exception]
     page = " ".join(m.value for m in at.markdown)
     assert "Rejected: Cyeza" in page and "Approved: Rongi" in page
+    assert 'class="ir-fresh-' in page  # the decision just recorded glows once
 
 
 # --- journeys across screens: each one broke before it was tested here ----------------------

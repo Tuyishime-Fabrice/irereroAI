@@ -96,14 +96,19 @@ with (
             float(last.meal_days_avg) if last is not None else 5.0,
             0.5,
         )
+        # Pre-filled from the last check-in, like the counts, so a correction keeps them.
         water = c1.radio(
             bilingual("water_available"),
             ["Yes · Yego", "No · Oya"],
+            index=0 if last is None or bool(last.water_available) else 1,
             horizontal=True,
         )
         challenge = c2.selectbox(
             bilingual("main_challenge"),
             list(CHALLENGES),
+            index=list(CHALLENGES).index(last.main_challenge)
+            if last is not None and last.main_challenge in CHALLENGES
+            else 0,
             format_func=lambda k: f"{CHALLENGES[k][0]} · {CHALLENGES[k][1]}",
         )
         sent = st.form_submit_button("Submit · Ohereza", type="primary")
@@ -187,6 +192,7 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
             format_func=lambda i: courses.at[
                 open_ids.set_index("id").at[i, "course_id"], "title_en"
             ],
+            key="course-pick",  # keeps the open course when a pass moves it to Completed
         )
         a = open_ids.set_index("id").loc[pick]
         course = courses.loc[a.course_id]
@@ -211,6 +217,8 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
                 answers[int(q.position)] = q.options.index(choice) if choice is not None else -1
             if st.form_submit_button("Submit answers"):
                 result = progress.submit_quiz(eng, user, int(pick), answers)
+                # Re-read the course, so a pass shows the certificate straight away.
+                a = progress.assignments(eng, [user.user_id]).set_index("id").loc[pick]
                 if result["passed"]:
                     st.success(f"{result['correct']} of {result['total']}: course completed.")
                 else:

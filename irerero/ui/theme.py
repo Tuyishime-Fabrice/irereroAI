@@ -278,9 +278,9 @@ CSS = f"""
   .ir-table-wrap {{ overflow-x: auto; border: 1px solid {BORDER}; border-radius: 10px; }}
   table.ir-table {{ width: 100%; border-collapse: collapse; font-size: .88rem; }}
   table.ir-table th {{ background: #F7F9FB; color: {INK}; font-weight: 600; font-size: .8rem;
-    text-align: left; padding: .6rem .75rem; border-bottom: 1px solid {BORDER};
-    white-space: nowrap; }}
-  table.ir-table td {{ padding: .55rem .75rem; border-bottom: 1px solid #EEF2F6; color: {INK};
+    text-align: left; padding: .6rem .5rem; border-bottom: 1px solid {BORDER};
+    vertical-align: bottom; }}
+  table.ir-table td {{ padding: .55rem .5rem; border-bottom: 1px solid #EEF2F6; color: {INK};
     vertical-align: middle; }}
   table.ir-table tr:last-child td {{ border-bottom: 0; }}
   table.ir-table tr:hover td {{ background: #FAFCFD; }}

@@ -21,7 +21,11 @@ theme.header(
     "Plan where to act. Understand why. Track progress to 2029.",
     simulated=simulated,
     crumbs=["Rwanda", "Overview"],
-    aside=theme.target_callout("NST2 target", "65% by 2028/29", "Pre-primary enrolment"),
+    aside=theme.target_callout(
+        "NST2 target",
+        f"{theme.fmt_pct(TARGET_2029.value)} by {TARGET_YEAR}",
+        "Pre-primary enrolment",
+    ),
 )
 
 # --- filters ------------------------------------------------------------------------------
@@ -37,6 +41,11 @@ with theme.panel(key="filters"):
         help=f"Default {theme.fmt_pct(TARGET_2029.value)}: {TARGET_2029.citation}",
     )
     st.session_state["target_pct"] = target_pct
+    if target_pct != round(TARGET_2029.value * 100):
+        theme.note(
+            f"Planning at {target_pct}%: the numbers below use this target, not the NST2 "
+            f"{theme.fmt_pct(TARGET_2029.value)}."
+        )
     f3.selectbox(
         "Reference year",
         ["2026 estimate (census 2022 base)"],

@@ -61,7 +61,7 @@ with theme.panel(key="filters"):
 target = target_pct / 100
 
 kpi_row = st.container()  # filled once the ranking is known
-main, side = st.columns([2.2, 1])
+main, side = st.columns([2.6, 1])
 
 # --- weights (right) are read before the ranking (left) is drawn --------------------------
 with (

@@ -4,6 +4,12 @@ A full review of the demo build at commit `3d7593e`: the idea and methods, every
 button for every role, the exports, the code and the pipeline. Everything below was **run and
 observed**, not just read. Line references point at the code as reviewed.
 
+> **Status (25 October 2026).** Fixed, each with a test that fails on the old code: H1, H2, H3,
+> M1, M2, M3, M4 and M6. M5: the PDF table now uses the same suppression as the CSV. Whether a 0
+> should still be exported as "fewer than 10" is left to the team, because the README and
+> methodology state the rule as "counts of children under 10". The low items and the
+> methodology points are not changed yet.
+
 ## How it was tested
 
 | Area | What was done | Result |

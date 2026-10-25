@@ -445,6 +445,58 @@ CSS = f"""
     display: flex; flex-direction: column; align-items: center; gap: var(--s1); }}
   .ir-empty .ir-icon {{ color: #9AA8B7; }}
 
+  /* motion: few, short, and only where it says something. Entrances play when an element first
+     appears (a new screen, a new result); Streamlit keeps unchanged elements on a rerun, so they
+     do not replay when a slider moves. */
+  @keyframes ir-rise {{ from {{ opacity: 0; transform: translateY(6px); }}
+    to {{ opacity: 1; transform: none; }} }}
+  @keyframes ir-fade {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+  @keyframes ir-grow {{ from {{ transform: scaleX(0); }} to {{ transform: scaleX(1); }} }}
+  .ir-title, .ir-subtitle {{ animation: ir-fade .25s ease-out both; }}
+  .stApp [class*="st-key-ir-"], .ir-kpi {{ animation: ir-rise .32s cubic-bezier(.2,.8,.2,1) both; }}
+  .stApp [class*="st-key-ir-"] [class*="st-key-ir-"] {{ animation: none; }}
+  [data-testid="stColumn"]:nth-child(2) .ir-kpi {{ animation-delay: .05s; }}
+  [data-testid="stColumn"]:nth-child(3) .ir-kpi {{ animation-delay: .1s; }}
+  [data-testid="stColumn"]:nth-child(4) .ir-kpi {{ animation-delay: .15s; }}
+  /* bars grow to their value, so the eye reads the length, not just the end state */
+  .ir-bar-fill {{ transform-origin: left; animation: ir-grow .7s cubic-bezier(.2,.8,.2,1) .1s both;
+    transition: width .5s cubic-bezier(.2,.8,.2,1); }}  /* another sector: bars move, not jump */
+  .ir-bar-row:nth-child(2) .ir-bar-fill {{ animation-delay: .16s; }}
+  .ir-bar-row:nth-child(3) .ir-bar-fill {{ animation-delay: .22s; }}
+  .ir-bar-row:nth-child(4) .ir-bar-fill {{ animation-delay: .28s; }}
+  .ir-bar-row:nth-child(5) .ir-bar-fill {{ animation-delay: .34s; }}
+  /* the result of an action (saved, refused, suggested) arrives visibly */
+  .stApp [data-testid="stAlert"] {{ animation: ir-rise .28s cubic-bezier(.2,.8,.2,1) both; }}
+  /* a decision just recorded: its entry glows once. Two identical animations alternate, so the
+     glow restarts on the next decision even though Streamlit reuses the list item. */
+  @keyframes ir-fresh-a {{ from {{ background: #D5EFE7; }} to {{ background: transparent; }} }}
+  @keyframes ir-fresh-b {{ from {{ background: #D5EFE7; }} to {{ background: transparent; }} }}
+  .ir-timeline li.ir-fresh-a {{ animation: ir-fresh-a 2s ease-out; }}
+  .ir-timeline li.ir-fresh-b {{ animation: ir-fresh-b 2s ease-out; }}
+  /* controls answer the pointer */
+  .stButton button, .stDownloadButton button, .stFormSubmitButton button {{
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease,
+      transform .1s ease;
+  }}
+  .stButton button:hover, .stDownloadButton button:hover, .stFormSubmitButton button:hover {{
+    box-shadow: 0 2px 6px rgba(16,24,40,.12);
+  }}
+  .stButton button:active, .stDownloadButton button:active, .stFormSubmitButton button:active {{
+    transform: scale(.98); box-shadow: none;
+  }}
+  section[data-testid="stSidebar"] [data-testid="stSidebarNav"] a {{
+    transition: background-color .15s ease;
+  }}
+  table.ir-table td {{ transition: background-color .12s ease; }}
+  @media (prefers-reduced-motion: reduce) {{
+    .stApp *, .stApp *::before, .stApp *::after {{
+      animation: none !important; transition: none !important;
+    }}
+  }}
+  @media print {{
+    .stApp * {{ animation: none !important; transition: none !important; }}
+  }}
+
   /* --- IrereroAI assistant ------------------------------------------------------------ */
   .ir-sr {{ position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
@@ -565,6 +617,10 @@ CSS = f"""
   .ir-legend i.dash {{ border-top-style: dashed; }}
   .ir-legend i.diamond {{ width: 9px; height: 9px; border: 0; transform: rotate(45deg); }}
 
+  /* laptop: a little less cell padding so wide tables (the sector ranking) fit at 1280px */
+  @media (max-width: 1366px) {{
+    table.ir-table th, table.ir-table td {{ padding-left: 10px; padding-right: 10px; }}
+  }}
   /* tablet: KPI rows go 2 by 2 and side-by-side panels stack */
   @media (max-width: 1180px) {{
     .block-container, [data-testid="stMainBlockContainer"] {{ padding-left: var(--s3); padding-right: var(--s3); }}
@@ -981,15 +1037,18 @@ def bars(items: Sequence[Bar], marker: float | None = 0.75) -> str:
     return "".join(out)
 
 
-def timeline(items: Sequence[tuple[str, str, str, str]]) -> str:
-    """(when, what, why, tone) entries, newest first."""
+def timeline(items: Sequence[tuple[str, str, str, str]], fresh: str = "") -> str:
+    """(when, what, why, tone) entries, newest first. `fresh` ("a" or "b", alternating with
+    each new entry) makes the newest entry glow once, for a decision just recorded."""
     if not items:
         return empty_state("Nothing recorded yet.", "clock")
+    glow = f' class="ir-fresh-{fresh}"' if fresh in ("a", "b") else ""
     rows = "".join(
-        f'<li><span class="dot" style="background:{TONES[tone][1]}"></span><div>'
+        f'<li{glow if i == 0 else ""}><span class="dot" style="background:{TONES[tone][1]}">'
+        "</span><div>"
         f'<div class="when">{escape(when)}</div><div class="what">{escape(what)}</div>'
         f'<div class="why">{escape(why)}</div></div></li>'
-        for when, what, why, tone in items
+        for i, (when, what, why, tone) in enumerate(items)
     )
     return f'<ul class="ir-timeline">{rows}</ul>'
 

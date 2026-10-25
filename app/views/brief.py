@@ -111,13 +111,13 @@ with theme.panel(
 
     st.markdown(f"**Top 5 sectors ({preset})** [1] [2] [3] [5]")
     top = result.head(5)
-    table = pd.DataFrame(
+    table = pd.DataFrame(  # the PDF table: counts of children suppressed as in the CSV
         {
             "Rank": top["rank"],
             "Sector": top.name,
-            "Children 3-5": top.children_3_5.round().astype(int),
+            "Children 3-5": brief.suppress_counts(top.children_3_5.round().astype(int)),
             "Attending": (top.attendance_rate * 100).round().astype(int).astype(str) + "%",
-            "Places": top.places,
+            "Places": brief.suppress_counts(top.places),
             "Rooms": top.rooms,
             "> 1 km": (top.far_share * 100).round().astype(int).astype(str) + "%",
             "Bottleneck": top.bottleneck,
@@ -231,7 +231,8 @@ with theme.panel(
         "Download PDF",
         brief.pdf(
             f"District brief: {name}",
-            [*pdf_lines, decisions, training_line],
+            # LEARN figures are simulated pilot data: only with simulated values included.
+            [*pdf_lines, decisions, *([training_line] if include else [])],
             pdf_table,
             [f"[{n}] {t}" for n, t in refs.items()] + [DEFINITION],
             simulated=simulated and include,

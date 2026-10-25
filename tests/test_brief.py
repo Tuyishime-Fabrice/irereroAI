@@ -42,6 +42,11 @@ def test_small_counts_suppressed_but_not_rooms():
     assert out["rooms"] == 3  # not a count of children
 
 
+def test_pdf_table_counts_suppressed_like_the_csv():
+    out = brief.suppress_counts(pd.Series([1200, 7, 0]))
+    assert out.tolist() == [1200, "fewer than 10", "fewer than 10"]
+
+
 def test_csv_says_what_it_contains():
     text = brief.to_csv(ROWS).decode()
     assert text.startswith("# IrereroAI district brief")

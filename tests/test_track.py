@@ -166,3 +166,43 @@ def test_audit_log_is_append_only(plan_eng):
         s.delete(s.query(AuditLog).first())
         with pytest.raises(audit.AuditImmutable):
             s.commit()
+
+
+def test_whatif_counts_places_only_up_to_the_need():
+    years = list(PROJECTION_YEARS)
+    projected = pd.Series([0.40, 0.42, 0.44, 0.46], index=years)
+    children = pd.Series([10_000.0] * 4, index=years)
+    out = forecast.whatif(projected, children, 10, "2026/27", max_places=500)
+    # 300, 600, 900 places added, but only 500 are needed: +3, +5, +5 points
+    assert out.tolist() == pytest.approx([0.40, 0.45, 0.49, 0.51])
+
+
+def test_add_items_to_an_existing_plan(plan_eng):
+    plan_id, _ = make_plan(plan_eng)
+    new = {**ITEMS[0], "geo_id": "S-A-3", "rank": 3}
+    added = plans.add_items(plan_eng, PLANNER_USER, plan_id, [ITEMS[0], new])
+    items = plans.items(plan_eng, plan_id)
+    assert items.geo_id.tolist() == ["S-A-1", "S-A-2", "S-A-3"]  # S-A-1 not added twice
+    assert len(added) == 1
+    assert items.set_index("geo_id").loc["S-A-3", "decision"] == "pending"
+    entry = last_entry(plan_eng)
+    assert (entry.action, entry.entity_id) == ("plan_item.add", str(added[0]))
+    assert entry.after["geo_id"] == "S-A-3"
+
+
+@pytest.mark.parametrize("user", [OTHER_PLANNER, ADMIN_USER, ANALYST_USER], ids=lambda u: u.user_id)
+def test_only_the_district_planner_adds_items(plan_eng, user):
+    plan_id, _ = make_plan(plan_eng)
+    with pytest.raises(plans.NotAllowed):
+        plans.add_items(plan_eng, user, plan_id, [{**ITEMS[0], "geo_id": "S-A-3"}])
+
+
+@pytest.mark.parametrize("decision", ["approve", "reject"])
+def test_changed_places_need_an_edit(plan_eng, decision):
+    _, items = make_plan(plan_eng)
+    item = int(items.id.iat[0])
+    with pytest.raises(ValueError, match="choose edit"):
+        plans.decide(plan_eng, PLANNER_USER, item, decision, "A reason", places=7)
+    assert plans.items(plan_eng, 1).places.iat[0] == 350  # unchanged
+    plans.decide(plan_eng, PLANNER_USER, item, "approve", places=350)  # same places: fine
+    assert plans.items(plan_eng, 1).decision.iat[0] == "approved"

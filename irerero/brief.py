@@ -185,13 +185,18 @@ def district_rows(geo_id: str, name: str, summary: pd.Series, status: str) -> pd
     return pd.DataFrame(rows, columns=COLUMNS)
 
 
+def suppress_counts(values: pd.Series) -> pd.Series:
+    """One column of counts of children: values below SUPPRESS_BELOW become "fewer than 10".
+    The same rule for the long CSV rows and the PDF table."""
+    small = pd.to_numeric(values, errors="coerce") < SUPPRESS_BELOW
+    return values.astype(object).where(~small, f"fewer than {SUPPRESS_BELOW}")
+
+
 def suppress(frame: pd.DataFrame) -> pd.DataFrame:
     """Counts of children below SUPPRESS_BELOW become "fewer than 10"."""
     out = frame.copy().astype({"value": object})
-    small = out.indicator.str.replace(r"_(low|high)$", "", regex=True).isin(COUNT_INDICATORS) & (
-        pd.to_numeric(out.value, errors="coerce") < SUPPRESS_BELOW
-    )
-    out.loc[small, "value"] = f"fewer than {SUPPRESS_BELOW}"
+    counts = out.indicator.str.replace(r"_(low|high)$", "", regex=True).isin(COUNT_INDICATORS)
+    out.loc[counts, "value"] = suppress_counts(out.loc[counts, "value"])
     return out
 
 

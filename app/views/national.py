@@ -37,6 +37,11 @@ with theme.panel(key="filters"):
         help=f"Default {theme.fmt_pct(TARGET_2029.value)}: {TARGET_2029.citation}",
     )
     st.session_state["target_pct"] = target_pct
+    if target_pct != round(TARGET_2029.value * 100):
+        theme.note(
+            f"Planning at {target_pct}%: the numbers below use this target, not the NST2 "
+            f"{theme.fmt_pct(TARGET_2029.value)}."
+        )
     f3.selectbox(
         "Reference year",
         ["2026 estimate (census 2022 base)"],

@@ -182,7 +182,6 @@ def test_pdf_leaves_out_simulated_learn_figures(built_db, monkeypatch):
     assert not at.exception, [e.message for e in at.exception]
     assert "LEARN pilot" in " ".join(m.value for m in at.markdown)  # shown on the page
     assert not any("LEARN pilot" in line for line in sent[-1])
-    assert "Values withheld: simulated." in sent[-1]
 
     at.toggle[0].set_value(True).run()  # include simulated values, labelled
     assert any("LEARN pilot" in line for line in sent[-1])

@@ -6,10 +6,11 @@ from irerero.config import (
     COMPONENT_LABELS,
     COMPONENTS,
     PRESETS,
+    SIMULATED,
     STABILITY_DRAWS,
     TARGET_2029,
 )
-from irerero.plan.frame import any_simulated, ranked
+from irerero.plan.frame import distance_status, ranked, status_of
 from irerero.plan.priority import stability_label
 from irerero.ui import data, maps, theme
 from irerero.ui.roles import ANALYST, current
@@ -25,14 +26,23 @@ else:
     district_id = user.district_id
 frame = all_sectors[all_sectors.district_id == district_id]
 province = frame.province.iat[0] if len(frame) else ""
-simulated = any_simulated(frame)
-status = "simulated" if simulated else "model estimate"
+# the ranking reads the estimate, the peer gap and poverty; the table also shows distance
+# (school points) and the main bottleneck (every DIAGNOSE factor), each with its own status
+status = (
+    SIMULATED
+    if SIMULATED in (status_of(frame), *frame.peer_status.dropna().unique())
+    else status_of(frame)
+)
+far_status = distance_status(frame)
+diag_status = status_of(data.diagnosis_now(data.target()))
+simulated = SIMULATED in (status, far_status, diag_status)
 
 theme.header(
     "District priorities",
     "Find where new pre-primary places are needed first, and how sure we can be of the order.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], "District priorities"],
+    assistant="priorities",
 )
 
 # --- filters ------------------------------------------------------------------------------
@@ -61,11 +71,12 @@ with theme.panel(key="filters"):
 target = target_pct / 100
 
 kpi_row = st.container()  # filled once the ranking is known
-main, side = st.columns([2.6, 1])
+main, side = st.columns([5, 3])
+weights_col, why_col = st.columns([1, 1])
 
-# --- weights (right) are read before the ranking (left) is drawn --------------------------
+# --- weights are read before the ranking above them is drawn ------------------------------
 with (
-    side,
+    weights_col,
     theme.panel(
         "How ranking works", "Each component is a percentile among the district's sectors.", "scale"
     ),
@@ -116,7 +127,6 @@ with kpi_row:
             "rooms",
             "gold",
         )
-    st.write("")
 
 # --- ranking table ------------------------------------------------------------------------
 with (
@@ -160,7 +170,9 @@ with (
     theme.note(
         f"Top-3 stability: share of {STABILITY_DRAWS} random weightings around the chosen "
         "weights in which the sector stays in the top 3 (green ≥ 80%, amber 40–80%, grey "
-        f"below). Distance: {result.distance_method.iloc[0] if len(result) else ''}."
+        f"below). Ranking and places: {status}; > 1 km: {far_status} "
+        f"({result.distance_method.iloc[0] if len(result) else ''}); main bottleneck: "
+        f"{diag_status}."
     )
     if user.can_decide:
         names = dict(zip(result.geo_id, result.name, strict=True))
@@ -179,7 +191,7 @@ with (
             )
         st.page_link("views/plan.py", label="Go to action plans", icon=":material/arrow_forward:")
 
-# --- map and explanation (right) ----------------------------------------------------------
+# --- map (right of the ranking) and explanation (below) ----------------------------------
 with (
     side,
     theme.panel(f"{districts[district_id]} map", "Priority score (higher = act first)", "pin"),
@@ -195,11 +207,11 @@ with (
             for r in result.itertuples()
         },
         view=maps.view_for(geo, set(result.geo_id)),
-        height=360,
+        height=500,
         key="priority-map",
     )
 
-with side, theme.panel("Why this order", "Top three sectors, component by component", "info"):
+with why_col, theme.panel("Why this order", "Top three sectors, component by component", "info"):
     st.markdown(
         "<span class='ir-note'><b>Weights used:</b> "
         + " · ".join(f"{COMPONENT_LABELS[c]} {w:.0%}" for c, w in used.items())

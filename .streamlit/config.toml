@@ -1,21 +1,31 @@
+# Brand tokens mirror irerero/ui/theme.py. Teal 700 (#0F7A67) carries filled buttons and teal
+# text, because white on the brand teal (#169B83) is 3.5:1, below WCAG AA for body text.
 [theme]
 base = "light"
-primaryColor = "#18977A"
-backgroundColor = "#F4F7FA"
-secondaryBackgroundColor = "#EEF3F8"
+primaryColor = "#0F7A67"
+backgroundColor = "#F4F7FB"
+secondaryBackgroundColor = "#EEF2F7"
 textColor = "#0F1B2A"
-borderColor = "#E2E8F0"
-linkColor = "#12785F"
-font = "sans serif"
+borderColor = "#DDE3EA"
+linkColor = "#0F7A67"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap, sans-serif"
+headingFont = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap, sans-serif"
+headingFontWeights = [700, 700, 600, 600, 600, 600]
+headingFontSizes = ["36px", "22px", "18px", "16px", "14px", "14px"]
 baseRadius = "8px"
+buttonRadius = "8px"
 showWidgetBorder = true
+redColor = "#B42318"
+greenColor = "#0F7A67"
+blueColor = "#245A99"
+orangeColor = "#B54708"
 
 [theme.sidebar]
-backgroundColor = "#0B2D4F"
-secondaryBackgroundColor = "#123A63"
+backgroundColor = "#0B2E50"
+secondaryBackgroundColor = "#14406B"
 textColor = "#E6EEF6"
-primaryColor = "#18977A"
-borderColor = "#1E4870"
+primaryColor = "#169B83"
+borderColor = "#7F97B0"
 linkColor = "#7FD3BF"
 
 [server]

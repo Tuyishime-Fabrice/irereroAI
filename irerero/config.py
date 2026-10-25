@@ -1,13 +1,16 @@
 """Fixed parameters, each with where it comes from. Change them here, nowhere else."""
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-RAW = DATA / "raw"
+# The tests point these elsewhere, so they never read the files a machine holds or overwrite
+# its build.
+RAW = Path(os.environ.get("IRERERO_RAW", DATA / "raw"))
 INTERIM = DATA / "interim"
-PROCESSED = DATA / "processed"
+PROCESSED = Path(os.environ.get("IRERERO_PROCESSED", DATA / "processed"))
 REFERENCE = DATA / "reference"
 DEMO = DATA / "demo"
 CONTENT = ROOT / "content"
@@ -102,8 +105,8 @@ SIMULATED = "simulated"
 STATUSES = (OBSERVED, PUBLISHED, MODEL, USER, SIMULATED)
 
 # Brand colours from the IrereroAI logo, plus a colour-blind-safe status set (Okabe-Ito).
-NAVY = "#033665"
-GREEN = "#18977A"
+NAVY = "#0B2E50"
+GREEN = "#169B83"
 GOLD = "#ECA837"
 INK = "#0F1B2A"
 MUTED = "#5B6B7C"

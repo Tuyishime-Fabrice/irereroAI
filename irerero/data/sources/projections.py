@@ -21,6 +21,12 @@ DATASET = Dataset(
         Column("population", "integer", "Projected population, medium variant"),
         Column("population_low", "integer", "Low variant", required=False),
         Column("population_high", "integer", "High variant", required=False),
+        Column(
+            "children_3_5",
+            "integer",
+            "Projected children aged 3 to 5 (from the single-age tables), medium variant",
+            required=False,
+        ),
         PAGE_COLUMN,
     ),
     level="district",
@@ -30,6 +36,11 @@ DATASET = Dataset(
     used_by=("PLAN: calibrate the 2026 estimate", "TRACK: population for enrolment rates"),
     status=PUBLISHED,
     fallback="Simulated district projections (seed 2026)",
+    notes=(
+        "With children_3_5 (the single-age tables give it), the 2026 estimate takes each "
+        "district's children aged 3 to 5 straight from the projection; without it, from the "
+        "projected population and the census 2022 age share.",
+    ),
 )
 
 

@@ -32,6 +32,8 @@ theme.header(
     f"{centre['name']} · monthly check-in and your courses",
     simulated=centre.status == SIMULATED,
     crumbs=["Muhanga", f"{sector_name} sector", "Caregiver learning"],
+    assistant="caregiver",
+    hero=True,
 )
 
 history = checkins.frame(eng, [user.centre_id])
@@ -58,7 +60,6 @@ with k4:
     waiting = int((mine.status == "recommended").sum())
     theme.kpi("Suggested courses", str(waiting), "LEARN triggers", "2026", None,
               "waiting for your sector officer", "info", "purple")  # fmt: skip
-st.write("")
 check_col, learn_col = st.columns([3, 2])
 
 # --- check-in -----------------------------------------------------------------------------

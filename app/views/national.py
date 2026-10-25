@@ -4,35 +4,31 @@ import streamlit as st
 
 from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
-from irerero.plan.frame import any_simulated
+from irerero.plan.frame import distance_status, status_of
 from irerero.track import forecast, plans
-from irerero.ui import charts, data, maps, theme
+from irerero.ui import assistant, charts, data, maps, theme
 from irerero.ui.roles import PLANNER, current
 from irerero.ui.theme import Col
 
 user = current()
 sectors = data.sectors()
-simulated = any_simulated(sectors)
-status = "simulated" if simulated else "model estimate"
+forecast_rows = data.table("forecast")
+# each part keeps its own status: the estimate (census, projections), the distance layer
+# (school points) and the outlook (yearbook trend) become real at different times
+status = status_of(sectors)
+far_status = distance_status(sectors)
+track_status = status_of(forecast_rows)
+simulated = "simulated" in (status, far_status, track_status)
 source = "IrereroAI 2026 estimate"
 
-theme.header(
-    "Early Childhood Development Overview",
-    "Plan where to act. Understand why. Track progress to 2029.",
-    simulated=simulated,
-    crumbs=["Rwanda", "Overview"],
-    aside=theme.target_callout(
-        "NST2 target",
-        f"{theme.fmt_pct(TARGET_2029.value)} by {TARGET_YEAR}",
-        "Pre-primary enrolment",
-    ),
-)
+theme.topbar(["Rwanda", "Overview"])
+assistant.hero(user, simulated, sr_title="Early Childhood Development Overview")
 
 # --- filters ------------------------------------------------------------------------------
 with theme.panel(key="filters"):
     f1, f2, f3 = st.columns([1, 1, 1])
     provinces = ["All provinces", *sorted(sectors.province.dropna().unique())]
-    province = f1.selectbox("Province", provinces)
+    province = f1.selectbox("Province", provinces, key="ov-province")
     target_pct = f2.slider(
         "Target attendance (%)",
         30,
@@ -101,14 +97,13 @@ with k4:
         theme.fmt_pct(far),
         "IrereroAI distance layer",
         "2026",
-        status,
+        far_status,
         method,
         "route",
         "rose",
     )
 
-st.write("")
-track_all = forecast.summary(data.table("forecast"), target)
+track_all = forecast.summary(forecast_rows, target)
 track = track_all.drop(index=forecast.NATIONAL)
 in_scope = set(scope.district_id)
 track = track[track.index.isin(in_scope)]
@@ -116,11 +111,12 @@ track = track[track.index.isin(in_scope)]
 # --- map and outlook ----------------------------------------------------------------------
 left, right = st.columns([3, 2])
 with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "pin"):
-    view = st.radio(
-        "Map",
-        [f"{TARGET_YEAR} status", "Places needed", "Attendance rate"],
-        horizontal=True,
-        label_visibility="collapsed",
+    views = [f"{TARGET_YEAR} status", "Places needed", "Attendance rate"]
+    view = (
+        st.segmented_control(
+            "Map layer", views, default=views[0], label_visibility="collapsed", key="map-view"
+        )
+        or views[0]  # clicking the selected segment clears it; keep showing a layer
     )
     geo_d, geo_s = data.geojson("district"), data.geojson("sector")
     zoom = maps.view_for(geo_d, in_scope) if province != "All provinces" else None
@@ -131,12 +127,13 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             f"Projected {TARGET_YEAR} enrolment",
             lambda v: theme.fmt_pct(v),
             tooltip={
-                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · {status}"
+                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · "
+                f"{track_status}"
                 for g, r in track.iterrows()
             },
             colours={g: STATUS_COLOURS[s] for g, s in track.status.items()},
             view=zoom,
-            height=420,
+            height=400,
             key="national-status",
         )
         counts = track.status.value_counts()
@@ -155,7 +152,7 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
                 for r in needs.itertuples()
             },
             view=zoom,
-            height=420,
+            height=400,
             key="national-sectors",
         )
     else:
@@ -170,16 +167,16 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             lambda v: theme.fmt_pct(v),
             tooltip={k: status for k in rates.index},
             view=zoom,
-            height=420,
+            height=400,
             key="national-districts",
         )
 
 with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment, Rwanda", "trend"):
-    rows = data.table("forecast")
-    national = rows[rows.geo_id == forecast.NATIONAL]
+    national = forecast_rows[forecast_rows.geo_id == forecast.NATIONAL]
     observed = national[national.kind == "observed"].set_index("year")
     projected = national[national.kind == "projected"].set_index("year")
-    st.altair_chart(charts.trend(observed, projected, target, height=330), width="stretch")
+    st.markdown(charts.trend_legend(), unsafe_allow_html=True)
+    st.altair_chart(charts.trend(observed, projected, target, height=320), width="stretch")
     nat = track_all.loc[forecast.NATIONAL]
     st.markdown(
         f"Projected **{theme.fmt_pct(nat.projected, 1)}** by {TARGET_YEAR} "
@@ -189,7 +186,7 @@ with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment,
     )
     theme.note(
         "Gross rate: MINEDUC pre-primary pupils per child aged 3–5. Linear trend with an 80% "
-        f"prediction range. Status: {status}."
+        f"prediction range. Status: {track_status}."
     )
 
 # --- districts and actions ----------------------------------------------------------------
@@ -244,8 +241,8 @@ with (
         unsafe_allow_html=True,
     )
     theme.note(
-        f"Status of every number: {status}. Rooms and places: National ECD Standards (2024). "
-        "Hover a KPI for its source and year."
+        f"Children, places and rooms: {status}; {TARGET_YEAR} status: {track_status}. Rooms and "
+        "places: National ECD Standards (2024). Hover a KPI for its source and year."
     )
 
 with (

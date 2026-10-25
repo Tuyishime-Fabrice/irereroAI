@@ -3,6 +3,7 @@
 python -m irerero.data            # create data/raw/<dataset>/ folders and list what is present
 python -m irerero.data --write    # regenerate DATA_SOURCES.md
 python -m irerero.data --check    # fail if DATA_SOURCES.md is out of date
+python -m irerero.data --templates   # write header-only CSV templates to data/templates/
 """
 
 import argparse
@@ -13,6 +14,7 @@ from irerero.data.registry import DATASETS
 from irerero.data.spec import Dataset
 
 DOC = ROOT / "DATA_SOURCES.md"
+TEMPLATES = ROOT / "data" / "templates"
 TYPES = {
     "text": "text",
     "integer": "whole number ≥ 0",
@@ -94,13 +96,40 @@ def document() -> str:
     return "\n".join(lines) + "\n"
 
 
+def template_headers() -> dict[str, str]:
+    """Header line of each declared CSV file, required columns first."""
+    from irerero.data.sources import census
+
+    per_file = {"census_2022_districts.csv": census.DISTRICT_COLUMNS}
+    out = {}
+    for d in DATASETS:
+        for name in (f for f in d.files if f.endswith(".csv")):
+            columns = per_file.get(name, d.columns)
+            names = [c.name for c in columns if c.required]
+            names += [c.name for c in columns if not c.required]
+            out[name] = ",".join(names)
+    return out
+
+
+def templates() -> list[str]:
+    """One header-only CSV per declared CSV file, so a table typed from a report has exactly
+    the columns its loader reads."""
+    TEMPLATES.mkdir(parents=True, exist_ok=True)
+    for name, header in template_headers().items():
+        (TEMPLATES / name).write_text(header + "\n")
+    return [f"data/templates/{name}" for name in template_headers()]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--write", action="store_true")
     group.add_argument("--check", action="store_true")
+    group.add_argument("--templates", action="store_true")
     args = parser.parse_args()
-    if args.write:
+    if args.templates:
+        print("\n".join(templates()))
+    elif args.write:
         DOC.write_text(document())
     elif args.check:
         if not DOC.exists() or DOC.read_text() != document():

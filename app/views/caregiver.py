@@ -83,6 +83,7 @@ with (
             500.0,
             float(last.attendance_avg) if last is not None else 0.0,
             step=1.0,
+            format="%g",  # an average can be 25.5, but 31 shows as 31, not 31.00
         )
         carers_present = c1.number_input(
             bilingual("caregivers_present"),
@@ -113,6 +114,8 @@ with (
             format_func=lambda k: f"{CHALLENGES[k][0]} · {CHALLENGES[k][1]}",
         )
         sent = st.form_submit_button("Submit · Ohereza", type="primary")
+    for i, message in enumerate(st.session_state.pop("checkin-saved", [])):
+        (st.success if i == 0 else st.info)(message)
     if sent:
         entry = Checkin(
             centre_id=user.centre_id,
@@ -128,14 +131,16 @@ with (
             checkins.submit(eng, user, entry)
             flagged = triggers.run(eng, data.diagnosis_now(data.target()))
             new_flags = [f for f in flagged if f[0] == user.user_id]
-            st.success("Check-in saved. Murakoze!")
-            for _, course_id, _ in new_flags:
-                st.info(
+            # Rerun so the cards above show this month as submitted; the messages survive it.
+            st.session_state["checkin-saved"] = [
+                "Check-in saved. Murakoze!",
+                *(
                     f"The course '{courses.at[course_id, 'title_en']}' is suggested for you. "
                     "Your sector officer will confirm it."
-                )
-            history = checkins.frame(eng, [user.centre_id])
-            mine = progress.assignments(eng, [user.user_id])
+                    for _, course_id, _ in new_flags
+                ),
+            ]
+            st.rerun()
         except ValueError as error:
             st.error(str(error))
     with st.expander("Your centre's check-ins"):
@@ -216,7 +221,13 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
             for q in items.itertuples():
                 choice = st.radio(q.question, q.options, index=None, key=f"q-{pick}-{q.position}")
                 answers[int(q.position)] = q.options.index(choice) if choice is not None else -1
-            if st.form_submit_button("Submit answers"):
+            submitted = st.form_submit_button("Submit answers")
+            unanswered = sum(1 for chosen in answers.values() if chosen < 0)
+            if submitted and unanswered:  # a blank answer is not a wrong one: ask, do not score
+                st.warning(
+                    f"Answer all {len(answers)} questions first: {unanswered} still to answer."
+                )
+            elif submitted:
                 result = progress.submit_quiz(eng, user, int(pick), answers)
                 # Re-read the course, so a pass shows the certificate straight away.
                 a = progress.assignments(eng, [user.user_id]).set_index("id").loc[pick]

@@ -172,7 +172,15 @@ with right, theme.panel("Planner decision", "The rules suggest; a person decides
         st.markdown(f"<div class='ir-note'>• {escape(reason)}</div>", unsafe_allow_html=True)
     if user.can_decide:
         st.session_state.setdefault("plan_basket", [])
-        if st.button("Add to action plan", type="primary", icon=":material/add:", width="stretch"):
+        at_target = places == 0  # no places to plan, so nothing to add
+        if st.button(
+            "Add to action plan",
+            type="primary",
+            icon=":material/add:",
+            width="stretch",
+            disabled=at_target,
+            help="Already at the target: no places needed." if at_target else None,
+        ):
             if geo_id not in st.session_state["plan_basket"]:
                 st.session_state["plan_basket"].append(geo_id)
             st.success(f"{row['name']} added. Open Action plans to create or review the plan.")

@@ -164,6 +164,7 @@ with (
                     fmt=lambda v, r: theme.pill(stability_label(v), f"{v:.0%}"),
                 ),
             ],
+            pin=True,
         ),
         unsafe_allow_html=True,
     )
@@ -184,11 +185,23 @@ with (
             format_func=names.get,
             placeholder="Choose sectors",
         )
-        if a2.button("Add to plan", type="primary", icon=":material/add:", width="stretch"):
-            st.session_state["plan_basket"] = pick
-            st.success(
-                f"{len(pick)} sector(s) ready. Open Action plans to create or review the plan."
-            )
+        # A sector already at the target needs no places, so it does not become a plan item.
+        places = dict(zip(result.geo_id, result.places, strict=True))
+        ready = [g for g in pick if places[g] > 0]
+        at_target = [g for g in pick if places[g] == 0]
+        if a2.button(
+            "Add to plan", type="primary", icon=":material/add:", width="stretch", disabled=not pick
+        ):
+            st.session_state["plan_basket"] = ready
+            if ready:
+                st.success(
+                    f"{len(ready)} sector(s) ready. Open Action plans to create or review the plan."
+                )
+            if at_target:
+                st.warning(
+                    "Already at the target, so not added (no places needed): "
+                    + ", ".join(names[g] for g in at_target)
+                )
         st.page_link("views/plan.py", label="Go to action plans", icon=":material/arrow_forward:")
 
 # --- map (right of the ranking) and explanation (below) ----------------------------------

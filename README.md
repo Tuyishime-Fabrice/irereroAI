@@ -62,7 +62,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 165 tests
+make test      # 182 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
@@ -159,7 +159,7 @@ measures as follows. These numbers show the pipeline works, not real-world accur
 - Residual Moran's I: 0.30 (p = 0.001).
 - 2029 trend back-test: MAE 0.95 points; 93% of districts inside the 80% range.
 
-The 165 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
+The 182 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
 (hand-checked), the model and rules, the audit entries for each decision and confirmation,
 simulated-value labelling and exclusion from exports, the training triggers on the planted
 problems, that every screen renders for every role, and the assistant end to end (figures,

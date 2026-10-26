@@ -351,6 +351,7 @@ with theme.panel(
                         ),
                     ),
                 ],
+                pin=True,
                 empty="No items for your sector in this plan.",
             ),
             unsafe_allow_html=True,

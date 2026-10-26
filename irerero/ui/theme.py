@@ -603,7 +603,11 @@ CSS = f"""
   .stApp .st-key-ask-entry {{ display: flex; justify-content: flex-end; }}
   .stApp [data-testid="stDialog"] [role="dialog"] {{ border-radius: var(--ir-radius); }}
 
-  /* a collapsed sidebar leaves the logo and the open button floating over the page */
+  /* a collapsed sidebar leaves the logo and the open button floating over the page: give
+     their band the page colour, so content scrolls under a bar instead of through the logo */
+  .stApp:has(section[data-testid="stSidebar"][data-collapsed="true"]) header[data-testid="stHeader"] {{
+    background: {CANVAS}; box-shadow: 0 1px 0 {BORDER};
+  }}
   .stApp:has(section[data-testid="stSidebar"][data-collapsed="true"]) .block-container,
   .stApp:has(section[data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stMainBlockContainer"] {{
     padding-top: 64px;
@@ -676,6 +680,14 @@ CSS = f"""
     .stApp .st-key-ask-entry {{ justify-content: flex-start; }}
     table.ir-table {{ font-size: 13px; }}
     table.ir-table th, table.ir-table td {{ padding: var(--s1) 10px; }}
+    /* rank and name stay in view while the other columns scroll sideways */
+    table.ir-pin th:nth-child(-n+2), table.ir-pin td:nth-child(-n+2) {{ position: sticky;
+      z-index: 1; box-sizing: border-box; background: {SURFACE}; }}
+    table.ir-pin th:nth-child(-n+2) {{ background: #F7F9FB; }}
+    table.ir-pin th:first-child, table.ir-pin td:first-child {{ left: 0; width: 56px;
+      min-width: 56px; max-width: 56px; }}
+    table.ir-pin th:nth-child(2), table.ir-pin td:nth-child(2) {{ left: 56px;
+      box-shadow: inset -1px 0 0 {BORDER}; }}
   }}
 </style>
 """
@@ -982,8 +994,12 @@ class Col:
     strong: bool = False
 
 
-def table(rows: list[dict[str, Any]], cols: Sequence[Col], empty: str = "No rows.") -> str:
-    """An HTML table in the house style (pills and formatted numbers allowed in cells)."""
+def table(
+    rows: list[dict[str, Any]], cols: Sequence[Col], empty: str = "No rows.", pin: bool = False
+) -> str:
+    """An HTML table in the house style (pills and formatted numbers allowed in cells). With
+    `pin`, the first two columns (rank and name) stay in view on a phone while the rest scrolls
+    sideways."""
     if not rows:
         return empty_state(empty)
     head = "".join(f'<th class="{"num" if c.num else ""}">{escape(c.label)}</th>' for c in cols)
@@ -999,7 +1015,8 @@ def table(rows: list[dict[str, Any]], cols: Sequence[Col], empty: str = "No rows
             cells.append(f'<td class="{classes}">{html}</td>')
         body.append(f"<tr>{''.join(cells)}</tr>")
     return (
-        f'<div class="ir-table-wrap"><table class="ir-table"><thead><tr>{head}</tr></thead>'
+        f'<div class="ir-table-wrap"><table class="ir-table{" ir-pin" if pin else ""}">'
+        f"<thead><tr>{head}</tr></thead>"
         f"<tbody>{''.join(body)}</tbody></table></div>"
     )
 

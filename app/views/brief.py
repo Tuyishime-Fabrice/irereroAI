@@ -140,6 +140,7 @@ with theme.panel(
                 theme.Col("far_share", "> 1 km", fmt=lambda v, r: theme.fmt_pct(v), num=True),
                 theme.Col("bottleneck", "Bottleneck", fmt=lambda v, r: theme.pill(v)),
             ],
+            pin=True,
         ),
         unsafe_allow_html=True,
     )

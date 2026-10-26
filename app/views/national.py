@@ -237,6 +237,7 @@ with (
                 Col("rooms", "Rooms", fmt=lambda v, r: theme.fmt_int(v), num=True),
                 Col("track", f"{TARGET_YEAR} status", fmt=lambda v, r: theme.pill(v) if v else "–"),
             ],
+            pin=True,
         ),
         unsafe_allow_html=True,
     )

@@ -7,8 +7,15 @@ observed**, not just read. Line references point at the code as reviewed.
 > **Status (25 October 2026).** Fixed, each with a test that fails on the old code: H1, H2, H3,
 > M1, M2, M3, M4 and M6. M5: the PDF table now uses the same suppression as the CSV. Whether a 0
 > should still be exported as "fewer than 10" is left to the team, because the README and
-> methodology state the rule as "counts of children under 10". The low items and the
-> methodology points are not changed yet.
+> methodology state the rule as "counts of children under 10". The methodology points are not
+> changed yet.
+>
+> **Status (26 October 2026).** Low items: L1 to L5 fixed, each with a test that fails on the
+> old code. L6 was already resolved by the dashboard redesign on `main` (the bell is gone; the
+> avatar opens the account details). L7: the ranking, overview, plan and brief tables keep Rank
+> and the name in view on a phone while the other columns scroll, the top bar is solid when
+> the sidebar is collapsed so content no longer scrolls through the logo, and "Children
+> present" shows 31, not 31.00. L8: the README test count is current.
 
 ## How it was tested
 

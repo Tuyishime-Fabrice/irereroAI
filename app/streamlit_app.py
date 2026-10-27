@@ -23,6 +23,7 @@ if "irerero" in sys.modules and getattr(sys.modules["irerero"], "__sources__", N
 
 import irerero  # noqa: E402
 from irerero.ui import data, theme  # noqa: E402
+from irerero.ui.i18n import t  # noqa: E402
 from irerero.ui.roles import (  # noqa: E402
     ADMIN,
     ANALYST,
@@ -46,21 +47,23 @@ if not demo_mode():
 user = selector(data.districts())
 
 PAGES = {
-    "national": st.Page("views/national.py", title="Overview", icon=":material/home:"),
+    "national": st.Page("views/national.py", title=t("Overview"), icon=":material/home:"),
     "priorities": st.Page(
-        "views/priorities.py", title="District priorities", icon=":material/bar_chart:"
+        "views/priorities.py", title=t("District priorities"), icon=":material/bar_chart:"
     ),
-    "sector": st.Page("views/sector.py", title="Sector diagnosis", icon=":material/troubleshoot:"),
+    "sector": st.Page(
+        "views/sector.py", title=t("Sector diagnosis"), icon=":material/troubleshoot:"
+    ),
     "plan": st.Page(
-        "views/plan.py", title="Action plans & progress", icon=":material/trending_up:"
+        "views/plan.py", title=t("Action plans & progress"), icon=":material/trending_up:"
     ),
     "caregiver": st.Page(
-        "views/caregiver.py", title="Caregiver learning", icon=":material/school:"
+        "views/caregiver.py", title=t("Caregiver learning"), icon=":material/school:"
     ),
-    "officer": st.Page("views/officer.py", title="Caregiver learning", icon=":material/school:"),
-    "brief": st.Page("views/brief.py", title="District brief", icon=":material/description:"),
-    "admin": st.Page("views/admin.py", title="Admin", icon=":material/admin_panel_settings:"),
-    "methods": st.Page("views/methods.py", title="Data & methods", icon=":material/database:"),
+    "officer": st.Page("views/officer.py", title=t("Caregiver learning"), icon=":material/school:"),
+    "brief": st.Page("views/brief.py", title=t("District brief"), icon=":material/description:"),
+    "admin": st.Page("views/admin.py", title=t("Admin"), icon=":material/admin_panel_settings:"),
+    "methods": st.Page("views/methods.py", title=t("Data & methods"), icon=":material/database:"),
 }
 BY_ROLE = {
     PLANNER: {
@@ -82,5 +85,5 @@ BY_ROLE = {
     ADMIN: {"Manage": ["admin"], "Reference": ["methods"]},
 }
 
-sections = {name: [PAGES[key] for key in keys] for name, keys in BY_ROLE[user.role].items()}
+sections = {t(name): [PAGES[key] for key in keys] for name, keys in BY_ROLE[user.role].items()}
 st.navigation(sections).run()

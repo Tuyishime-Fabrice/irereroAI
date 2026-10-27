@@ -10,6 +10,7 @@ from irerero.config import SIMULATED
 from irerero.learn import certificate, checkins, progress, triggers
 from irerero.learn.checkins import CHALLENGES, LABELS, Checkin
 from irerero.ui import data, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import current, demo_mode
 
 user = current()
@@ -29,7 +30,7 @@ def bilingual(key: str) -> str:
 
 theme.header(
     "Caregiver learning",
-    f"{centre['name']} · monthly check-in and your courses",
+    t("{centre} · monthly check-in and your courses", centre=centre["name"]),
     simulated=centre.status == SIMULATED,
     crumbs=["Muhanga", f"{sector_name} sector", "Caregiver learning"],
     assistant="caregiver",
@@ -143,7 +144,7 @@ with (
             st.rerun()
         except ValueError as error:
             st.error(str(error))
-    with st.expander("Your centre's check-ins"):
+    with st.expander(t("Your centre's check-ins")):
         st.dataframe(
             pd.DataFrame(
                 {
@@ -193,7 +194,7 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
     open_ids = mine[mine.status.isin(order)].sort_values("status", key=lambda s: s.map(order))
     if len(open_ids):
         pick = st.selectbox(
-            "Open a course",
+            t("Open a course"),
             open_ids.id.tolist(),
             format_func=lambda i: courses.at[
                 open_ids.set_index("id").at[i, "course_id"], "title_en"
@@ -209,7 +210,9 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
             ticked = lesson.position in (a.lessons_done or [])
             with st.expander(f"{'✓ ' if ticked else ''}Lesson {lesson.position}: {lesson.title}"):
                 st.markdown(lesson.body_md)
-                if not ticked and st.button("Mark as done", key=f"done-{pick}-{lesson.position}"):
+                if not ticked and st.button(
+                    t("Mark as done"), key=f"done-{pick}-{lesson.position}"
+                ):
                     progress.mark_lesson(eng, user, int(pick), int(lesson.position))
                     st.rerun()
         if a.status == "recommended":
@@ -221,7 +224,7 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
             for q in items.itertuples():
                 choice = st.radio(q.question, q.options, index=None, key=f"q-{pick}-{q.position}")
                 answers[int(q.position)] = q.options.index(choice) if choice is not None else -1
-            submitted = st.form_submit_button("Submit answers")
+            submitted = st.form_submit_button(t("Submit answers"))
             unanswered = sum(1 for chosen in answers.values() if chosen < 0)
             if submitted and unanswered:  # a blank answer is not a wrong one: ask, do not score
                 st.warning(
@@ -240,7 +243,7 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
                     )
         if pd.notna(a.completed_at):
             st.download_button(
-                "Download certificate (PDF)",
+                t("Download certificate (PDF)"),
                 certificate.pdf(
                     user.name,
                     str(centre["name"]),

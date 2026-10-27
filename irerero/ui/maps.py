@@ -100,7 +100,8 @@ def legend(items: list[tuple[str, str]], title: str) -> None:
     """Swatches with dark text beside each colour, so no reading depends on colour alone."""
     swatches = "".join(
         f'<span style="display:inline-flex;align-items:center;gap:6px;margin:4px 16px 4px 0;'
-        f'font-size:12px;color:#0F1B2A"><span style="width:12px;height:12px;border-radius:3px;'
+        f'font-size:12px;color:#0F1B2A"><span class="ir-swatch" style="width:12px;height:12px;'
+        "border-radius:3px;"
         f'background:{colour};border:1px solid rgba(15,27,42,.2)"></span>{escape(text)}</span>'
         for colour, text in items
     )

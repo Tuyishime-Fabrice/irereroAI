@@ -344,3 +344,34 @@ def test_admin_area_comes_from_real_units(built_db):
     assert (row.district_id, row.sector_id) == (district, inside)
     row = save("(keep current)", "(none)")  # a field can be cleared
     assert row.district_id == district and not isinstance(row.sector_id, str)
+
+
+# --- account menu: language and appearance ------------------------------------------------
+
+
+def test_account_menu_switches_language_and_appearance(built_db):
+    from html import escape
+
+    planner = next(u for u in DEMO_USERS if u.role == "district_planner")
+    at = AppTest.from_file(APP, default_timeout=180)
+    at.session_state["user"] = planner
+    at.run()
+    at.switch_page("views/priorities.py")
+    at.run()
+    page = lambda: " ".join(m.value for m in at.markdown)  # noqa: E731
+    assert "Sector ranking and needs" in page() and "filter: invert(1)" not in page()
+    at.selectbox(key="preset-en").set_value("Equity first").run()
+
+    at.button(key="pref-lang").click().run()  # Ikinyarwanda
+    assert not at.exception, [e.message for e in at.exception]
+    assert escape("Urutonde rw'imirenge n'ibikenewe") in page()  # titles are HTML-escaped
+    assert "Uburinganire mbere" in at.selectbox(key="preset-rw").options  # shown in Kinyarwanda
+    assert at.session_state["preset"] == "Equity first"  # kept, where the assistant reads it
+
+    at.button(key="pref-theme").click().run()  # dark
+    assert "filter: invert(1)" in page()
+
+    at.button(key="pref-lang").click().run()  # back to English
+    at.button(key="pref-theme").click().run()  # back to light
+    assert not at.exception, [e.message for e in at.exception]
+    assert "Sector ranking and needs" in page() and "filter: invert(1)" not in page()

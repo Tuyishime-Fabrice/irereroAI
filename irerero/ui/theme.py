@@ -15,6 +15,7 @@ from typing import Any
 import streamlit as st
 
 from irerero.config import DEFINITION, ROOT, SIMULATED
+from irerero.ui.i18n import t
 
 ASSETS = ROOT / "app" / "assets"
 # Streamlit Community Cloud runs apps from /mount/src and draws its own buttons over the
@@ -177,6 +178,14 @@ CSS = f"""
     border-radius: var(--ir-radius-sm); margin: 2px 0; padding: 0 12px; min-height: 40px;
     gap: 12px; align-items: center;
   }}
+  /* Kinyarwanda names are longer: menu entries wrap instead of being cut (English fits as is) */
+  [data-testid="stSidebarNav"] a [data-testid="stMarkdownContainer"],
+  [data-testid="stSidebarNav"] a [data-testid="stMarkdownContainer"] p,
+  [data-testid="stNavSectionHeader"] > span,
+  [data-testid="stNavSectionHeader"] [data-testid="stMarkdownContainer"],
+  [data-testid="stNavSectionHeader"] [data-testid="stMarkdownContainer"] p {{
+    white-space: normal; overflow: visible; text-overflow: clip;
+  }}
   section[data-testid="stSidebar"] [data-testid="stSidebarNav"] a span {{
     color: #D6E2EE; font-weight: 500; font-size: 14px;
   }}
@@ -286,13 +295,12 @@ CSS = f"""
   [data-testid="stMarkdownContainer"]:has(> .ir-fill) {{ height: 100%; }}
 
   /* top bar: one line, the breadcrumb and a small account button */
-  .ir-topbar {{
-    display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
-    min-height: 32px; padding-bottom: var(--s1); border-bottom: 1px solid {BORDER};
-    margin-bottom: var(--s1);
+  .stApp .st-key-topbar, .stApp .st-key-topbar-cloud {{
+    gap: var(--s2); min-height: 32px; padding-bottom: var(--s1);
+    border-bottom: 1px solid {BORDER}; margin-bottom: var(--s1); flex-wrap: nowrap;
   }}
   /* Community Cloud overlays Share, star and edit at the top right of the app */
-  .ir-topbar.ir-cloud {{ padding-right: 168px; }}
+  .stApp .st-key-topbar-cloud {{ padding-right: 168px; }}
   .ir-crumbs {{ color: {SLATE}; font-size: 13px; min-width: 0; flex: 1;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
   .ir-crumbs span {{ margin-right: 6px; }}
@@ -300,20 +308,20 @@ CSS = f"""
   .ir-crumbs .here {{ color: {INK}; font-weight: 600; }}
   .ir-crumbs .app {{ color: {SLATE}; font-weight: 600; letter-spacing: .08em;
     text-transform: uppercase; font-size: 12px; margin-right: 10px; }}
-  .ir-user {{ position: relative; flex: none; border-radius: 50%; cursor: pointer; outline: none; }}
-  .ir-avatar {{ width: 32px; height: 32px; border-radius: 50%; background: {NAVY};
-    color: #fff; display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 12px; transition: box-shadow .15s; }}
-  .ir-user:hover .ir-avatar {{ box-shadow: 0 0 0 3px #D6E2EE; }}
-  .ir-user:focus-visible .ir-avatar {{ box-shadow: 0 0 0 3px {TEAL_700}; }}
-  .ir-user-menu {{ display: none; position: absolute; right: 0; top: calc(100% + 8px);
-    z-index: 1000; min-width: 220px; padding: 12px 16px; background: {SURFACE};
-    border: 1px solid {BORDER}; border-radius: var(--ir-radius-sm); line-height: 1.4;
-    box-shadow: 0 8px 24px rgba(16,24,40,.12); cursor: default; white-space: normal; }}
-  .ir-user:focus-within .ir-user-menu {{ display: block; }}
-  .ir-user-menu b {{ display: block; color: {INK}; font-size: 14px; font-weight: 600; }}
-  .ir-user-menu span {{ display: block; color: {SLATE}; font-size: 13px; }}
-  .ir-user-menu .note {{ margin-top: 8px; padding-top: 8px; border-top: 1px solid {BORDER};
+  /* the account button: a navy circle with the role's initials; it opens the account card */
+  .stApp .st-key-account button {{ width: 32px; height: 32px; min-height: 32px; padding: 0;
+    border-radius: 50%; border: 0; background: {NAVY}; color: #fff; font-weight: 700;
+    font-size: 12px; transition: box-shadow .15s; }}
+  .stApp .st-key-account button p {{ font-size: 12px; font-weight: 700; color: #fff; }}
+  .stApp .st-key-account button div[aria-hidden="true"] {{ display: none; }}
+  .stApp .st-key-account button:hover {{ box-shadow: 0 0 0 3px #D6E2EE; color: #fff; }}
+  .stApp .st-key-account button:focus-visible {{ box-shadow: 0 0 0 3px {TEAL_700}; }}
+  [data-testid="stPopoverBody"]:has(.ir-account) {{ width: 280px !important;
+    min-width: 0 !important; max-width: calc(100vw - 32px) !important; }}
+  .ir-account {{ line-height: 1.4; margin-bottom: 4px; }}
+  .ir-account b {{ display: block; color: {INK}; font-size: 14px; font-weight: 600; }}
+  .ir-account span {{ display: block; color: {SLATE}; font-size: 13px; }}
+  .ir-account .note {{ margin-top: 8px; padding-top: 8px; border-top: 1px solid {BORDER};
     font-size: 12px; }}
   .stApp [data-testid="stMarkdownContainer"] h1.ir-title {{
     font-size: 32px; font-weight: 700; color: {NAVY}; margin: 0; padding: 0;
@@ -671,7 +679,7 @@ CSS = f"""
     .ir-kpi .value {{ font-size: 26px; }}
     .stApp [class*="st-key-ir-"] {{ padding: var(--s2); }}
     .ir-crumbs .app {{ display: none; }}
-    .ir-topbar.ir-cloud {{ padding-right: 112px; }}
+    .stApp .st-key-topbar-cloud {{ padding-right: 112px; }}
     .ir-bar-row {{ grid-template-columns: 36px 1fr; }}
     .ir-bar-row > div:last-child {{ grid-column: 1 / -1; }}
     .ir-strip {{ grid-template-columns: 1fr 1fr; }}
@@ -733,39 +741,92 @@ def _altair_theme() -> None:
         alt.themes.enable("irerero")
 
 
+# Dark appearance, chosen in the account menu. The page is drawn inverted with its hues kept, so
+# every colour keeps its meaning (teal stays teal, red stays red) and no screen needs its own
+# dark styles. What must show its real colours is turned back: photos, maps and the swatches of
+# map legends, and the sidebar, which is dark already.
+DARK_CSS = """<style>
+  html { filter: invert(1) hue-rotate(180deg); background: #FFFFFF; }
+  img, video, .ir-hero-art, .ir-swatch, [data-testid="stDeckGlJsonChart"],
+  section[data-testid="stSidebar"] { filter: invert(1) hue-rotate(180deg); }
+  section[data-testid="stSidebar"] img { filter: none; }
+</style>"""
+
+
 def setup() -> None:
     st.markdown(CSS, unsafe_allow_html=True)
+    if st.session_state.get("dark", False):
+        st.markdown(DARK_CSS, unsafe_allow_html=True)
     st.logo(str(LOGO_LIGHT), icon_image=str(ICON_LIGHT), size="large")
     _altair_theme()
 
 
+def _switch_language() -> None:
+    from irerero.ui import i18n
+
+    st.session_state["lang"] = i18n.EN if i18n.lang() == i18n.RW else i18n.RW
+
+
+def _switch_theme() -> None:
+    st.session_state["dark"] = not st.session_state.get("dark", False)
+
+
 def topbar(crumbs: Sequence[str]) -> None:
+    from irerero.ui import i18n
     from irerero.ui.roles import ROLE_LABELS, current
 
     user = current()
-    parts = ['<span class="app">ECD planning · Rwanda</span>']
+    parts = [f'<span class="app">{escape(t("ECD planning · Rwanda"))}</span>']
     shown = [c for c in crumbs if c]
     for i, crumb in enumerate(shown):
         if i:
             parts.append('<span class="sep" aria-hidden="true">›</span>')
         attrs = ' class="here" aria-current="page"' if i == len(shown) - 1 else ""
-        parts.append(f"<span{attrs}>{escape(crumb)}</span>")
+        parts.append(f"<span{attrs}>{escape(t(crumb))}</span>")
     words = [w for w in ROLE_LABELS[user.role].split() if w[0].isalpha()]
     initials = "".join(w[0] for w in words[:2]).upper()
-    role = ROLE_LABELS[user.role]
-    area = user.district_id or "All districts"
+    role = i18n.role(user.role, ROLE_LABELS[user.role])
+    area = user.district_id or t("All districts")
     area = area.removeprefix("D-").title() if user.district_id else area
-    cloud = " ir-cloud" if ON_COMMUNITY_CLOUD else ""
-    st.markdown(  # the account details open on click (focus) and close on a click elsewhere
-        f'<div class="ir-topbar{cloud}"><nav class="ir-crumbs" aria-label="Breadcrumb">'
-        f'{"".join(parts)}</nav><div class="ir-user" tabindex="0" role="button" '
-        f'aria-label="Account: {escape(role)}, {escape(area)}, demo">'
-        f'<span class="ir-avatar" aria-hidden="true">{initials}</span>'
-        f'<div class="ir-user-menu" aria-hidden="true"><b>{escape(role)}</b>'
-        f'<span>{escape(area)} · demo account</span><span class="note">Fictional user. '
-        "Switch role under Demo role in the sidebar.</span></div></div></div>",
-        unsafe_allow_html=True,
-    )
+    with st.container(
+        horizontal=True,
+        vertical_alignment="center",
+        key="topbar-cloud" if ON_COMMUNITY_CLOUD else "topbar",
+    ):
+        st.markdown(
+            f'<nav class="ir-crumbs" aria-label="Breadcrumb">{"".join(parts)}</nav>',
+            unsafe_allow_html=True,
+            width="stretch",
+        )
+        # the account button: details, then the language and the light or dark appearance
+        with st.popover(initials, help=f"{role} · {area}", key="account"):
+            st.markdown(
+                f'<div class="ir-account"><b>{escape(role)}</b>'
+                f"<span>{escape(area)} · {escape(t('demo account'))}</span>"
+                f'<span class="note">'
+                f"{escape(t('Fictional user. Switch role under Demo role in the sidebar.'))}"
+                "</span></div>",
+                unsafe_allow_html=True,
+            )
+            rw = i18n.lang() == i18n.RW
+            dark = st.session_state.get("dark", False)
+            st.button(
+                "English" if rw else "Ikinyarwanda",
+                key="pref-lang",
+                icon=":material/translate:",
+                on_click=_switch_language,
+                width="stretch",
+            )
+            st.button(
+                t("Light mode") if dark else t("Dark mode"),
+                key="pref-theme",
+                icon=":material/light_mode:" if dark else ":material/dark_mode:",
+                on_click=_switch_theme,
+                width="stretch",
+            )
+            if rw:
+                st.markdown(f'<div class="ir-note">{escape(i18n.DRAFT_NOTE)}</div>',
+                            unsafe_allow_html=True)  # fmt: skip
 
 
 def header(
@@ -788,8 +849,8 @@ def header(
         if tag
         else ""
     )
-    head = f'<h1 class="ir-title">{escape(title)}{tag_html}</h1>' + (
-        f'<p class="ir-subtitle">{escape(subtitle)}</p>' if subtitle else ""
+    head = f'<h1 class="ir-title">{escape(t(title))}{tag_html}</h1>' + (
+        f'<p class="ir-subtitle">{escape(t(subtitle))}</p>' if subtitle else ""
     )
     if hero and assistant:
         from irerero.ui import assistant as ask
@@ -839,7 +900,8 @@ def target_callout(label: str, value: str, detail: str) -> str:
     """Gold target card for the page header aside."""
     return (
         f'<div class="ir-callout ir-target"><span class="ico">{icon("target", 32, 1.8)}</span>'
-        f'<div><div class="label">{escape(label)}</div><div class="detail">{escape(detail)}</div>'
+        f'<div><div class="label">{escape(t(label))}</div>'
+        f'<div class="detail">{escape(t(detail))}</div>'
         f'<div class="value">{escape(value)}</div></div></div>'
     )
 
@@ -884,11 +946,11 @@ def kpi(
     the bottom so cards in a row line up. The full provenance is also on hover."""
     bg, fg = TONES[tone]
     tip = escape(provenance(source, period, status), quote=True)
-    detail_html = f'<div class="detail">{escape(detail)}</div>' if detail else ""
+    detail_html = f'<div class="detail">{escape(t(detail))}</div>' if detail else ""
     st.markdown(
         f'<div class="ir-kpi ir-fill" title="{tip}"><div class="head">'
         f'<div class="ico" style="background:{bg};color:{fg}">{icon(icon_name, 20)}</div>'
-        f'<div class="label">{escape(label)}</div></div>'
+        f'<div class="label">{escape(t(label))}</div></div>'
         f'<div class="value">{escape(value)}</div>{detail_html}'
         f'<div class="src"><span>{escape(provenance(source, period, None))}</span>'
         f"{badge(status)}</div></div>",
@@ -906,9 +968,9 @@ def card(
 ) -> None:
     """Compact metric card without an icon."""
     tip = escape(provenance(source, period, status), quote=True)
-    detail_html = f'<div class="range">{escape(detail)}</div>' if detail else ""
+    detail_html = f'<div class="range">{escape(t(detail))}</div>' if detail else ""
     st.markdown(
-        f'<div class="ir-card ir-fill" title="{tip}"><div class="label">{escape(label)}</div>'
+        f'<div class="ir-card ir-fill" title="{tip}"><div class="label">{escape(t(label))}</div>'
         f'<div class="value">{escape(value)}</div>{detail_html}'
         f'<div class="src"><span>{escape(provenance(source, period, None))}</span>'
         f"{badge(status)}</div></div>",
@@ -932,7 +994,7 @@ def alert(title: str, body: str, tone: str = "rose") -> None:
 def stat_strip(lead_title: str, lead_note: str, cells: Sequence[tuple[str, str, str]]) -> None:
     """A target banner: an icon and headline, then (label, value, note HTML) cells."""
     body = "".join(
-        f'<div class="cell"><div class="ir-note">{escape(label)}</div><div class="v">'
+        f'<div class="cell"><div class="ir-note">{escape(t(label))}</div><div class="v">'
         f'{escape(value)}</div><div class="ir-note">{note}</div></div>'
         for label, value, note in cells
     )
@@ -962,9 +1024,9 @@ def panel(
             ico = (
                 f'<span style="color:{TEAL_700}">{icon(icon_name, 20)}</span>' if icon_name else ""
             )
-            sub = f"<p>{escape(subtitle)}</p>" if subtitle else ""
+            sub = f"<p>{escape(t(subtitle))}</p>" if subtitle else ""
             st.markdown(
-                f'<div class="ir-panel-head"><div><h3>{ico}{escape(title)}</h3>{sub}</div>'
+                f'<div class="ir-panel-head"><div><h3>{ico}{escape(t(title))}</h3>{sub}</div>'
                 f"<div>{right or ''}</div></div>",
                 unsafe_allow_html=True,
             )
@@ -974,9 +1036,7 @@ def panel(
 def pill(key: str, text: str | None = None) -> str:
     tone, label = PILLS.get(key, ("slate", key))
     bg, fg = TONES[tone]
-    return (
-        f'<span class="ir-pill" style="background:{bg};color:{fg}">{escape(text or label)}</span>'
-    )
+    return f'<span class="ir-pill" style="background:{bg};color:{fg}">{escape(t(text or label))}</span>'
 
 
 def chip(text: str, colour: str) -> str:
@@ -1002,7 +1062,7 @@ def table(
     sideways."""
     if not rows:
         return empty_state(empty)
-    head = "".join(f'<th class="{"num" if c.num else ""}">{escape(c.label)}</th>' for c in cols)
+    head = "".join(f'<th class="{"num" if c.num else ""}">{escape(t(c.label))}</th>' for c in cols)
     body = []
     for row in rows:
         cells = []
@@ -1022,7 +1082,7 @@ def table(
 
 
 def empty_state(text: str, icon_name: str = "clipboard") -> str:
-    return f'<div class="ir-empty">{icon(icon_name, 28)}<div>{escape(text)}</div></div>'
+    return f'<div class="ir-empty">{icon(icon_name, 28)}<div>{escape(t(text))}</div></div>'
 
 
 @dataclass
@@ -1046,8 +1106,8 @@ def bars(items: Sequence[Bar], marker: float | None = 0.75) -> str:
         mark = f'<div class="ir-bar-mark" style="left:{marker * 100:.0f}%"></div>' if marker else ""
         out.append(
             f'<div class="ir-bar-row"><div class="ico" style="background:{bg};color:{fg}">'
-            f'{icon(b.icon_name, 20)}</div><div><div class="name">{escape(b.name)}</div>'
-            f'<div class="sub">{escape(b.sub)}</div></div><div><div class="ir-bar-track">'
+            f'{icon(b.icon_name, 20)}</div><div><div class="name">{escape(t(b.name))}</div>'
+            f'<div class="sub">{escape(t(b.sub))}</div></div><div><div class="ir-bar-track">'
             f'<div class="ir-bar-fill" style="width:{width:.0f}%;background:{b.colour}"></div>'
             f'{mark}</div><div class="ir-bar-val">{escape(b.label)}</div></div></div>'
         )

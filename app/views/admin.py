@@ -9,6 +9,8 @@ from irerero.config import INTERIM, RAW
 from irerero.data.registry import FILE_DATASETS
 from irerero.db.models import AppUser
 from irerero.ui import data, theme
+from irerero.ui.i18n import role as role_label
+from irerero.ui.i18n import t
 from irerero.ui.roles import ROLE_LABELS, current
 from irerero.ui.theme import Col
 
@@ -48,19 +50,23 @@ with theme.panel("Users", "Fictional demo accounts and their roles", "users"):
     with st.form("role", border=False):
         st.markdown("**Change a user's role or area** (recorded in the audit log)")
         c1, c2, c3, c4 = st.columns(4)
-        who = c1.selectbox("User", users.user_id.tolist())
-        role = c2.selectbox("Role", list(ROLE_LABELS), format_func=ROLE_LABELS.get)
+        who = c1.selectbox(t("User"), users.user_id.tolist())
+        role = c2.selectbox(
+            t("Role"),
+            list(ROLE_LABELS),
+            format_func={r: role_label(r, label) for r, label in ROLE_LABELS.items()}.get,
+        )
         district = c3.selectbox(
-            "District",
+            t("District"),
             [KEEP, NONE, *district_names],
             format_func=lambda g: district_names.get(g, g),
         )
         sector = c4.selectbox(
-            "Sector",
+            t("Sector"),
             [KEEP, NONE, *sector_names],
             format_func=lambda g: sector_names.get(g, g),
         )
-        if st.form_submit_button("Save"):
+        if st.form_submit_button(t("Save")):
             from sqlalchemy.orm import Session
 
             stored = users.set_index("user_id").loc[who]
@@ -147,7 +153,7 @@ with theme.panel(
         ),
         unsafe_allow_html=True,
     )
-    if st.button("Rebuild analysis tables", icon=":material/refresh:"):
+    if st.button(t("Rebuild analysis tables"), icon=":material/refresh:"):
         from irerero.data.validate import SchemaError
         from irerero.pipeline.build import build
 

@@ -9,6 +9,7 @@ import streamlit as st
 from irerero.learn import checkins, progress
 from irerero.learn.checkins import CHALLENGES
 from irerero.ui import data, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import current
 from irerero.ui.theme import Col
 
@@ -25,7 +26,10 @@ latest = checkins.problems(checkins.frame(eng, sector_centres))
 
 theme.header(
     "Caregiver learning",
-    f"{sector_name} sector · confirm suggested courses, follow up training and centre check-ins.",
+    t(
+        "{sector} sector · confirm suggested courses, follow up training and centre check-ins.",
+        sector=sector_name,
+    ),
     simulated=True,
     crumbs=["Muhanga", f"{sector_name} sector", "Caregiver learning"],
     assistant="officer",
@@ -81,14 +85,16 @@ with (
                 unsafe_allow_html=True,
             )
             c1, c2 = st.columns([1, 2])
-            due = c1.date_input("Due date", progress.default_due(), key=f"due-{f.id}")
-            reason = c2.text_input("Note (required to set aside)", key=f"why-{f.id}")
+            due = c1.date_input(t("Due date"), progress.default_due(), key=f"due-{f.id}")
+            reason = c2.text_input(t("Note (required to set aside)"), key=f"why-{f.id}")
             b1, b2 = st.columns(2)
-            if b1.button("Confirm as required", key=f"ok-{f.id}", type="primary", width="stretch"):
+            if b1.button(
+                t("Confirm as required"), key=f"ok-{f.id}", type="primary", width="stretch"
+            ):
                 progress.confirm(eng, user, int(f.id), due, reason)
                 data.clear()
                 st.rerun()
-            if b2.button("Set aside", key=f"no-{f.id}", width="stretch"):
+            if b2.button(t("Set aside"), key=f"no-{f.id}", width="stretch"):
                 try:
                     progress.dismiss(eng, user, int(f.id), reason)
                     data.clear()

@@ -12,7 +12,8 @@ from irerero.config import (
 )
 from irerero.plan.frame import distance_status, ranked, status_of
 from irerero.plan.priority import stability_label
-from irerero.ui import data, maps, theme
+from irerero.ui import data, i18n, maps, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import ANALYST, current
 from irerero.ui.theme import Col
 
@@ -49,19 +50,20 @@ theme.header(
 with theme.panel(key="filters"):
     f1, f2, f3 = st.columns([1, 1, 1.2])
     if user.role == ANALYST:
-        f1.selectbox("District", ids, format_func=districts.get, key="prio-district")
+        f1.selectbox(t("District"), ids, format_func=districts.get, key="prio-district")
     else:
-        f1.selectbox("District", [district_id], format_func=districts.get, disabled=True,
+        f1.selectbox(t("District"), [district_id], format_func=districts.get, disabled=True,
                      help="Planners see their own district.")  # fmt: skip
-    preset = f2.selectbox(
-        "Priority preset",
+    preset = i18n.select(
+        f2,
+        t("Priority preset"),
         [*PRESETS, "Custom"],
-        index=2,
         key="preset",
+        index=2,
         help="Reach most children, Equity first and Balanced set the weights; Custom unlocks them.",
     )
     target_pct = f3.slider(
-        "Target attendance (%)",
+        t("Target attendance (%)"),
         30,
         90,
         round(data.target() * 100),
@@ -85,7 +87,7 @@ with (
     weights = {}
     for component, default in zip(COMPONENTS, base, strict=True):
         weights[component] = st.slider(
-            COMPONENT_LABELS[component],
+            t(COMPONENT_LABELS[component]),
             0.0,
             1.0,
             float(default),
@@ -179,18 +181,22 @@ with (
         names = dict(zip(result.geo_id, result.name, strict=True))
         a1, a2 = st.columns([3, 1], vertical_alignment="bottom")
         pick = a1.multiselect(
-            "Add sectors to your action plan",
+            t("Add sectors to your action plan"),
             list(names),
             default=[g for g in st.session_state.get("plan_basket", []) if g in names],
             format_func=names.get,
-            placeholder="Choose sectors",
+            placeholder=t("Choose sectors"),
         )
         # A sector already at the target needs no places, so it does not become a plan item.
         places = dict(zip(result.geo_id, result.places, strict=True))
         ready = [g for g in pick if places[g] > 0]
         at_target = [g for g in pick if places[g] == 0]
         if a2.button(
-            "Add to plan", type="primary", icon=":material/add:", width="stretch", disabled=not pick
+            t("Add to plan"),
+            type="primary",
+            icon=":material/add:",
+            width="stretch",
+            disabled=not pick,
         ):
             st.session_state["plan_basket"] = ready
             if ready:
@@ -202,12 +208,16 @@ with (
                     "Already at the target, so not added (no places needed): "
                     + ", ".join(names[g] for g in at_target)
                 )
-        st.page_link("views/plan.py", label="Go to action plans", icon=":material/arrow_forward:")
+        st.page_link(
+            "views/plan.py", label=t("Go to action plans"), icon=":material/arrow_forward:"
+        )
 
 # --- map (right of the ranking) and explanation (below) ----------------------------------
 with (
     side,
-    theme.panel(f"{districts[district_id]} map", "Priority score (higher = act first)", "pin"),
+    theme.panel(
+        t("{name} map", name=districts[district_id]), "Priority score (higher = act first)", "pin"
+    ),
 ):
     geo = data.geojson("sector")
     maps.choropleth(

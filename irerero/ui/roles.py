@@ -1,6 +1,7 @@
 """The demo role picker. Roles and demo users live in irerero.roles."""
 
 import os
+from html import escape
 
 import streamlit as st
 
@@ -14,6 +15,7 @@ from irerero.roles import (  # noqa: F401  (re-exported for the screens)
     ROLE_LABELS,
     User,
 )
+from irerero.ui.i18n import role, t
 
 
 def demo_mode() -> bool:
@@ -29,20 +31,26 @@ def selector(districts: dict[str, str]) -> User:
     district can be explored; a deployed system would fix it per account."""
     with st.sidebar:
         st.markdown(
-            '<div class="ir-side-label">Demo role</div><div class="ir-side-note">Fictional users, '
-            "no personal data. A deployment would sign people in.</div>",
+            f'<div class="ir-side-label">{escape(t("Demo role"))}</div><div class="ir-side-note">'
+            f"{escape(t('Fictional users, no personal data. A deployment would sign people in.'))}"
+            "</div>",
             unsafe_allow_html=True,
         )
-        labels = [ROLE_LABELS[u.role] for u in DEMO_USERS]
         old = current()
         index = next(i for i, u in enumerate(DEMO_USERS) if u.role == old.role)
-        choice = st.radio("Role", labels, index=index, label_visibility="collapsed")
-        user = DEMO_USERS[labels.index(choice)]
+        choice = st.radio(  # positions, so the chosen role survives a change of language
+            t("Role"),
+            range(len(DEMO_USERS)),
+            index=index,
+            format_func=[role(u.role, ROLE_LABELS[u.role]) for u in DEMO_USERS].__getitem__,
+            label_visibility="collapsed",
+        )
+        user = DEMO_USERS[choice]
         if user.role == PLANNER:
             ids = list(districts)
             default = old.district_id if old.role == PLANNER else user.district_id
             district = st.selectbox(
-                "Planner's district (demo)",
+                t("Planner's district (demo)"),
                 ids,
                 index=ids.index(default) if default in ids else 0,
                 format_func=districts.get,

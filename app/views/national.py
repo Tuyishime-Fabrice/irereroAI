@@ -6,7 +6,8 @@ from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
 from irerero.plan.frame import distance_status, status_of
 from irerero.track import forecast, plans
-from irerero.ui import assistant, charts, data, maps, theme
+from irerero.ui import assistant, charts, data, i18n, maps, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import PLANNER, current
 from irerero.ui.theme import Col
 
@@ -28,9 +29,9 @@ assistant.hero(user, simulated, sr_title="Early Childhood Development Overview")
 with theme.panel(key="filters"):
     f1, f2, f3 = st.columns([1, 1, 1])
     provinces = ["All provinces", *sorted(sectors.province.dropna().unique())]
-    province = f1.selectbox("Province", provinces, key="ov-province")
+    province = i18n.select(f1, t("Province"), provinces, key="ov-province")
     target_pct = f2.slider(
-        "Target attendance (%)",
+        t("Target attendance (%)"),
         30,
         90,
         round(data.target() * 100),
@@ -43,7 +44,7 @@ with theme.panel(key="filters"):
             f"{theme.fmt_pct(TARGET_2029.value)}."
         )
     f3.selectbox(
-        "Reference year",
+        t("Reference year"),
         ["2026 estimate (census 2022 base)"],
         disabled=True,
         help="Estimates are calibrated to NISR projections for 2026.",
@@ -80,7 +81,7 @@ with k2:
     )
 with k3:
     theme.kpi(
-        f"Places needed for {theme.fmt_pct(target)}",
+        t("Places needed for {target}", target=theme.fmt_pct(target)),
         theme.fmt_int(needs.places.sum()),
         source,
         "2026",
@@ -114,7 +115,12 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
     views = [f"{TARGET_YEAR} status", "Places needed", "Attendance rate"]
     view = (
         st.segmented_control(
-            "Map layer", views, default=views[0], label_visibility="collapsed", key="map-view"
+            "Map layer",
+            views,
+            default=views[0],
+            label_visibility="collapsed",
+            key="map-view",
+            format_func=i18n.shown(views, {views[0]: t("{year} status", year=TARGET_YEAR)}),
         )
         or views[0]  # clicking the selected segment clears it; keep showing a layer
     )
@@ -145,7 +151,7 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
         maps.choropleth(
             geo_s,
             dict(zip(needs.geo_id, needs.places, strict=True)),
-            f"Places needed for {theme.fmt_pct(target)}",
+            t("Places needed for {target}", target=theme.fmt_pct(target)),
             theme.fmt_int,
             tooltip={
                 r.geo_id: f"{r.district} · {theme.fmt_pct(r.attendance_rate)} attending · {status}"
@@ -171,7 +177,12 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             key="national-districts",
         )
 
-with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment, Rwanda", "trend"):
+with (
+    right,
+    theme.panel(
+        t("{year} target outlook", year=TARGET_YEAR), "Pre-primary enrolment, Rwanda", "trend"
+    ),
+):
     national = forecast_rows[forecast_rows.geo_id == forecast.NATIONAL]
     observed = national[national.kind == "observed"].set_index("year")
     projected = national[national.kind == "projected"].set_index("year")
@@ -214,7 +225,7 @@ with (
         "chart",
     ),
 ):
-    show_all = st.toggle("Show all districts", value=False)
+    show_all = st.toggle(t("Show all districts"), value=False)
     rows_html = by if show_all else by.head(8)
     st.markdown(
         theme.table(
@@ -235,8 +246,13 @@ with (
                 ),
                 Col("places", "Places needed", fmt=lambda v, r: theme.fmt_int(v), num=True),
                 Col("rooms", "Rooms", fmt=lambda v, r: theme.fmt_int(v), num=True),
-                Col("track", f"{TARGET_YEAR} status", fmt=lambda v, r: theme.pill(v) if v else "–"),
+                Col(
+                    "track",
+                    t("{year} status", year=TARGET_YEAR),
+                    fmt=lambda v, r: theme.pill(v) if v else "–",
+                ),
             ],
+            pin=True,
         ),
         unsafe_allow_html=True,
     )
@@ -278,7 +294,7 @@ with (
                 theme.empty_state("No plan yet for your district. Start one from the ranking."),
                 unsafe_allow_html=True,
             )
-        st.page_link("views/plan.py", label="Open action plans", icon=":material/arrow_forward:")
+        st.page_link("views/plan.py", label=t("Open action plans"), icon=":material/arrow_forward:")
     else:
         st.markdown(
             theme.empty_state(
@@ -286,4 +302,4 @@ with (
             ),
             unsafe_allow_html=True,
         )
-        st.page_link("views/plan.py", label="Open action plans", icon=":material/arrow_forward:")
+        st.page_link("views/plan.py", label=t("Open action plans"), icon=":material/arrow_forward:")

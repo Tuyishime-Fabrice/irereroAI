@@ -19,6 +19,7 @@ from irerero.learn import progress
 from irerero.plan.frame import distance_status, ranked, status_of
 from irerero.track import forecast, plans
 from irerero.ui import data, theme
+from irerero.ui.i18n import shown, t
 from irerero.ui.roles import ANALYST, current
 
 user = current()
@@ -55,10 +56,12 @@ theme.header(
 with theme.panel(key="filters"):
     f1, f2 = st.columns([1, 2])
     if user.role == ANALYST:
-        f1.selectbox("District", list(districts), format_func=districts.get, key="brief-d")
+        f1.selectbox(t("District"), list(districts), format_func=districts.get, key="brief-d")
     else:
-        f1.selectbox("District", [district_id], format_func=districts.get, disabled=True)
-    preset = f2.radio("Priority preset", list(PRESETS), index=2, horizontal=True)
+        f1.selectbox(t("District"), [district_id], format_func=districts.get, disabled=True)
+    preset = f2.radio(
+        t("Priority preset"), list(PRESETS), index=2, horizontal=True, format_func=shown(PRESETS)
+    )
 weights = dict(zip(COMPONENTS, PRESETS[preset], strict=True))
 result, used = ranked(frame, target, weights)
 diag = diagnosed.set_index("geo_id")
@@ -77,7 +80,7 @@ refs = {
     6: f"Target: {TARGET_2029.citation}",
 }
 with theme.panel(
-    f"{name} district · pre-primary brief",
+    t("{name} district · pre-primary brief", name=name),
     f"Target {theme.fmt_pct(target)} by {TARGET_YEAR} · each figure shows its status",
     "book",
 ):
@@ -140,6 +143,7 @@ with theme.panel(
                 theme.Col("far_share", "> 1 km", fmt=lambda v, r: theme.fmt_pct(v), num=True),
                 theme.Col("bottleneck", "Bottleneck", fmt=lambda v, r: theme.pill(v)),
             ],
+            pin=True,
         ),
         unsafe_allow_html=True,
     )
@@ -193,7 +197,7 @@ with theme.panel(
     "Export", "Simulated values are left out unless you include them, then labelled.", "database"
 ):
     include = st.toggle(
-        "Include simulated values (labelled SIMULATED)",
+        t("Include simulated values (labelled SIMULATED)"),
         value=False,
         help="Simulated values are left out of exports unless you include them here.",
     )
@@ -209,7 +213,7 @@ with theme.panel(
         )
     c1, c2 = st.columns(2)
     c1.download_button(
-        "Download CSV",
+        t("Download CSV"),
         brief.to_csv(long, include),
         file_name=f"irerero-brief-{name.lower()}.csv",
         mime="text/csv",
@@ -228,7 +232,7 @@ with theme.panel(
     if hidden:
         pdf_lines.append(f"Withheld as simulated: {', '.join(hidden)}.")
     c2.download_button(
-        "Download PDF",
+        t("Download PDF"),
         brief.pdf(
             f"District brief: {name}",
             # LEARN figures are simulated pilot data: only with simulated values included.

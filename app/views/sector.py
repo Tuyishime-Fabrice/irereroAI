@@ -13,6 +13,7 @@ from irerero.diagnose.rules import COURSES, FACTOR_LABELS
 from irerero.plan import gap
 from irerero.track import plans
 from irerero.ui import data, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import ANALYST, OFFICER, current
 from irerero.ui.theme import SERIES, Bar, Col
 
@@ -75,18 +76,18 @@ theme.header(
 with theme.panel(key="filters"):
     f1, f2, f3 = st.columns(3)
     if user.role == ANALYST:
-        f1.selectbox("District", ids_d, format_func=districts.get, key="sector-district")
+        f1.selectbox(t("District"), ids_d, format_func=districts.get, key="sector-district")
     else:
-        f1.selectbox("District", [district_id], format_func=districts.get, disabled=True)
+        f1.selectbox(t("District"), [district_id], format_func=districts.get, disabled=True)
     if user.role == OFFICER:
-        f2.selectbox("Sector", [geo_id], format_func=lambda g: row["name"], disabled=True,
+        f2.selectbox(t("Sector"), [geo_id], format_func=lambda g: row["name"], disabled=True,
                      help="Sector officers see their own sector.")  # fmt: skip
     else:
         f2.selectbox(
-            "Sector", ids, index=ids.index(geo_id), format_func=names.get, key="sector-pick"
+            t("Sector"), ids, index=ids.index(geo_id), format_func=names.get, key="sector-pick"
         )
     f3.selectbox(
-        "Diagnosis target",
+        t("Diagnosis target"),
         [f"{target:.0%} by 2028/29"],
         disabled=True,
         help="Set the target on District priorities; it carries across screens.",
@@ -124,7 +125,7 @@ FACTOR_STYLE = {
 with (
     left,
     theme.panel(
-        f"Key factors affecting ECD in {row['name']}",
+        t("Key factors affecting ECD in {name}", name=row["name"]),
         "National percentile, 1 = worst · line marks the worst quarter",
         "layers",
     ),
@@ -172,11 +173,21 @@ with right, theme.panel("Planner decision", "The rules suggest; a person decides
         st.markdown(f"<div class='ir-note'>• {escape(reason)}</div>", unsafe_allow_html=True)
     if user.can_decide:
         st.session_state.setdefault("plan_basket", [])
-        if st.button("Add to action plan", type="primary", icon=":material/add:", width="stretch"):
+        at_target = places == 0  # no places to plan, so nothing to add
+        if st.button(
+            t("Add to action plan"),
+            type="primary",
+            icon=":material/add:",
+            width="stretch",
+            disabled=at_target,
+            help="Already at the target: no places needed." if at_target else None,
+        ):
             if geo_id not in st.session_state["plan_basket"]:
                 st.session_state["plan_basket"].append(geo_id)
             st.success(f"{row['name']} added. Open Action plans to create or review the plan.")
-    st.page_link("views/plan.py", label="Review in action plans", icon=":material/arrow_forward:")
+    st.page_link(
+        "views/plan.py", label=t("Review in action plans"), icon=":material/arrow_forward:"
+    )
     theme.note(
         "Human review: this diagnosis applies explicit rules to estimates. A district planner approves, edits or rejects it, with the decision logged."
     )
@@ -339,7 +350,7 @@ with theme.panel(
         ),
         unsafe_allow_html=True,
     )
-    with st.expander("All indicators behind the factors"):
+    with st.expander(t("All indicators behind the factors")):
         keys = [k for k in LEVEL if k in row.index]
         st.markdown(
             theme.table(

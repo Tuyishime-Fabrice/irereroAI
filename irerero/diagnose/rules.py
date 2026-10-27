@@ -10,10 +10,11 @@ districts and are shown as district context, never as sector values.
     school nearby, attendance below the peer interval   DEMAND       parent outreach
     weak teacher ratios or qualifications (district)    CAPACITY     recruit and train caregivers
     high stunting or poor water and sanitation          WELLBEING    nutrition and WASH links
-    below target, none of the above                     SUPPLY       expand nearby schools
+    below target, none of the above                     UNCLEAR      review locally
 
 "Large gap": non-attendance in the national top half (access_nonattendance >= 0.5).
-The first rule that applies is the main bottleneck; the others are listed as reasons too.
+Every rule that applies is a bottleneck with its own action; the first is the main one. When
+none applies, the cause is unclear: the rules do not guess one, a local review comes first.
 """
 
 from collections.abc import Mapping
@@ -93,9 +94,17 @@ def factors(
 
 
 def bottleneck(row: Mapping, target: float) -> tuple[str, str, list[str]]:
-    """(bottleneck, intervention, reasons) for one sector. `row` holds attendance_rate,
-    children_3_5, attending, far_share, access_nonattendance, observed, low, capacity,
-    wellbeing, home_water, home_sanitation and fallback."""
+    """(main bottleneck, its intervention, reasons) for one sector; see `bottlenecks`."""
+    flags, reasons = bottlenecks(row, target)
+    main, action = flags[0]
+    return main, action, reasons
+
+
+def bottlenecks(row: Mapping, target: float) -> tuple[list[tuple[str, str]], list[str]]:
+    """([(bottleneck, intervention), ...], reasons) for one sector: every bottleneck that
+    applies, main one first. `row` holds attendance_rate, children_3_5, attending, far_share,
+    access_nonattendance, observed, low, capacity, wellbeing, home_water, home_sanitation and
+    fallback."""
     rate = float(row["attendance_rate"])
     places = gap.places(target, row["children_3_5"], row["attending"])
     rooms = gap.rooms(places)
@@ -106,8 +115,7 @@ def bottleneck(row: Mapping, target: float) -> tuple[str, str, list[str]]:
 
     if rate >= target:
         return (
-            "NONE",
-            "Monitor: estimated attendance is at or above the target.",
+            [("NONE", "Monitor: estimated attendance is at or above the target.")],
             [f"Estimated attendance {rate:.0%} vs target {target:.0%}."],
         )
     reasons.append(
@@ -174,25 +182,28 @@ def bottleneck(row: Mapping, target: float) -> tuple[str, str, list[str]]:
             )
         )
     if not flags:
+        reasons.append("No rule points to a clear cause.")
         flags.append(
             (
-                "SUPPLY",
-                f"Expand places at nearby schools: about {rooms} rooms for {places:,} places.",
+                "UNCLEAR",
+                f"Unclear: review locally before acting ({places:,} places short). Check "
+                "attendance records, centres and parents' reasons; the rules do not guess a cause.",
             )
         )
-    main, action = flags[0]
-    others = [name for name, _ in flags[1:] if name != main]
+    others = [name for name, _ in flags[1:]]
     if others:
         reasons.append("Also flagged: " + ", ".join(dict.fromkeys(others)) + ".")
-    return main, action, reasons
+    return flags, reasons
 
 
 def diagnose(frame: pd.DataFrame, target: float) -> pd.DataFrame:
-    """Adds bottleneck, intervention and reasons to a frame with the columns `bottleneck`
-    reads."""
-    results = [bottleneck(row, target) for row in frame.to_dict(orient="records")]
+    """Adds bottleneck and intervention (the main one), all_bottlenecks (every bottleneck that
+    applies, with its intervention, main first) and reasons to a frame with the columns
+    `bottlenecks` reads."""
+    results = [bottlenecks(row, target) for row in frame.to_dict(orient="records")]
     out = frame.copy()
-    out["bottleneck"] = [r[0] for r in results]
-    out["intervention"] = [r[1] for r in results]
-    out["reasons"] = [r[2] for r in results]
+    out["bottleneck"] = [flags[0][0] for flags, _ in results]
+    out["intervention"] = [flags[0][1] for flags, _ in results]
+    out["all_bottlenecks"] = [flags for flags, _ in results]
+    out["reasons"] = [reasons for _, reasons in results]
     return out

@@ -70,6 +70,7 @@ with theme.panel(key="filters"):
         help=f"Default {theme.fmt_pct(TARGET_2029.value)}: {TARGET_2029.citation}",
     )
     st.session_state["target_pct"] = target_pct  # kept across screens
+    theme.measure_note()
 target = target_pct / 100
 
 kpi_row = st.container()  # filled once the ranking is known
@@ -101,6 +102,7 @@ with (
 result, used = ranked(frame, target, weights)
 diag = data.diagnosis_now(target).set_index("geo_id")
 result["bottleneck"] = result.geo_id.map(diag.bottleneck)
+result["all_bottlenecks"] = result.geo_id.map(diag["all_bottlenecks"])  # main first
 result["not_attending"] = (result.children_3_5 - result.attending).clip(lower=0)
 stable = result[result.stability >= 0.8]
 top3 = result.head(3)
@@ -157,8 +159,14 @@ with (
                 Col("far_share", "> 1 km", fmt=lambda v, r: theme.fmt_pct(v), num=True),
                 Col(
                     "bottleneck",
-                    "Main bottleneck",
-                    fmt=lambda v, r: theme.pill(v) if v else "–",
+                    "Bottlenecks",
+                    fmt=lambda v, r: (
+                        " ".join(theme.pill(name) for name, _ in r["all_bottlenecks"])
+                        if isinstance(r["all_bottlenecks"], list)
+                        else theme.pill(v)
+                        if v
+                        else "–"
+                    ),
                 ),
                 Col(
                     "stability",

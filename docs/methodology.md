@@ -54,6 +54,12 @@ For a planner-set target *t* (default 65%), *P* children and *A* attending:
 These are the National ECD Standards (2024) norms. Products are rounded to 6 decimals before
 the ceiling, so 0.65 × 100 gives 65 places, not 66.
 
+**Which measure.** PLAN and DIAGNOSE apply *t* to attendance of children aged 3 to 5 (census
+based). The NST2 65% is a gross enrolment rate (MINEDUC pupils per child aged 3 to 5, over-age
+pupils included), which TRACK uses. Gross enrolment is usually higher than attendance, so the
+NST2 rate can be reached with fewer places than shown here. Each screen says which measure it
+uses, and the district brief puts the two side by side.
+
 ### Distance (`irerero/plan/distance.py`)
 
 The share of children aged 3 to 5 who live more than 1 km from a school with pre-primary.
@@ -133,7 +139,8 @@ and log children per km².
 
 ### Bottleneck rules
 
-The first rule that applies is the main bottleneck. Others are listed as "also flagged".
+Every rule that applies is a bottleneck, listed with its own action; the first is the main
+one. When no rule applies, the cause is unclear and the rules do not guess one.
 
 | Condition | Bottleneck | Action |
 | --- | --- | --- |
@@ -142,7 +149,7 @@ The first rule that applies is the main bottleneck. Others are listed as "also f
 | Fewer than 30% beyond 1 km and observed attendance below the peer interval | DEMAND | Parent outreach; check fees and awareness |
 | District capacity score ≥ 0.75 | CAPACITY | Recruit and train caregivers (number given); assign LEARN *ECD Standards essentials* |
 | Stunting, water or sanitation score ≥ 0.75 | WELLBEING | Link with nutrition and WASH programmes; assign LEARN courses |
-| Below target, none of the above | SUPPLY | Expand places at nearby schools |
+| Below target, none of the above | UNCLEAR | Review locally (attendance records, centres, parents) before acting |
 
 The rules run live at the planner's target and with the latest LEARN completion.
 
@@ -181,13 +188,18 @@ The rules run live at the planner's target and with the latest LEARN completion.
   - *Off track:* even the top of the interval is below the target.
 - **Back-test:** fit 2020/21 to 2023/24, predict 2024/25; we report the error and whether the
   observed value fell inside the interval.
-- **Places per year needed:** (t × children in 2028/29 − pupils in 2024/25) / 4.
-- **What-if:** N rooms a year from 2026/27, each place filled, added to the trend. Places
-  beyond what the chosen sectors (or the whole district) need to reach the target stay empty
-  and add nothing; a warning shows when that happens.
+- **Places per year needed:** (t × children in 2028/29 − pupils in 2024/25) / n, where n is
+  the number of school years not yet over: the one under way and those after it, to 2028/29.
+  The school year starts in September (`SCHOOL_YEAR_START_MONTH` in `irerero/config.py`).
+- **What-if:** N rooms a year from the school year under way, each place filled, added to the
+  trend. Places beyond what the chosen sectors (or the whole district) need to reach the
+  target stay empty and add nothing, and so do rooms in sectors whose main bottleneck is
+  DEMAND (a school is near but children do not attend). A note or warning says when.
 - **Plans** (`irerero/track/plans.py`): recommendations become plan items. The district
   planner approves, edits or rejects each one; edits and rejections need a reason. Items move
-  through planned → funded → done.
+  through planned → funded → done. A planner can start a new version from the current
+  ranking; the newest version is the plan in force, and earlier versions stay readable and
+  read-only, with their decisions and audit log.
 - **Audit log** (`irerero/audit.py`): every change writes one append-only row recording who,
   when, before, after and why.
 

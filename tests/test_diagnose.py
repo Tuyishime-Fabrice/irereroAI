@@ -99,8 +99,9 @@ ROW = {
         ({"capacity": 0.9}, "CAPACITY"),
         ({"wellbeing": 0.8}, "WELLBEING"),
         ({"home_water": 0.9}, "WELLBEING"),
-        ({}, "SUPPLY"),  # below target with nothing else: expand nearby schools
-        ({"far_share": 0.45, "access_nonattendance": 0.3, "observed": 0.1}, "SUPPLY"),
+        ({}, "UNCLEAR"),  # below target with no rule applying: review locally, no guess
+        # far from school but a small gap, so no rule applies: unclear, not a guessed Supply
+        ({"far_share": 0.45, "access_nonattendance": 0.3, "observed": 0.1}, "UNCLEAR"),
     ],
 )
 def test_bottleneck_rules(change, expected):
@@ -125,10 +126,31 @@ def test_secondary_flags_are_listed():
     assert any("CAPACITY" in r for r in reasons)
 
 
+def test_every_bottleneck_that_applies_is_listed_main_first():
+    flags, _ = rules.bottlenecks({**ROW, "far_share": 0.5, "capacity": 0.9}, 0.65)
+    assert [name for name, _ in flags] == ["SUPPLY", "CAPACITY"]
+    assert all(action for _, action in flags)  # each with its own action
+    assert rules.bottleneck({**ROW, "far_share": 0.5, "capacity": 0.9}, 0.65)[0] == "SUPPLY"
+
+
+def test_unclear_does_not_guess_a_cause():
+    flags, reasons = rules.bottlenecks(ROW, 0.65)
+    assert flags == [(flags[0][0], flags[0][1])] and flags[0][0] == "UNCLEAR"
+    assert "review locally" in flags[0][1]
+    assert "No rule points to a clear cause." in reasons
+
+
 def test_built_diagnosis(tables):
     diagnosis = tables["diagnosis"]
     assert len(diagnosis) == 416
-    assert set(diagnosis.bottleneck) <= set(["SUPPLY", "DEMAND", "CAPACITY", "WELLBEING", "NONE"])
+    assert set(diagnosis.bottleneck) <= {
+        "SUPPLY",
+        "DEMAND",
+        "CAPACITY",
+        "WELLBEING",
+        "NONE",
+        "UNCLEAR",
+    }
     run = tables["model_run"]
     assert run.chosen.sum() == 1
     chosen = run[run.chosen].metrics.iat[0]

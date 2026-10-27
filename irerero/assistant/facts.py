@@ -17,7 +17,6 @@ from irerero.config import (
     COMPONENTS,
     MILESTONE_YEAR,
     PRESETS,
-    PROJECTION_YEARS,
     SIMULATED,
     STABILITY_DRAWS,
     TARGET_2027,
@@ -307,11 +306,12 @@ def district(
     rows = t.forecast[(t.forecast.geo_id == district_id)]
     observed = rows[rows.kind == "observed"].set_index("year")
     projected = rows[rows.kind == "projected"].set_index("year")
+    remaining = forecast.years_left()  # school years not yet over, as on Action plans
     per_year = forecast.places_per_year(
         float(observed.loc[YEARBOOK_YEARS[-1], "pupils"]),
         float(projected.children.loc[TARGET_YEAR]),
         target,
-        len(PROJECTION_YEARS),
+        len(remaining),
     )
     out: dict[str, Any] = {
         "district": name,
@@ -336,7 +336,9 @@ def district(
             "status": _forecast_status(t, district_id),
             "measure": "gross rate: MINEDUC pre-primary pupils per child aged 3-5",
             **_trend(track),
-            f"places_a_year_still_needed_{PROJECTION_YEARS[0]}_{TARGET_YEAR}": _int(per_year),
+            f"places_a_year_still_needed_{(remaining or (TARGET_YEAR,))[0]}_{TARGET_YEAR}": _int(
+                per_year
+            ),
             f"nst2_milestone_{MILESTONE_YEAR}_pct": _pct(TARGET_2027.value),
         },
         "bottlenecks": t.diagnosis[t.diagnosis.district_id == district_id]

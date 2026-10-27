@@ -47,6 +47,9 @@ TARGET_YEAR = "2028/29"
 MILESTONE_YEAR = "2026/27"
 YEARBOOK_YEARS = ("2020/21", "2021/22", "2022/23", "2023/24", "2024/25")
 PROJECTION_YEARS = ("2025/26", "2026/27", "2027/28", "2028/29")
+# The MINEDUC school year runs from September to July: on a date from September, the school
+# year that starts in that calendar year is under way. Used to count the school years left.
+SCHOOL_YEAR_START_MONTH = 9
 
 # Priority index: weights for volume, equity, peer gap, poverty.
 PRESETS: dict[str, tuple[float, float, float, float]] = {
@@ -122,4 +125,5 @@ BOTTLENECK_COLOURS = {
     "CAPACITY": "#CC79A7",
     "WELLBEING": "#D55E00",
     "NONE": "#009E73",
+    "UNCLEAR": "#999999",
 }

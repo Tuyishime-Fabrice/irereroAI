@@ -92,6 +92,7 @@ with theme.panel(key="filters"):
         disabled=True,
         help="Set the target on District priorities; it carries across screens.",
     )
+    theme.measure_note()
 
 # --- KPIs ---------------------------------------------------------------------------------
 places = gap.places(target, row.children_3_5, row.attending)
@@ -110,7 +111,8 @@ with k4:
     theme.alert(
         f"Main bottleneck: {theme.PILLS[row.bottleneck][1]}",
         row.intervention,
-        "teal" if row.bottleneck == "NONE" else "rose",
+        {"NONE": "teal", "UNCLEAR": "slate"}.get(row.bottleneck, "rose"),
+        also=row["all_bottlenecks"][1:],  # every other bottleneck that applies, with its action
     )
 
 # --- factors and decision -----------------------------------------------------------------

@@ -1,5 +1,7 @@
 """TRACK: trend, back-test, status, what-if, and plan decisions with their audit entries."""
 
+from datetime import date
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -206,3 +208,39 @@ def test_changed_places_need_an_edit(plan_eng, decision):
     assert plans.items(plan_eng, 1).places.iat[0] == 350  # unchanged
     plans.decide(plan_eng, PLANNER_USER, item, "approve", places=350)  # same places: fine
     assert plans.items(plan_eng, 1).decision.iat[0] == "approved"
+
+
+@pytest.mark.parametrize(
+    ("today", "now", "left"),
+    [
+        (date(2026, 10, 27), "2026/27", ("2026/27", "2027/28", "2028/29")),
+        (date(2026, 8, 31), "2025/26", ("2025/26", "2026/27", "2027/28", "2028/29")),
+        (date(2029, 9, 1), "2029/30", ()),
+    ],
+)
+def test_school_years_left_follow_the_date(today, now, left):
+    assert forecast.school_year_now(today) == now
+    assert forecast.years_left(today) == left
+
+
+def test_rooms_fill_no_places_in_demand_sectors():
+    places = pd.Series({"S1": 300, "S2": 200, "S3": 100})
+    main = pd.Series({"S1": "SUPPLY", "S2": "DEMAND", "S3": "UNCLEAR"})
+    assert forecast.fillable_places(places, main) == 400
+
+
+def test_earlier_plan_versions_are_read_only(plan_eng):
+    old_id, old_items = make_plan(plan_eng)
+    new_id = plans.create_plan(
+        plan_eng, PLANNER_USER, "D-A", "Plan v2", 0.65, "Balanced", {}, ITEMS, replaces=old_id
+    )
+    assert last_entry(plan_eng).after["replaces"] == old_id
+    assert plans.plans(plan_eng, "D-A").plan_id.tolist() == [new_id, old_id]  # newest first
+    old_item = int(old_items.id.iat[0])
+    with pytest.raises(ValueError, match="read-only"):
+        plans.decide(plan_eng, PLANNER_USER, old_item, "approve")
+    with pytest.raises(ValueError, match="read-only"):
+        plans.add_items(plan_eng, PLANNER_USER, old_id, [{**ITEMS[0], "geo_id": "S-A-9"}])
+    new_item = int(plans.items(plan_eng, new_id).id.iat[0])
+    plans.decide(plan_eng, PLANNER_USER, new_item, "approve")  # the current version changes
+    assert plans.items(plan_eng, old_id).decision.tolist() == ["pending", "pending"]

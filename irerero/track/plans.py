@@ -51,9 +51,11 @@ def create_plan(
     preset: str,
     weights: Mapping[str, float],
     items: Iterable[Mapping[str, Any]],
+    replaces: int | None = None,
 ) -> int:
     """items: geo_id, rank, places, rooms, caregivers_low, caregivers_high, bottleneck,
-    intervention."""
+    intervention. With `replaces`, a new version of that plan: the newest plan of a district
+    is the one in force, earlier versions stay read-only with their decisions."""
     _check_planner(user, district_id)
     with Session(eng) as s:
         plan = Plan(
@@ -95,6 +97,7 @@ def create_plan(
                 "target": target,
                 "preset": preset,
                 "sectors": [r.geo_id for r in rows],
+                **({"replaces": replaces} if replaces is not None else {}),
             },
         )
         s.commit()
@@ -111,6 +114,7 @@ def add_items(
         if plan is None:
             raise KeyError(f"no plan {plan_id}")
         _check_planner(user, plan.district_id)
+        _check_current(s, plan)
         existing = set(s.scalars(select(PlanItem.geo_id).where(PlanItem.plan_id == plan_id)))
         rows = [
             PlanItem(
@@ -144,6 +148,17 @@ def add_items(
         return [row.id for row in rows]
 
 
+def _check_current(s: Session, plan: Plan) -> None:
+    """Only the newest version of a district's plan can change."""
+    newest = s.scalars(
+        select(Plan.plan_id)
+        .where(Plan.district_id == plan.district_id)
+        .order_by(Plan.created_at.desc(), Plan.plan_id.desc())
+    ).first()
+    if newest != plan.plan_id:
+        raise ValueError("this plan has a newer version; earlier versions are read-only")
+
+
 def _load(s: Session, item_id: int) -> tuple[PlanItem, Plan]:
     item = s.get(PlanItem, item_id)
     if item is None:
@@ -169,6 +184,7 @@ def decide(
     with Session(eng) as s:
         item, plan = _load(s, item_id)
         _check_planner(user, plan.district_id)
+        _check_current(s, plan)
         if decision != "edit" and places is not None and int(places) != item.places:
             raise ValueError(
                 f"places changed from {item.places:,} to {int(places):,}: choose edit, with a "
@@ -208,6 +224,7 @@ def set_status(
     with Session(eng) as s:
         item, plan = _load(s, item_id)
         _check_planner(user, plan.district_id)
+        _check_current(s, plan)
         if item.decision not in ("approved", "edited"):
             raise ValueError("only approved or edited items move to funded or done")
         before = _item_dict(item)
@@ -226,7 +243,7 @@ def set_status(
 
 
 def plans(eng: Engine, district_id: str | None = None) -> pd.DataFrame:
-    query = select(Plan).order_by(Plan.created_at.desc())
+    query = select(Plan).order_by(Plan.created_at.desc(), Plan.plan_id.desc())  # newest first
     if district_id:
         query = query.where(Plan.district_id == district_id)
     with Session(eng) as s:

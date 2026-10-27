@@ -375,3 +375,81 @@ def test_account_menu_switches_language_and_appearance(built_db):
     at.button(key="pref-theme").click().run()  # back to light
     assert not at.exception, [e.message for e in at.exception]
     assert "Sector ranking and needs" in page() and "filter: invert(1)" not in page()
+
+
+# --- method fixes: target measure, versions, Demand in the what-if ------------------------
+
+
+def _planner_for(district_id):
+    from irerero.roles import PLANNER, User
+
+    return User("demo-planner", PLANNER, "Demo planner (fictional)", district_id=district_id)
+
+
+def test_target_measure_is_named_and_reconciled(built_db):
+    at = AppTest.from_file(APP, default_timeout=180)
+    at.run()
+    at.switch_page("views/priorities.py")
+    at.run()
+    page = " ".join(m.value for m in at.markdown)
+    assert "Target applied to attendance of children aged 3 to 5" in page
+    at.switch_page("views/brief.py")
+    at.run()
+    assert not at.exception, [e.message for e in at.exception]
+    page = " ".join(m.value for m in at.markdown)
+    assert "Two measures: attendance" in page and "gross enrolment rate" in page
+
+
+def test_new_plan_version_keeps_the_old_one_read_only(built_db):
+    from irerero.db.session import engine
+    from irerero.db.store import read
+    from irerero.track import plans
+
+    units = read(engine(), "geo_unit")
+    district_id = units[units.level == "district"].sort_values("geo_id").geo_id.iat[2]
+    sector = units[units.parent_id == district_id].geo_id.iat[0]
+    user = _planner_for(district_id)
+    item = {"geo_id": sector, "rank": 1, "places": 100, "rooms": 4, "caregivers_low": 4,
+            "caregivers_high": 7, "bottleneck": "SUPPLY", "intervention": "Build"}  # fmt: skip
+    at = AppTest.from_file(APP, default_timeout=180)
+    at.run()
+    old = plans.create_plan(engine(), user, district_id, "Version 1", 0.65, "Balanced", {}, [item])
+    at.session_state["user"] = user
+    at.switch_page("views/plan.py")
+    at.run()
+    at.button(key="FormSubmitter:new-version-Create new version").click().run()
+    assert not at.exception, [e.message for e in at.exception]
+    versions = plans.plans(engine(), district_id)
+    assert len(versions) == 2 and versions.plan_id.iat[1] == old
+    picker = at.selectbox(key=f"version-{district_id}")
+    assert picker.value == versions.plan_id.iat[0]  # the new version is shown first
+    assert any(b.key and b.key.startswith("FormSubmitter:decide-") for b in at.button)
+    picker.set_value(old).run()
+    assert not any(b.key and b.key.startswith("FormSubmitter:decide-") for b in at.button)
+    assert "Earlier version: read-only." in " ".join(m.value for m in at.markdown)
+
+
+def test_whatif_does_not_count_rooms_in_demand_sectors(built_db):
+    from irerero.db.session import engine
+    from irerero.db.store import read
+    from irerero.diagnose import live
+    from irerero.plan import gap
+    from irerero.track import plans
+
+    eng = engine()
+    t = {n: read(eng, n) for n in ("observation", "geo_unit", "estimate_2026", "model_output")}
+    diag = live.frame(*t.values(), read(eng, "model_run"), 0.65)
+    needs = gap.needs(diag, 0.65)
+    demand = needs[(needs.bottleneck == "DEMAND") & (needs.places > 0)]
+    planned = set(plans.plans(eng).district_id)
+    district_id = next(d for d in demand.district_id if d not in planned)
+    sector = demand[demand.district_id == district_id].geo_id.iat[0]
+    name = t["geo_unit"].set_index("geo_id").at[sector, "name"]
+    at = AppTest.from_file(APP, default_timeout=180)
+    at.session_state["user"] = _planner_for(district_id)
+    at.run()
+    at.switch_page("views/plan.py")
+    at.run()
+    assert not at.exception, [e.message for e in at.exception]
+    page = " ".join(m.value for m in at.markdown)
+    assert "Not counted: rooms in" in page and name in page

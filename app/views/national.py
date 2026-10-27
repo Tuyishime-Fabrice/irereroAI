@@ -43,6 +43,7 @@ with theme.panel(key="filters"):
             f"Planning at {target_pct}%: the numbers below use this target, not the NST2 "
             f"{theme.fmt_pct(TARGET_2029.value)}."
         )
+    theme.measure_note()
     f3.selectbox(
         t("Reference year"),
         ["2026 estimate (census 2022 base)"],

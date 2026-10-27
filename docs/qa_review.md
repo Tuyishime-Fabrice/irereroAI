@@ -17,6 +17,15 @@ observed**, not just read. Line references point at the code as reviewed.
 > the sidebar is collapsed so content no longer scrolls through the logo, and "Children
 > present" shows 31, not 31.00. L8: the README test count is current.
 
+> **Status (27 October 2026).** Methodology points 1 to 5 addressed. (1) Each PLAN and DIAGNOSE
+> screen says the target is applied to census attendance, and the brief reconciles it with the
+> gross enrolment rate NST2 measures; the numbers are not converted. (2) "Unclear: needs local
+> review" replaces the Supply default (67 sectors on the demo data), and every bottleneck that
+> applies is shown with its own action, main one first; the 1 km rule is unchanged until real
+> school data arrive. (3) The what-if counts no new places in Demand sectors. (4) "Places a year
+> still needed" and the what-if use the school years not yet over. (5) Plans have versions;
+> earlier ones are read-only. Point 6 (real data) needs the licensed files.
+
 ## How it was tested
 
 | Area | What was done | Result |

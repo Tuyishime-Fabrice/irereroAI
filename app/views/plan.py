@@ -9,7 +9,6 @@ from irerero.config import (
     COMPONENTS,
     MILESTONE_YEAR,
     PRESETS,
-    PROJECTION_YEARS,
     SIMULATED,
     TARGET_2027,
     TARGET_2029,
@@ -94,9 +93,10 @@ theme.stat_strip(
 )  # fmt: skip
 
 # --- KPIs ---------------------------------------------------------------------------------
-need = forecast.places_per_year(
-    latest_pupils, float(kids.loc[TARGET_YEAR]), target, len(PROJECTION_YEARS)
-)
+# Only the school years not yet over count: places still needed are spread over those.
+remaining = forecast.years_left()
+first_year = remaining[0] if remaining else TARGET_YEAR
+need = forecast.places_per_year(latest_pupils, float(kids.loc[TARGET_YEAR]), target, len(remaining))
 approved = (
     plan_items[plan_items.decision.isin(["approved", "edited"])] if len(plan_items) else plan_items
 )
@@ -112,7 +112,7 @@ with k1:
               "trend", "blue")  # fmt: skip
 with k2:
     theme.kpi("Places a year still needed", theme.fmt_int(need), "IrereroAI, from MINEDUC pupils",
-              f"{PROJECTION_YEARS[0]}–{TARGET_YEAR}", status_label,
+              f"{first_year}–{TARGET_YEAR}", status_label,
               f"about {theme.fmt_int(need / CHILDREN_PER_ROOM.value)} rooms a year", "rooms", "gold")  # fmt: skip
 with k3:
     if len(plan_items):
@@ -160,19 +160,26 @@ with (
         format_func=names.get,
     )
     total_rooms = w2.number_input(
-        t("Rooms a year (from {year})", year=MILESTONE_YEAR),
+        t("Rooms a year (from {year})", year=first_year),
         min_value=0,
         max_value=2000,
-        value=max(approved_rooms // len(PROJECTION_YEARS[1:]), 1) if approved_rooms else 10,
+        value=max(approved_rooms // max(len(remaining), 1), 1) if approved_rooms else 10,
         step=1,
-        help="Approved plan rooms spread over the three school years to 2028/29 by default.",
+        help=f"Approved plan rooms spread over the {len(remaining)} school years left to "
+        f"{TARGET_YEAR} by default.",
     )
-    # Places beyond what the chosen sectors (or the district) need stay empty and add nothing.
+    # New places count only up to what the chosen sectors (or the district) need, and not in
+    # Demand sectors, where a school is near but children do not attend: rooms alone stay empty.
     scope = district_rows[district_rows.geo_id.isin(chosen)] if chosen else district_rows
-    room_gap = int(gap.needs(scope, target).places.sum())
-    with_plan = forecast.whatif(
-        projected.value, kids, total_rooms, MILESTONE_YEAR, max_places=room_gap
-    )
+    scope_needs = gap.needs(scope, target).set_index("geo_id")
+    main_bottleneck = data.diagnosis_now(target).set_index("geo_id").bottleneck
+    room_gap = forecast.fillable_places(scope_needs.places, main_bottleneck)
+    demand = [
+        names.get(g, g)
+        for g, n in scope_needs.places.items()
+        if n > 0 and main_bottleneck.get(g) == "DEMAND"
+    ]
+    with_plan = forecast.whatif(projected.value, kids, total_rooms, first_year, max_places=room_gap)
     st.markdown(charts.trend_legend(with_plan=True), unsafe_allow_html=True)
     st.altair_chart(
         charts.trend(observed, projected, target, with_plan, height=300), width="stretch"
@@ -181,17 +188,22 @@ with (
     lands_status = forecast.status_for(lands, lands, target)
     where = ", ".join(names[g] for g in chosen) if chosen else "the district"
     st.markdown(
-        f"Adding **{total_rooms} rooms a year** in {where} from {MILESTONE_YEAR}, every needed "
+        f"Adding **{total_rooms} rooms a year** in {where} from {first_year}, every needed "
         f"place filled, the district reaches **{theme.fmt_pct(lands, 1)}** by {TARGET_YEAR} "
         f"{theme.pill(lands_status)}",
         unsafe_allow_html=True,
     )
-    added = total_rooms * len(PROJECTION_YEARS[1:]) * CHILDREN_PER_ROOM.value
+    if demand:
+        theme.note(
+            f"Not counted: rooms in {', '.join(demand)}. The bottleneck there is Demand: a school "
+            "is near but children do not attend, so new rooms alone would stay empty."
+        )
+    added = total_rooms * len(remaining) * CHILDREN_PER_ROOM.value
     if added > room_gap:
         st.warning(
             f"{added:,} places is more than {'the chosen sectors' if chosen else 'the district'} "
-            f"need to reach {theme.fmt_pct(target)} ({room_gap:,}). Extra places may stay empty, "
-            f"so the projection counts at most {room_gap:,}"
+            f"can fill to reach {theme.fmt_pct(target)} ({room_gap:,}). Extra places may stay "
+            f"empty, so the projection counts at most {room_gap:,}"
             + (": spread the rooms to other sectors." if chosen else ".")
         )
     back = summary.backtest_error_pp
@@ -253,6 +265,36 @@ def as_items(rows: pd.DataFrame) -> list[dict]:
     ]
 
 
+def plan_form(key: str, intro: str, name: str, label: str, replaces: int | None = None) -> None:
+    """The form that starts a plan, or a new version of one, from the ranked sectors and the
+    sectors added from the ranking or Sector diagnosis."""
+    with st.form(key, border=False):
+        st.markdown(intro)
+        f1, f2, f3 = st.columns(3)
+        preset = f1.selectbox(
+            t("Priority preset"), list(PRESETS), index=2, format_func=i18n.shown(PRESETS)
+        )
+        top_n = f2.number_input(t("Top sectors"), 1, len(district_rows), min(5, len(district_rows)))
+        name = f3.text_input(t("Plan name"), name)
+        basket = [g for g in st.session_state.get("plan_basket", []) if g in names]
+        if basket:
+            st.caption(
+                "Also added from the ranking or Sector diagnosis: "
+                + ", ".join(names[g] for g in basket)
+            )
+        if st.form_submit_button(label, type="primary", icon=":material/add:"):
+            weights = dict(zip(COMPONENTS, PRESETS[preset], strict=True))
+            result, _ = ranked(district_rows, target, weights, stability=False)
+            pick = result.head(int(top_n))
+            extra = result[result.geo_id.isin(basket) & ~result.geo_id.isin(pick.geo_id)]
+            pick = pd.concat([pick, extra])
+            plans.create_plan(
+                eng, user, district_id, name, target, preset, weights, as_items(pick), replaces
+            )
+            st.session_state["plan_basket"] = []
+            st.rerun()
+
+
 with theme.panel(
     "Action plan",
     "Recommendations become plan items; the district planner decides each one.",
@@ -260,45 +302,44 @@ with theme.panel(
 ):
     if plan_id is None:
         if user.can_decide:
-            with st.form("create-plan", border=False):
-                st.markdown(
-                    "Start a plan from the ranked sectors. Each one becomes a recommendation for "
-                    "you to approve, edit or reject."
-                )
-                f1, f2, f3 = st.columns(3)
-                preset = f1.selectbox(
-                    t("Priority preset"), list(PRESETS), index=2, format_func=i18n.shown(PRESETS)
-                )
-                top_n = f2.number_input(
-                    t("Top sectors"), 1, len(district_rows), min(5, len(district_rows))
-                )
-                name = f3.text_input(
-                    t("Plan name"), f"{districts[district_id]} pre-primary plan 2026-29"
-                )
-                basket = [g for g in st.session_state.get("plan_basket", []) if g in names]
-                if basket:
-                    st.caption(
-                        "Also added from the ranking or Sector diagnosis: "
-                        + ", ".join(names[g] for g in basket)
-                    )
-                if st.form_submit_button(t("Create plan"), type="primary", icon=":material/add:"):
-                    weights = dict(zip(COMPONENTS, PRESETS[preset], strict=True))
-                    result, _ = ranked(district_rows, target, weights, stability=False)
-                    pick = result.head(int(top_n))
-                    extra = result[result.geo_id.isin(basket) & ~result.geo_id.isin(pick.geo_id)]
-                    pick = pd.concat([pick, extra])
-                    plans.create_plan(
-                        eng, user, district_id, name, target, preset, weights, as_items(pick)
-                    )
-                    st.session_state["plan_basket"] = []
-                    st.rerun()
+            plan_form(
+                "create-plan",
+                "Start a plan from the ranked sectors. Each one becomes a recommendation for "
+                "you to approve, edit or reject.",
+                f"{districts[district_id]} pre-primary plan 2026-29",
+                t("Create plan"),
+            )
         else:
             st.markdown(
                 theme.empty_state("No plan has been created for this district yet."),
                 unsafe_allow_html=True,
             )
     else:
-        plan_row = plan_list.iloc[0]
+        # The newest version is the plan in force; earlier versions stay readable, read-only.
+        viewing = plan_id
+        if len(plan_list) > 1:
+            label = {
+                int(r.plan_id): f"{r['name']} · {r.created_at:%d %b %Y, %H:%M}"
+                + (" (current)" if i == 0 else "")
+                for i, (_, r) in enumerate(plan_list.iterrows())
+            }
+            viewing = st.selectbox(
+                t("Plan version"), list(label), format_func=label.get, key=f"version-{district_id}"
+            )
+        current = viewing == plan_id
+        plan_row = plan_list.set_index("plan_id").loc[viewing]
+        if not current:
+            plan_items = plans.items(eng, viewing)
+            item_ids = [str(i) for i in plan_items.id] if len(plan_items) else []
+            log = audit.read(eng)
+            log = log[
+                ((log.entity == "plan") & (log.entity_id == str(viewing)))
+                | ((log.entity == "plan_item") & log.entity_id.isin(item_ids))
+            ]
+            theme.note(
+                "Earlier version: read-only. Its decisions stay as recorded, and in the audit log."
+            )
+        editable = user.can_decide and current
         st.markdown(
             f"**{plan_row['name']}** · target {theme.fmt_pct(plan_row.target)} · preset "
             f"{plan_row.preset} · created {plan_row.created_at:%d %b %Y} by {plan_row.created_by}"
@@ -307,7 +348,7 @@ with theme.panel(
         basket = [
             g for g in st.session_state.get("plan_basket", []) if g in names and g not in in_plan
         ]
-        if user.can_decide and basket:
+        if editable and basket:
             b1, b2 = st.columns([3, 1], vertical_alignment="center")
             b1.markdown(
                 "Added from the ranking or Sector diagnosis, not yet in this plan: "
@@ -363,7 +404,7 @@ with theme.panel(
             ),
             unsafe_allow_html=True,
         )
-        if user.can_decide and len(shown):
+        if editable and len(shown):
             st.markdown("**Decide each recommendation**")
             first_pending = next(
                 (i.id for i in shown.itertuples() if i.decision == "pending"), None
@@ -424,6 +465,16 @@ with theme.panel(
             theme.note(
                 "Read-only: only the district planner approves, edits or rejects plan items."
             )
+        if editable:
+            with st.expander(t("Start a new version")):
+                plan_form(
+                    "new-version",
+                    "A new version starts again from the ranked sectors, at the current target. "
+                    "This version stays read-only, with its decisions and audit log.",
+                    f"{plan_row['name']} (new version)",
+                    t("Create new version"),
+                    replaces=plan_id,
+                )
 
         with st.expander(t("Full audit log for this plan")):
             st.dataframe(

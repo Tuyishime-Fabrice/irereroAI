@@ -69,6 +69,7 @@ PILLS = {
     "CAPACITY": ("blue", "Capacity"),
     "WELLBEING": ("purple", "Wellbeing"),
     "NONE": ("teal", "At target"),
+    "UNCLEAR": ("slate", "Unclear"),
     "on track": ("teal", "On track"),
     "at risk": ("gold", "At risk"),
     "off track": ("rose", "Off track"),
@@ -388,6 +389,8 @@ CSS = f"""
   .ir-alert .title {{ display: flex; gap: var(--s1); align-items: center; font-weight: 700;
     font-size: 16px; }}
   .ir-alert .body {{ color: {INK}; font-size: 14px; line-height: 1.5; }}
+  .ir-alert .also {{ color: {INK}; font-size: 13px; line-height: 1.5; margin-top: var(--s1);
+    padding-top: var(--s1); border-top: 1px solid rgba(15,27,42,.08); }}
 
   /* stat strip: a headline figure split into cells (Action plans banner) */
   .ir-strip {{ display: grid; grid-template-columns: minmax(260px, 2fr) repeat(3, minmax(140px, 1fr));
@@ -980,15 +983,17 @@ def card(
     )
 
 
-def alert(title: str, body: str, tone: str = "rose") -> None:
+def alert(title: str, body: str, tone: str = "rose", also: Sequence[tuple[str, str]] = ()) -> None:
     """A tinted callout that fills its column, e.g. the main bottleneck beside the KPIs. The
-    icon and the title say the state; the tint only repeats it."""
+    icon and the title say the state; the tint only repeats it. `also` lists further
+    (pill key, text) lines, e.g. the other bottlenecks with their actions."""
     bg, fg = TONES[tone]
     ico = "check" if tone == "teal" else "alert"
+    more = "".join(f'<div class="also">{pill(key)} {escape(text)}</div>' for key, text in also)
     st.markdown(
         f'<div class="ir-callout ir-alert ir-fill" role="status" style="background:{bg};'
         f'border-color:{fg}40"><div class="title" style="color:{fg}">{icon(ico, 20)}'
-        f'{escape(title)}</div><div class="body">{escape(body)}</div></div>',
+        f'{escape(title)}</div><div class="body">{escape(body)}</div>{more}</div>',
         unsafe_allow_html=True,
     )
 
@@ -1134,6 +1139,18 @@ def timeline(items: Sequence[tuple[str, str, str, str]], fresh: str = "") -> str
 
 def note(text: str) -> None:
     st.markdown(f'<div class="ir-note">{escape(text)}</div>', unsafe_allow_html=True)
+
+
+def measure_note() -> None:
+    """Which measure the target is applied to on PLAN and DIAGNOSE, and how it differs from
+    the NST2 rate (TRACK and the brief use the NST2 measure)."""
+    from irerero.config import TARGET_2029
+
+    note(
+        "Target applied to attendance of children aged 3 to 5 (census based). The NST2 "
+        f"{fmt_pct(TARGET_2029.value)} is a gross enrolment rate (MINEDUC pupils, over-age "
+        "included), so it can be reached with fewer places than shown here."
+    )
 
 
 def side_label(text: str) -> None:

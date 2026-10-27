@@ -14,6 +14,7 @@ is never added to census or NCDA figures.
 """
 
 from dataclasses import dataclass
+from datetime import date
 
 import numpy as np
 import pandas as pd
@@ -24,6 +25,7 @@ from irerero.config import (
     MODEL,
     OBSERVED,
     PROJECTION_YEARS,
+    SCHOOL_YEAR_START_MONTH,
     SIMULATED,
     TARGET_2029,
     TARGET_YEAR,
@@ -151,6 +153,26 @@ def summary(forecast_rows: pd.DataFrame, target: float = TARGET_2029.value) -> p
     )
     out["status"] = [status_for(c, h, target) for c, h in zip(out.projected, out.high, strict=True)]
     return out
+
+
+def school_year_now(today: date | None = None) -> str:
+    """The school year under way on `today`, e.g. "2026/27" from September 2026."""
+    today = today or date.today()
+    first = today.year if today.month >= SCHOOL_YEAR_START_MONTH else today.year - 1
+    return f"{first}/{(first + 1) % 100:02d}"
+
+
+def years_left(today: date | None = None) -> tuple[str, ...]:
+    """Projection school years not yet over on `today`: the one under way and those after it,
+    to the target year. Places still needed are spread over these, not over years gone."""
+    now = start(school_year_now(today))
+    return tuple(sy for sy in PROJECTION_YEARS if start(sy) >= now)
+
+
+def fillable_places(places: pd.Series, bottleneck: pd.Series) -> int:
+    """Places that new rooms can fill. Where the main bottleneck is DEMAND, a school is near
+    but children do not attend, so more rooms alone fill no places there."""
+    return int(places[bottleneck.reindex(places.index) != "DEMAND"].sum())
 
 
 def places_per_year(

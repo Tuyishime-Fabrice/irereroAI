@@ -93,15 +93,24 @@ with theme.panel(
         f"(range {theme.fmt_int(result.low.sum())} to {theme.fmt_int(result.high.sum())}) [1]",
         f"Attending pre-primary in 2026: "
         f"{theme.fmt_pct(result.attending.sum() / result.children_3_5.sum())} [1]",
-        f"Places needed to reach {theme.fmt_pct(target)}: {theme.fmt_int(result.places.sum())}, "
+        f"Places needed to reach {theme.fmt_pct(target)} attendance: "
+        f"{theme.fmt_int(result.places.sum())}, "
         f"or {theme.fmt_int(result.rooms.sum())} rooms and "
         f"{theme.fmt_int(result.caregivers_low.sum())}-{theme.fmt_int(result.caregivers_high.sum())} "
         "caregivers [2] [6]",
         f"Enrolment rate {theme.fmt_pct(track.latest, 1)} in 2024/25; projected "
         f"{theme.fmt_pct(track.projected, 1)} in {TARGET_YEAR} (80% range "
         f"{theme.fmt_pct(track.low)}-{theme.fmt_pct(track.high)}): {track.status} [4]",
+        # the two measures, side by side, so the brief's numbers reconcile
+        f"Two measures: attendance "
+        f"({theme.fmt_pct(result.attending.sum() / result.children_3_5.sum())}, census based) "
+        f"sets the places needed; the gross enrolment rate ({theme.fmt_pct(track.latest, 1)}, "
+        f"MINEDUC pupils per child aged 3 to 5) sets the {TARGET_YEAR} status and is what the "
+        "NST2 target measures. Gross enrolment also counts over-age pupils, so it can be higher "
+        "than attendance [1] [4]",
     ]
-    line_status = [status, status, status, track_status]
+    both = SIMULATED if SIMULATED in (status, track_status) else status
+    line_status = [status, status, status, track_status, both]
     st.markdown(
         '<ul class="ir-list">'
         + "".join(

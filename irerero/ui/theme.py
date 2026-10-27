@@ -746,10 +746,12 @@ def _altair_theme() -> None:
 # dark styles. What must show its real colours is turned back: photos, maps and the swatches of
 # map legends, and the sidebar, which is dark already.
 DARK_CSS = """<style>
-  html { filter: invert(1) hue-rotate(180deg); background: #FFFFFF; }
-  img, video, .ir-hero-art, .ir-swatch, [data-testid="stDeckGlJsonChart"],
-  section[data-testid="stSidebar"] { filter: invert(1) hue-rotate(180deg); }
-  section[data-testid="stSidebar"] img { filter: none; }
+  @media screen {  /* printing, e.g. the district brief, stays light */
+    html { filter: invert(1) hue-rotate(180deg); background: #FFFFFF; }
+    img, video, .ir-hero-art, .ir-swatch, [data-testid="stDeckGlJsonChart"],
+    section[data-testid="stSidebar"] { filter: invert(1) hue-rotate(180deg); }
+    section[data-testid="stSidebar"] img { filter: none; }
+  }
 </style>"""
 
 

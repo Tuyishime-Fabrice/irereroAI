@@ -1,6 +1,6 @@
 # Data inventory: what the team holds and what the checks found
 
-Last intake: 24 October 2026. Checksums for every file are in
+Last intake: 28 October 2026. Checksums for every file are in
 [`data/received_files.csv`](../data/received_files.csv); the full check list is written to
 `data/interim/intake_report.md` each time `make intake` runs.
 
@@ -33,7 +33,11 @@ copies are identical.
 | Package | Files | Publisher, period | Staged | Effect in the app |
 | --- | --- | --- | --- | --- |
 | EICV7 district poverty | `eicv7_poverty.csv` (and the same table as `.xlsx`) | NISR, EICV7 Main Indicators Report 2023/24, Figure 9.1, p. 80 | **Yes**: `data/raw/eicv7/eicv7_poverty.csv`, 30 districts, status *published estimate* | Poverty in PLAN and DIAGNOSE is now real, at district level, labelled "district" |
-| MINEDUC yearbook extracts | 4 district tables (pupils, teachers, classrooms, schools) and 4 national series | MINEDUC, Education Statistical Yearbook 2024/25 (Feb 2026), Annexes 1, 7, 11, 20 and Tables 2.1.2, 2.5.5, 3.4.1, 3.5.1 | **No**: converted to `data/interim/yearbook/` | None yet. TRACK and the capacity factor keep the labelled stand-in until the gaps below are filled |
+| MINEDUC yearbook extracts | 4 district tables (pupils, teachers, classrooms, schools) and 4 national series | MINEDUC, Education Statistical Yearbook 2024/25 (Feb 2026), Annexes 1, 7, 11, 20 and Tables 2.1.2, 2.5.5, 3.4.1, 3.5.1 | Cross-check only: the national series in `data/interim/yearbook/` | Checks the master table below |
+| MINEDUC master table | `IrereroAI_MINEDUC_Master_District_Year_2020-21_to_2024-25.csv`: 30 districts × 5 school years, pupils and teachers by sex, schools, classrooms | MINEDUC yearbooks 2021/22 and 2024/25, district annexes | **Yes**: `data/raw/yearbook/mineduc_yearbook_preprimary.csv`, status *observed* | TRACK (the 2028/29 trend and status) and the capacity factor are real |
+| MINEDUC validated tables | `irereroai_mineduc_validated_datasets_3.zip`: the same measures, long layout, 2021/22 to 2024/25 | MINEDUC yearbooks 2023/24 and 2024/25 | Cross-check only | Agrees with the master table in every shared cell |
+| Census 2022 sector tables | `IrereroAI_Census_2022_Master_Dataset_v1.xlsx`: population, urban share, households, drinking water, lighting and grid connection by sector, with the raw thematic-report tables | NISR, PHC5 2022 thematic reports (Population, Housing): Tables D1, C1.1, C1.2, C1.3, C1.5, 3.2, 3.10 | **Yes**, merged into `data/raw/census_2022/` | The home-environment factor (water) and the peer model's urban, water, electricity and density features |
+| MINEDUC school locations | `Rwandapreprimarydata_locatios.GeoJSON`: 139 schools with coordinates | MINEDUC school register | **No** | None: only standalone pre-primary schools, see below |
 | COD-AB gazetteer | `rwa_gazetteer_rphc2012_v2.xlsx` | OCHA COD-AB for Rwanda, RPHC 2012 base, via HDX | **Codes only**: `data/reference/pcodes_cod_ab.csv` and both crosswalks | All 416 sectors and 30 districts carry their codes (e.g. Muhanga RW27, Cyeza RW2701) |
 | Census 2022 sample records | `children_age_3_5_clean.csv`: 107,238 records of children aged 3 to 5, with sector code, age, attendance and population weight | NISR, PHC5 2022 | **Yes**, as weighted counts: `data/raw/census_2022/`, 416 sectors and 30 district sums, `basis = sample`, status *model estimate* | The 2026 estimate is real: each sector's share of its district's children and its 2022 attendance rate come from the census |
 | NISR projections | `nisr_projections_2023_2032.xlsx`: single-age, by sex, 30 districts, 2023 to 2032, with district totals | NISR, Subnational Population Projections 2023-2032 | **Yes**: `data/raw/projections/nisr_projections_2023_2032.csv`, population and children aged 3 to 5 per district and year, status *published estimate* | The 2026 estimate takes each district's children aged 3 to 5 straight from the projection (no 2022 age share held constant) |
@@ -56,34 +60,47 @@ copies are identical.
   district in the priority index, and the poverty factor in DIAGNOSE is district context.
   Sector rates, if NISR publishes them, would restore both.
 
-### MINEDUC yearbook (not staged)
+### MINEDUC master table (staged)
 
-The province and national rows were checked against their districts, and boys + girls (male +
-female) against each total. The transcription is otherwise clean; these rows need checking
-against the PDF before use:
+- **Pass.** 30 districts, 2020/21 to 2024/25, each district-year once; every name joins the
+  crosswalk.
+- **Sums by sex, not printed totals.** Where a printed total differs from boys + girls (or men +
+  women), the sum is used and the row is listed: pupils in Nyarugenge 2023/24 (12,893 printed,
+  12,863 summed), Kayonza and Kicukiro 2024/25 (±1); teachers in the eight Southern districts in
+  2023/24 (each 10 below the sum). The sums reproduce the national totals: 605,229 pupils and
+  10,898 teachers in 2023/24. Confirm these rows with MINEDUC before quoting them.
+- **Pass.** Agrees with the earlier 2024/25 extract and with the validated tables in every shared
+  cell, apart from those printed totals.
+- **Pass.** District pupils add up to the national totals in 2020/21, 2021/22, 2023/24 and
+  2024/25; 2022/23 is 36 short (540,962 vs 540,998). Teachers match the national staff counts
+  except 2021/22 (6,347 by district vs 7,351 national).
+- **Missing.** Qualified teachers are not published by district (99.4% nationally in 2024/25):
+  the capacity factor uses the pupil-teacher and pupil-classroom ratios only.
+- **A jump, not a typo.** Pupils rose from 355,325 (2021/22) to 540,962 (2022/23), +52% in one
+  year; MINEDUC's participation rate rose from 28% (2022) to 43.7% (2023) at the same time.
 
-| Table | Row | Found | Likely reading |
-| --- | --- | --- | --- |
-| Pupils 2023/24 (Annex) | Nyarugenge | total 12,893, but boys 6,533 + girls 6,330 = 12,863 | **12,863**: with it, Kigali City (59,645) and Rwanda (605,229) add up exactly |
-| Teachers 2023/24 (Annex) | All 8 Southern districts and the South row | each total is 10 below male + female (e.g. Muhanga 357 vs 40 + 327 = 367) | Probably the totals: male + female gives Rwanda 10,898, the figure in the staff-qualifications table (Table 3.5.1); the printed totals give 10,818 |
-| Pupils 2024/25 | Kayonza, Kicukiro, East row | differ from boys + girls by 1 | Rounding in the printed table; harmless |
+### MINEDUC school locations (not staged)
 
-Other findings:
+139 points, all inside Rwanda, all category PRE_PRIMARY (123 private), in 21 districts, with
+10,649 pre-primary pupils. MINEDUC counts 4,221 schools with pre-primary and 683,234 pupils in
+2024/25: most pre-primary classes are inside primary schools, which this file does not list.
+Used as the school layer it would make children near those schools look far from school, so it
+is kept in `data/raw/_received/` and the distance layer stays labelled simulated. Needed: the
+full school list with coordinates and a flag for schools with pre-primary classes.
 
-- **Spelling.** "Kigali city" (classrooms) and "Kigali City" (other tables); matched without
-  regard to case, no action needed.
-- **Series break.** Children in ECD centres rise 3.5 times from 2020/21 (297,021) to 2021/22
-  (1,033,011): a change in what is counted, not growth. Do not trend across it. These are NCDA
-  style counts and are never added to pre-primary enrolment.
-- **Two different rates.** `participation_rate_ages_3_5` (54.0% in 2025) is a calendar-year
-  MINEDUC rate; IrereroAI tracks a gross rate (pupils per child aged 3 to 5) by school year.
-  They are not interchangeable and are not mixed.
-- **Qualified teachers** are national only (99.4% qualified in 2024/25). The capacity factor
-  needs them by district; at 99% nationally the district spread may be small.
+### Census 2022 sector tables (staged, merged with the sample counts)
 
-What the yearbook still needs before it can replace the stand-in: district tables for
-**2020/21 and 2021/22**, pupils and teachers for **2022/23**, and **qualified teachers by
-district** for every year. See [data_requests.md](data_requests.md#3-mineduc-yearbooks).
+- **Pass.** 416 sectors joined by name (one census spelling, "Shyorongi", added to the reviewed
+  crosswalk for the census); sector populations add up to the published national total,
+  13,246,394; urban + rural = population in every sector; drinking-water shares add to 100%.
+- **Derived, and how.** Improved water = the share of households using the nine sources Table
+  C1.2 groups as improved × the table's household count. Electricity = households connected to
+  the national grid or a mini-grid (Table C1.5 counts, not lighting). Nationally 82.3% of
+  households use improved water and 52.5% are grid-connected.
+- **Not at sector level in the source, so empty:** improved sanitation (Table 8.3 is by
+  province), women's education (the Education thematic report is needed) and children aged 0
+  to 4 (Table C4 is national). The home-environment factor rests on water alone until they
+  arrive.
 
 ### Census 2022 sample records (staged as weighted counts)
 
@@ -154,24 +171,27 @@ district** for every year. See [data_requests.md](data_requests.md#3-mineduc-yea
 
 ## Status after intake
 
-`make data` now reports simulated stand-ins for **worldpop, osm, yearbook, rdhs_2025 and
-ncda**. Census 2022, the projections, the boundaries and EICV7 are real.
+`make data` now reports simulated stand-ins for **worldpop, osm, rdhs_2025 and ncda** only.
+Census 2022 (sample counts and sector tables), the projections, the yearbooks, the boundaries
+and EICV7 are real.
 
 | Part of the app | Status now | Why |
 | --- | --- | --- |
 | Children aged 3 to 5 in 2026, attending, places, rooms (PLAN) | **model estimate** | Census sample, NISR projections |
-| Priority ranking (PLAN) | **model estimate** | Estimate, peer gap (census, poverty, density), EICV7 poverty |
+| Priority ranking (PLAN) | **model estimate** | Estimate, peer gap, EICV7 poverty |
 | Peer benchmark (DIAGNOSE) | **model estimate** | Census attendance; no model beat the district average |
-| Share of children more than 1 km from a school | simulated | School points (OpenStreetMap) missing |
-| Bottlenecks and factor scores (DIAGNOSE) | simulated | Capacity (yearbook), wellbeing (stunting) and distance are stand-ins |
-| 2028/29 trend and status (TRACK) | simulated | Yearbook series incomplete |
+| 2028/29 trend and status (TRACK) | **model estimate** on **observed** yearbooks | MINEDUC master table |
+| Share of children more than 1 km from a school | simulated | A full school list with coordinates is missing |
+| Bottlenecks and factor scores (DIAGNOSE) | simulated | Wellbeing (stunting) and distance are stand-ins |
 
-Each screen now labels each part with its own status, so a real estimate sits next to a
-labelled SIMULATED distance or trend. The red SIMULATED notice stays on any screen that shows
-a simulated value.
+**Attendance in 2026, a stated choice.** The app can move the census 2022 rate by the
+district's MINEDUC growth since 2021/22. With the real yearbooks that puts 250 of 416 sectors at
+the 98% cap (88% nationally): the census rate (53.7%) and MINEDUC's gross rate barely agree by
+district (correlation 0.3 to 0.4), and pupils grew 52% in 2022/23. The setting
+`MINEDUC_TREND_ON_CENSUS` is therefore off: 2026 attendance is the census 2022 rate (53.5%), and
+places needed may be overstated where enrolment has grown. TRACK shows MINEDUC's own gross rate
+(65.3% nationally in 2024/25; 21 of 30 districts at or above 65%).
 
-**Method change, stated in the app.** While the census is real and the yearbook is not,
-attendance in 2026 is the census 2022 rate: a real census is never moved by a simulated
-MINEDUC trend. Enrolment growth since 2022 is therefore not yet in the 2026 figures, and places
-needed may be overstated where enrolment has grown. The trend applies again once the yearbook
-series is complete.
+**Read TRACK with care.** The straight-line trend runs through the 2022/23 jump, so it is steep
+and reaches the 100% cap in many districts; the back-test error is 5.1 points. The gross rate
+counts over-age pupils.

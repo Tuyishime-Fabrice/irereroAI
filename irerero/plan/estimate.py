@@ -7,10 +7,10 @@
    count.
 3. Range: projection range (or PROJECTION_REL_ERROR) combined with the disagreement between
    WorldPop and census sector shares (or SHARE_DRIFT_REL).
-4. Attending: the sector's 2022 census attendance rate, moved by the district's change in
-   MINEDUC pupils per child from 2021/22 (census year) to the latest yearbook. A real census is
-   never moved by a simulated yearbook: until the yearbook series is real, the rate stays at
-   its 2022 value and the method says so.
+4. Attending: the sector's 2022 census attendance rate. Optionally (MINEDUC_TREND_ON_CENSUS,
+   off by default) moved by the district's change in MINEDUC pupils per child from 2021/22 to
+   the latest yearbook; it is off because the two rates do not track each other by district.
+   A real census is never moved by a simulated yearbook. The method column says which applies.
 
 Census, MINEDUC and NCDA counts are never added together: MINEDUC only moves the census rate.
 """
@@ -21,6 +21,7 @@ import pandas as pd
 from irerero.config import (
     ESTIMATE_YEAR,
     MAX_ATTENDANCE,
+    MINEDUC_TREND_ON_CENSUS,
     MODEL,
     PROJECTION_REL_ERROR,
     SHARE_DRIFT_REL,
@@ -129,17 +130,22 @@ def estimate(inputs: Inputs) -> pd.DataFrame:
     children = share * total
 
     rate_2022 = sectors.children_3_5_attending.astype(float) / sectors.children_3_5.astype(float)
-    # The trend applies when the yearbook is as real as the census (the demo moves simulated
-    # rates by a simulated trend, to show the method).
-    with_trend = inputs.yearbook.real or not inputs.census_sectors.real
+    # The MINEDUC trend applies only when it is switched on (config) and the yearbook is as real
+    # as the census: a real census is never moved by a simulated trend.
+    with_trend = MINEDUC_TREND_ON_CENSUS and (
+        inputs.yearbook.real or not inputs.census_sectors.real
+    )
     if with_trend:
         rate = (rate_2022 * parent.map(attendance_trend(inputs))).clip(upper=MAX_ATTENDANCE)
         method += "; attendance: census 2022 rate moved by the MINEDUC trend"
     else:
         rate = rate_2022.clip(upper=MAX_ATTENDANCE)
-        method += (
-            "; attendance: census 2022 rate, not yet moved by MINEDUC (yearbook series incomplete)"
+        why = (
+            "the census and MINEDUC gross rates are not comparable by district"
+            if not MINEDUC_TREND_ON_CENSUS
+            else "yearbook series incomplete"
         )
+        method += f"; attendance: census 2022 rate, not moved by MINEDUC ({why})"
 
     inputs_real = (
         inputs.census_sectors.real

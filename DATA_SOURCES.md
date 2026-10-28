@@ -196,7 +196,7 @@ Needs `uv sync --extra osm` (pyosmium and networkx). Without it, or where roads 
 | `schools` | whole number ≥ 0 | yes | Schools with pre-primary |
 | `classrooms` | whole number ≥ 0 | yes | Pre-primary classrooms |
 | `teachers` | whole number ≥ 0 | yes | Pre-primary teachers |
-| `qualified_teachers` | whole number ≥ 0 | yes | Of them, qualified |
+| `qualified_teachers` | whole number ≥ 0 | no | Of them, qualified (not published by district so far; capacity then uses the ratios only) |
 | `source_page` | text | no | Page or table the value was read from |
 
 <a id="rdhs_2025"></a>

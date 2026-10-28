@@ -22,7 +22,13 @@ DATASET = Dataset(
         Column("schools", "integer", "Schools with pre-primary"),
         Column("classrooms", "integer", "Pre-primary classrooms"),
         Column("teachers", "integer", "Pre-primary teachers"),
-        Column("qualified_teachers", "integer", "Of them, qualified"),
+        Column(
+            "qualified_teachers",
+            "integer",
+            "Of them, qualified (not published by district so far; capacity then uses the "
+            "ratios only)",
+            required=False,
+        ),
         PAGE_COLUMN,
     ),
     level="district",

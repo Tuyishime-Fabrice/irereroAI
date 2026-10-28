@@ -39,8 +39,9 @@ from pathlib import Path
 import pandas as pd
 
 from irerero.config import DATA, INTERIM, RAW, REFERENCE, YEARBOOK_YEARS
-from irerero.data.crosswalk import district_ids
+from irerero.data.crosswalk import district_ids, sector_ids
 from irerero.data.sources import boundaries, census, eicv, projections, yearbook
+from irerero.data.spec import COORDINATE_RANGE
 from irerero.data.validate import SchemaError, validate
 
 MANIFEST = DATA / "received_files.csv"
@@ -53,6 +54,7 @@ MANIFEST_COLUMNS = ("received_on", "package", "file", "bytes", "sha256", "staged
 PROVINCE_ROWS = {"south", "west", "east", "north", "kigali city"}
 NATIONAL_ROW = "rwanda"
 MINEDUC_TABLES = {
+    "preprimary_teaching_staff_by_district.csv": ("teachers", "total"),
     "preprimary_pupils_by_district.csv": ("pupils", "total"),
     "preprimary_teachers_by_district.csv": ("teachers", "total"),
     "preprimary_classrooms_by_district.csv": ("classrooms", "classrooms"),
@@ -78,6 +80,21 @@ LARGE_WEIGHT = 100
 PROJECTION_SHEET = "All ages long"
 PROJECTION_YEARS = tuple(range(2023, 2033))
 PROJECTION_SOURCE = "NISR Subnational Population Projections 2023-2032, single-age tables"
+CENSUS_MASTER_SHEET = "Sector_Census_Master"
+# Table C1.2 groups the first nine sources as improved
+IMPROVED_WATER = (
+    "water_mineral_pct", "water_internal_piped_pct", "water_piped_compound_pct",
+    "water_piped_neighbor_pct", "water_public_tap_pct", "water_borehole_pct",
+    "water_protected_spring_well_pct", "water_rainwater_pct", "water_tanker_pct",
+)  # fmt: skip
+MASTER_COLUMNS = ("population", "households", "hh_improved_water", "hh_electricity", "urban_share")
+MASTER_SOURCE = (
+    "PHC5 2022 thematic reports: Table D1 (population, urban), C1.2 (drinking water), C1.5 "
+    "(grid electricity, households)"
+)
+MINEDUC_MASTER_COLUMNS = {"district", "academic_year", "male_pupils", "female_pupils",
+                          "male_teachers", "female_teachers", "schools_count",
+                          "classrooms_in_use"}  # fmt: skip
 BOUNDARY_FILES = ("provinces.geojson", "districts.geojson", "sectors.geojson")
 BOUNDARY_COUNTS = {"provinces.geojson": 5, "districts.geojson": 30, "sectors.geojson": 416}
 
@@ -571,6 +588,272 @@ def census_sample(path: Path) -> tuple[pd.DataFrame, pd.DataFrame, list[Check]]:
     return out.sort_values(["district_name", "sector_name"]).reset_index(drop=True), totals, checks
 
 
+# --- Census 2022 sector tables (the master workbook) ----------------------------------------
+def census_master(path: Path) -> tuple[pd.DataFrame, list[Check]]:
+    """Population, urban share, households, improved water and grid electricity per sector,
+    from the census thematic-report tables merged in the master workbook."""
+    try:
+        sheets = pd.read_excel(path, sheet_name=None)
+    except ImportError:
+        key = census.DATASET.key
+        return pd.DataFrame(), [Check(key, "fail", "reading .xlsx needs openpyxl: `make intake`")]
+    return census_master_from_sheets(sheets)
+
+
+def census_master_from_sheets(sheets: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, list[Check]]:
+    key = census.DATASET.key
+    checks: list[Check] = []
+    m = sheets[CENSUS_MASTER_SHEET]
+    need = {"district", "sector", "population_total", "households_total_count",
+            "water_households_total_count", "grid_connected_households_count",
+            *IMPROVED_WATER}  # fmt: skip
+    if need - set(m.columns):
+        checks.append(Check(key, "fail", f"missing column(s) {sorted(need - set(m.columns))}"))
+        return pd.DataFrame(), checks
+    try:
+        ids = sector_ids(key, m.district, m.sector)
+    except SchemaError as error:
+        checks.append(Check(key, "fail", str(error)))
+        return pd.DataFrame(), checks
+    n = ids.nunique()
+    checks.append(
+        Check(key, "pass" if n == 416 and not ids.duplicated().any() else "fail",
+              f"{n} of 416 sectors, each once, joined to the crosswalk by name")
+    )  # fmt: skip
+    population = pd.to_numeric(m.population_total, errors="coerce")
+    if population.isna().any() or (population <= 0).any():
+        checks.append(Check(key, "fail", "population missing or not positive in some sectors"))
+    published = sheets.get("District_Validation")
+    if published is not None:
+        rwanda = published[published.iloc[:, 0].astype(str).str.upper() == "RWANDA"]
+        if len(rwanda):
+            total = int(rwanda.iloc[0, 1])
+            gap = int(population.sum()) - total
+            checks.append(
+                Check(key, "pass" if gap == 0 else "warn", f"sector populations add to "
+                      f"{int(population.sum()):,}; the published national total (Table 3.10) is "
+                      f"{total:,}" + (f" (difference {gap:+,})" if gap else ""))
+            )  # fmt: skip
+    urban = pd.to_numeric(m.get("urban_population_total"), errors="coerce").fillna(0)
+    rural = pd.to_numeric(m.get("rural_population_total"), errors="coerce").fillna(0)
+    off = (urban + rural != population).sum()
+    checks.append(
+        Check(key, "pass" if off == 0 else "warn", f"urban + rural = population in all but {off} "
+              "sectors (a blank urban or rural cell is read as 0)")
+    )  # fmt: skip
+    households = pd.to_numeric(m.households_total_count, errors="coerce")
+    water_households = pd.to_numeric(m.water_households_total_count, errors="coerce")
+    differ = int((households != water_households).sum())
+    if differ:
+        checks.append(
+            Check(key, "warn", f"{differ} sectors: the water table's household count differs from "
+                  "the household total; improved water uses the water table's own count")
+        )  # fmt: skip
+    shares = m[[c for c in m.columns if c.startswith("water_") and c.endswith("_pct")]]
+    off = int((shares.sum(axis=1) - 1).abs().gt(0.01).sum())
+    checks.append(
+        Check(key, "pass" if off == 0 else "warn", f"drinking-water shares add to 100% (±1 point) "
+              f"in all but {off} sectors")
+    )  # fmt: skip
+    improved = m[list(IMPROVED_WATER)].apply(pd.to_numeric, errors="coerce").sum(axis=1)
+    grid = pd.to_numeric(m.grid_connected_households_count, errors="coerce")
+    over = int((grid > households).sum())
+    if over:
+        checks.append(Check(key, "fail", f"{over} sectors with more grid-connected households "
+                            "than households"))  # fmt: skip
+    names = _official_names()[0].reset_index().set_index("geo_id")
+    out = pd.DataFrame(
+        {
+            "sector_name": ids.map(names.source_sector).to_numpy(),
+            "district_name": ids.map(names.source_district).to_numpy(),
+            "population": population.round().astype("Int64").to_numpy(),
+            "households": households.round().astype("Int64").to_numpy(),
+            "hh_improved_water": (improved * water_households).round().astype("Int64").to_numpy(),
+            "hh_electricity": grid.round().astype("Int64").to_numpy(),
+            "urban_share": (urban / population).round(4).to_numpy(),
+        }
+    )
+    checks.append(
+        Check(key, "pass", f"{(out.urban_share > 0).sum()} sectors with an urban population; "
+              f"improved drinking water {out.hh_improved_water.sum() / out.households.sum():.1%}"
+              f" and grid electricity {out.hh_electricity.sum() / out.households.sum():.1%} of "
+              "households nationally")
+    )  # fmt: skip
+    checks.append(
+        Check(key, "warn", "not at sector level in the source, so left empty: improved "
+              "sanitation (Table 8.3 is by province), women's education (Education thematic "
+              "report needed) and children aged 0 to 4 (Table C4 is national)")
+    )  # fmt: skip
+    return out, checks
+
+
+def merge_census(counts: pd.DataFrame, extra: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """The sample's attendance counts with the master's sector columns; (sectors, districts)."""
+    keys = ["district_name", "sector_name"]
+    base = counts.drop(columns=[c for c in MASTER_COLUMNS if c in counts])
+    merged = base.merge(extra, on=keys, how="left", validate="one_to_one")
+    pages = merged.source_page.fillna("").astype(str)
+    merged["source_page"] = pages.where(
+        pages.str.contains("Table D1"), pages + "; " + MASTER_SOURCE
+    )
+    sums = ["children_3_5", "children_3_5_attending", "children_3_5_never_attended",
+            "population", "households", "hh_improved_water", "hh_electricity"]  # fmt: skip
+    numbers = merged[sums].apply(pd.to_numeric, errors="coerce")
+    districts = numbers.groupby(merged.district_name).sum(min_count=1).round().astype("Int64")
+    districts = districts.reset_index().assign(source_page="sum of its sectors")
+    return merged, districts
+
+
+def mineduc_master(path: Path) -> tuple[pd.DataFrame, list[Check]]:
+    """The district-year master table (all five yearbooks) to the yearbook schema. Totals are
+    boys + girls and men + women; printed totals that differ are listed, not used."""
+    key = yearbook.DATASET.key
+    checks: list[Check] = []
+    m = pd.read_csv(path, encoding="utf-8-sig")
+    m["district"] = m.district.astype(str).str.strip()
+    years = tuple(sorted(m.academic_year.unique()))
+    if years != YEARBOOK_YEARS:
+        checks.append(Check(key, "fail", f"school years must be {YEARBOOK_YEARS}, got {years}"))
+    if m.duplicated(["district", "academic_year"]).any():
+        checks.append(Check(key, "fail", "a district-year appears twice"))
+    numbers = ["schools_count", "classrooms_in_use", "male_pupils", "female_pupils",
+               "male_teachers", "female_teachers"]  # fmt: skip
+    values = m[numbers].apply(pd.to_numeric, errors="coerce")
+    if values.isna().any().any() or (values < 0).any().any():
+        bad = values.columns[values.isna().any() | (values < 0).any()].tolist()
+        checks.append(Check(key, "fail", f"blank, non-numeric or negative cells in {bad}"))
+        return pd.DataFrame(), checks
+    pupils = values.male_pupils + values.female_pupils
+    teachers = values.male_teachers + values.female_teachers
+    corrected = set()  # (district, school year, measure) where the printed total is not used
+    for label, total, column in (("pupils", pupils, "pupils_reported_total"),
+                                 ("teachers", teachers, "teachers_reported_total")):  # fmt: skip
+        if column not in m:
+            continue
+        printed = pd.to_numeric(m[column], errors="coerce")
+        off = m[printed != total]
+        corrected |= {(r.district, r.academic_year, label) for r in off.itertuples()}
+        if len(off):
+            listed = "; ".join(
+                f"{r.district} {r.academic_year} {int(printed[i]):,} vs {int(total[i]):,}"
+                for i, r in off.iterrows()
+            )
+            checks.append(
+                Check(key, "warn", f"{label}: printed total differs from the sum by sex in "
+                      f"{len(off)} rows, the sum is used: {listed}")
+            )  # fmt: skip
+    try:
+        ids = district_ids(key, m.district)
+    except SchemaError as error:
+        checks.append(Check(key, "fail", str(error)))
+        return pd.DataFrame(), checks
+    sources = [c for c in m.columns if c.startswith("source_")]
+    page = m[sources].fillna("").astype(str).agg(
+        lambda r: "; ".join(dict.fromkeys(v for v in r if v)), axis=1
+    ) if sources else pd.Series(YEARBOOK_SOURCE, index=m.index)  # fmt: skip
+    _, names = _official_names()
+    names = names.reset_index().set_index("geo_id").source_district
+    qualified = pd.to_numeric(m.get("qualified_teachers_district"), errors="coerce")
+    wide = pd.DataFrame(
+        {
+            "district_name": ids.map(names).to_numpy(),
+            "school_year": m.academic_year.to_numpy(),
+            "pupils": pupils.astype("Int64").to_numpy(),
+            "schools": values.schools_count.astype("Int64").to_numpy(),
+            "classrooms": values.classrooms_in_use.astype("Int64").to_numpy(),
+            "teachers": teachers.astype("Int64").to_numpy(),
+            "qualified_teachers": qualified.round().astype("Int64").to_numpy(),
+            "source_page": (
+                "MINEDUC Education Statistical Yearbook, district annex: " + page
+            ).to_numpy(),
+        }
+    )
+    n = wide.district_name.nunique()
+    checks.append(
+        Check(key, "pass" if n == 30 else "fail", f"{n} of 30 districts joined to the crosswalk, "
+              f"{len(years)} school years each")
+    )  # fmt: skip
+    if wide.qualified_teachers.isna().all():
+        checks.append(
+            Check(key, "warn", "qualified teachers are not published by district (99.4% "
+                  "nationally in 2024/25): the capacity factor uses the pupil-teacher and "
+                  "pupil-classroom ratios only")
+        )  # fmt: skip
+    wide = wide.sort_values(["district_name", "school_year"]).reset_index(drop=True)
+    wide.attrs["corrected"] = corrected
+    return wide, checks
+
+
+def corroborate(wide: pd.DataFrame, others: pd.DataFrame, label: str) -> Check:
+    """Every cell two yearbook tables share must agree, except where `wide` uses the sum by sex
+    instead of a printed total that differs (those are listed in its own check)."""
+    key = yearbook.DATASET.key
+    cell = ["district_name", "school_year"]
+    joined = wide.merge(others, on=cell, suffixes=("", "_other"))
+    differ = []
+    for column in ("pupils", "schools", "classrooms", "teachers"):
+        other = f"{column}_other"
+        if other in joined:
+            both = joined[joined[column].notna() & joined[other].notna()]
+            differ += [f"{r.district_name} {r.school_year} {column}" for r in
+                       both[both[column] != both[other]].itertuples()
+                       if (r.district_name, r.school_year, column)
+                       not in wide.attrs.get("corrected", set())]  # fmt: skip
+    if differ:
+        return Check(
+            key, "fail", f"{label} disagrees in {len(differ)} cells: {', '.join(differ[:8])}"
+        )
+    known = len(wide.attrs.get("corrected", ()))
+    return Check(key, "pass", f"agrees with {label} in all {len(joined)} shared district-years"
+                 + (f", apart from the {known} printed totals replaced by the sum by sex" if known
+                    else ""))  # fmt: skip
+
+
+def mineduc_long(paths: list[Path]) -> pd.DataFrame:
+    """The validated long tables (district, academic_year, ...) in the yearbook columns."""
+    measures = {
+        "preprimary_pupils_by_district.csv": ("pupils", "total"),
+        "preprimary_teaching_staff_by_district.csv": ("teachers", "total"),
+        "preprimary_classrooms_by_district.csv": ("classrooms", "classrooms_in_use"),
+        "preprimary_schools_by_district.csv": ("schools", "preprimary_school_count"),
+    }
+    frames = []
+    for path in paths:
+        measure, column = measures[path.name]
+        frame = pd.read_csv(path, encoding="utf-8-sig")
+        frames.append(
+            pd.DataFrame(
+                {"district_name": frame.district.str.strip(), "school_year": frame.academic_year,
+                 measure: pd.to_numeric(frame[column], errors="coerce")}
+            ).set_index(["district_name", "school_year"])
+        )  # fmt: skip
+    return pd.concat(frames, axis=1).reset_index() if frames else pd.DataFrame()
+
+
+def school_points(path: Path) -> list[Check]:
+    """School locations for the distance layer: staged only when they cover every school with
+    pre-primary, since a partial list makes children look far from schools that exist."""
+    import geopandas as gpd
+
+    key = "osm"
+    frame = gpd.read_file(path)
+    categories = frame.get("school_category", pd.Series(dtype=str)).value_counts().to_dict()
+    pupils = pd.to_numeric(frame.get("preprimary_students_total"), errors="coerce").sum()
+    districts = frame.get("district", pd.Series(dtype=str)).nunique()
+    (lon_lo, lon_hi), (lat_lo, lat_hi) = COORDINATE_RANGE["longitude"], COORDINATE_RANGE["latitude"]
+    inside = frame.geometry.x.between(lon_lo, lon_hi) & frame.geometry.y.between(lat_lo, lat_hi)
+    return [
+        Check(key, "pass" if inside.all() else "warn", f"{len(frame)} points, {int(inside.sum())} "
+              f"inside Rwanda: {categories}; {districts} districts; {pupils:,.0f} pre-primary "
+              "pupils"),
+        Check(key, "warn", "not staged: only standalone pre-primary schools are listed. MINEDUC "
+              "counts 4,221 schools with pre-primary and 683,234 pupils (2024/25); most "
+              "pre-primary classes are inside primary schools. With this list as the school "
+              "layer, children near those schools would count as far from school. Needed: the "
+              "full school list with coordinates and a flag for schools with pre-primary classes"),
+    ]  # fmt: skip
+
+
 # --- NISR projections -----------------------------------------------------------------------
 def projections_single_age(path: Path) -> tuple[pd.DataFrame, list[Check]]:
     """Single-age district projections to population and children aged 3 to 5 per year."""
@@ -766,22 +1049,36 @@ def boundary_files(paths: list[Path]) -> tuple[dict[str, object], list[Check]]:
 def classify(files: list[Path]) -> dict[str, list[Path]]:
     groups: dict[str, list[Path]] = {
         "eicv7": [], "mineduc_district": [], "mineduc_national": [], "gazetteer": [],
-        "census_sample": [], "projections": [], "boundaries": [],
+        "census_sample": [], "projections": [], "boundaries": [], "census_master": [],
+        "mineduc_master": [], "mineduc_long": [], "school_points": [],
     }  # fmt: skip
     for path in files:
         if GAZETTEER in path.name and path.suffix == ".xlsx":
             groups["gazetteer"].append(path)
             continue
-        if path.suffix == ".xlsx" and PROJECTION_SHEET in _sheet_names(path):
+        sheets = _sheet_names(path) if path.suffix == ".xlsx" else []
+        if PROJECTION_SHEET in sheets:
             groups["projections"].append(path)
+            continue
+        if CENSUS_MASTER_SHEET in sheets:
+            groups["census_master"].append(path)
             continue
         if path.name in BOUNDARY_FILES:
             groups["boundaries"].append(path)
+            continue
+        if path.suffix.lower() == ".geojson" and b"school_category" in path.read_bytes()[:4096]:
+            groups["school_points"].append(path)
             continue
         if path.suffix == ".csv":
             head = set(pd.read_csv(path, nrows=0, encoding="utf-8-sig").columns)
             if head >= CENSUS_SAMPLE_COLUMNS:
                 groups["census_sample"].append(path)
+                continue
+            if head >= MINEDUC_MASTER_COLUMNS:
+                groups["mineduc_master"].append(path)
+                continue
+            if path.name in MINEDUC_TABLES and "academic_year" in head:
+                groups["mineduc_long"].append(path)  # the validated long layout
                 continue
         if path.name == eicv.FILE:
             head = pd.read_csv(path, nrows=0, encoding="utf-8-sig").columns
@@ -819,6 +1116,13 @@ def run(
         receive([path], "census_2022_sample", raw, manifest)
         sectors, districts, checks = census_sample(path)
         staged = None
+        previous = raw / census.DATASET.key / "census_2022_sectors.csv"
+        if len(sectors) and previous.exists():  # keep sector columns staged from the tables
+            kept = pd.read_csv(previous)
+            extra = kept[["district_name", "sector_name",
+                          *[c for c in MASTER_COLUMNS if c in kept]]]  # fmt: skip
+            if extra.shape[1] > 2 and extra.iloc[:, 2:].notna().any().any():
+                sectors, districts = merge_census(sectors, extra)
         if len(sectors) and not any(c.level == "fail" for c in checks):
             folder = raw / census.DATASET.key
             _stage(districts, folder / "census_2022_districts.csv")
@@ -827,6 +1131,29 @@ def run(
                          "counts; the records stay in _received)")  # fmt: skip
             census_total = int(sectors.children_3_5.sum())
         results.append(Result(census.DATASET.key, checks, staged, None))
+    if groups["census_master"]:
+        path = groups["census_master"][0]
+        receive([path], "census_2022_tables", raw, manifest)
+        extra, checks = census_master(path)
+        staged = None
+        counts = raw / census.DATASET.key / "census_2022_sectors.csv"
+        if len(extra) and not any(c.level == "fail" for c in checks):
+            if counts.exists():
+                sectors, districts = merge_census(pd.read_csv(counts), extra)
+                folder = raw / census.DATASET.key
+                _stage(districts, folder / "census_2022_districts.csv")
+                staged = _stage(sectors, counts)
+                _mark_staged(manifest, [path], f"data/raw/{census.DATASET.key}/ (sector columns "
+                             "merged with the attendance counts)")  # fmt: skip
+            else:
+                folder = interim / "census"
+                folder.mkdir(parents=True, exist_ok=True)
+                extra.to_csv(folder / "census_2022_sector_tables.csv", index=False)
+                checks.append(
+                    Check(census.DATASET.key, "warn", "not staged: the attendance counts (Table "
+                          "2.5 or the sample records) are not staged yet; kept in data/interim/")
+                )  # fmt: skip
+        results.append(Result(f"{census.DATASET.key} (sector tables)", checks, staged, None))
     if groups["projections"]:
         path = groups["projections"][0]
         receive([path], "nisr_projections", raw, manifest)
@@ -875,6 +1202,33 @@ def run(
             frame.to_csv(staged, index=False)
             _mark_staged(manifest, [path], f"data/raw/{eicv.DATASET.key}/{eicv.FILE}")
         results.append(Result(eicv.DATASET.key, checks, staged, None))
+    if groups["school_points"]:
+        path = groups["school_points"][0]
+        receive([path], "mineduc_school_points", raw, manifest)
+        results.append(Result("schools (distance layer)", school_points(path), None, None))
+    if groups["mineduc_master"]:
+        path = groups["mineduc_master"][0]
+        receive([path, *groups["mineduc_long"]], "mineduc_master", raw, manifest)
+        wide, checks = mineduc_master(path)
+        partial = interim / "yearbook" / "mineduc_yearbook_preprimary.partial.csv"
+        if len(wide) and partial.exists():
+            checks.append(corroborate(wide, pd.read_csv(partial), "the earlier 2024/25 extract"))
+        if len(wide) and groups["mineduc_long"]:
+            checks.append(corroborate(wide, mineduc_long(groups["mineduc_long"]),
+                                      "the validated tables"))  # fmt: skip
+        series = interim / "yearbook" / "mineduc_national_series.csv"
+        if len(wide) and series.exists():
+            checks += cross_checks(wide, pd.read_csv(series))
+        staged = None
+        gaps = yearbook_gaps(wide) if len(wide) else ["no rows"]
+        if gaps:
+            checks.append(Check(yearbook.DATASET.key, "warn", f"not staged: {'; '.join(gaps)}"))
+        elif not any(c.level == "fail" for c in checks):
+            staged = _stage(wide, raw / yearbook.DATASET.key / yearbook.FILE)
+            _mark_staged(manifest, [path], f"data/raw/{yearbook.DATASET.key}/{yearbook.FILE}")
+            _mark_staged(manifest, groups["mineduc_long"], "cross-check only (agrees with the "
+                         "master table)")  # fmt: skip
+        results.append(Result(yearbook.DATASET.key, checks, staged, None))
     if groups["mineduc_district"] or groups["mineduc_national"]:
         paths = groups["mineduc_district"] + groups["mineduc_national"]
         receive(paths, "mineduc_yearbook", raw, manifest)

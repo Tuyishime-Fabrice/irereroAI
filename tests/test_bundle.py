@@ -134,3 +134,17 @@ def test_sync_without_settings_is_off_and_errors_never_show_the_token(host, tmp_
     assert url not in str(caught.value)
     with pytest.raises(bundle.BundleError, match="https"):
         bundle.sync({**wrong, "IRERERO_DATA_URL": "ftp://example.org/x.zip"}, tmp_path / "raw")
+
+
+def test_a_mismatch_says_what_was_received_without_any_secret(staged, tmp_path):
+    path, digest, _ = bundle.make(staged, tmp_path / "out.zip")
+    with pytest.raises(bundle.BundleError) as caught:
+        bundle.unpack(path.read_bytes(), "0" * 64, tmp_path / "server_raw")
+    message = str(caught.value)
+    assert "a zip file" in message and f"starts {digest[:12]}" in message
+    assert "the secret's starts 000000000000" in message
+    page = b"<!DOCTYPE html><html><body>GitHub</body></html>"
+    with pytest.raises(bundle.BundleError, match="a web page, not the zip"):
+        bundle.unpack(page, "0" * 64, tmp_path / "server_raw")
+    # a secret pasted with its quotes still matches
+    assert bundle.unpack(path.read_bytes(), f'"{digest}"', tmp_path / "server_raw")

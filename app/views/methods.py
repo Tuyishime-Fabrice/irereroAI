@@ -150,10 +150,11 @@ with tabs[1]:
   across sectors by WorldPop under-5 (× census age ratio) or, while WorldPop is missing, by
   census sector shares. Range from the projection range and the disagreement between the two
   splits. Method in use: *{method}*.
-- **Attending (2026):** the sector's census 2022 attendance rate moved by the district's
-  change in MINEDUC pupils per child since 2021/22. While the census is real and the yearbook
-  series is not, the rate stays at its 2022 value: a real census is never moved by a
-  simulated trend. Counts from different sources are never added together.
+- **Attending (2026):** the sector's census 2022 attendance rate. The app can move it by the
+  district's change in MINEDUC pupils per child since 2021/22 (`MINEDUC_TREND_ON_CENSUS`),
+  but this is off: the census rate (53.7% in 2022) and MINEDUC's gross rate barely agree by
+  district (correlation 0.3 to 0.4), and pupils grew 52% in 2022/23 alone. TRACK shows
+  MINEDUC's own rate. Counts from different sources are never added together.
 - **Census counts from sample records:** when the census arrives as sample records of
   children aged 3 to 5 with population weights (not printed Table 2.5), each sector's count is
   the sum of the weights, so it is a model estimate. Sectors resting on fewer than 100
@@ -271,9 +272,12 @@ with tabs[4]:
 - **Children aged 3 to 5 to 2029** come from NISR's single-age projections when they are
   loaded; otherwise the 3-5 share is held at its 2022 value, and falling fertility would make
   2029 children (and places needed) overstated.
-- **Attendance in 2026 is the 2022 census rate** until the MINEDUC series is complete: real
-  growth in enrolment since 2022 is not yet in the 2026 figures, so places needed may be
-  overstated where enrolment has grown.
+- **Attendance in 2026 is the 2022 census rate.** Enrolment has grown since (MINEDUC's gross
+  rate rose from 35% in 2021/22 to 65% in 2024/25), so places needed may be overstated where it
+  grew. The two rates measure different things: the gross rate counts over-age pupils.
+- **The 2029 trend runs through a jump:** pupils rose 52% in 2022/23, so the straight-line
+  trend is steep and reaches the 100% cap in many districts; read "on track" with the latest
+  observed rate beside it.
 - **OSM does not say which schools have pre-primary.** Distance uses all schools and
   kindergartens; where roads are thin, straight-line distance understates the walk.
 - **District context.** Capacity and stunting are district values applied to every sector.

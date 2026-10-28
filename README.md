@@ -18,10 +18,10 @@ NISR 2026 Big Data Hackathon, Track 3 (Open Innovation).
 > RDHS, EICV, WorldPop and OSM files are not in this repository: their licences forbid
 > redistribution, and the team adds them locally. While a file is missing, the app shows a
 > labelled stand-in with a red **SIMULATED** badge and leaves it out of exports. With the files
-> received so far (census 2022, NISR projections, COD-AB boundaries, EICV7) a local build has a
-> real 2026 estimate, priority ranking and peer benchmark; the trend, the distance layer and the
-> bottlenecks stay labelled simulated until the yearbooks, school points and stunting arrive.
-> Each part of a screen carries its own status.
+> received so far (census 2022, NISR projections, MINEDUC yearbooks 2020/21 to 2024/25, COD-AB
+> boundaries, EICV7) a local build has a real 2026 estimate, priority ranking, peer benchmark
+> and 2028/29 trend; the distance layer and the bottlenecks stay labelled simulated until a full
+> school list and stunting arrive. Each part of a screen carries its own status.
 
 ## Problem and users
 
@@ -62,7 +62,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 183 tests
+make test      # 186 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
@@ -159,7 +159,7 @@ measures as follows. These numbers show the pipeline works, not real-world accur
 - Residual Moran's I: 0.30 (p = 0.001).
 - 2029 trend back-test: MAE 0.95 points; 93% of districts inside the 80% range.
 
-The 183 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
+The 186 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
 (hand-checked), the model and rules, the audit entries for each decision and confirmation,
 simulated-value labelling and exclusion from exports, the training triggers on the planted
 problems, that every screen renders for every role, and the assistant end to end (figures,

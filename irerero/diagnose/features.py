@@ -113,9 +113,11 @@ def sector_features(
 
     latest = YEARBOOK_YEARS[-1]
     book = _wide(obs[obs.source_id == "yearbook"], latest)
-    out["pupils_per_teacher"] = district.map(book.pp_pupils / book.pp_teachers)
-    out["pupils_per_classroom"] = district.map(book.pp_pupils / book.pp_classrooms)
-    out["qualified_share"] = district.map(book.pp_teachers_qualified / book.pp_teachers)
+    # a yearbook without qualified teachers by district leaves that indicator empty
+    pupils, teachers = _col(book, "pp_pupils"), _col(book, "pp_teachers")
+    out["pupils_per_teacher"] = district.map(pupils / teachers)
+    out["pupils_per_classroom"] = district.map(pupils / _col(book, "pp_classrooms"))
+    out["qualified_share"] = district.map(_col(book, "pp_teachers_qualified") / teachers)
     stunting = _wide(obs[obs.indicator_id == "stunting_u5"])
     out["stunting"] = district.map(_col(stunting, "stunting_u5")).astype(float)
 

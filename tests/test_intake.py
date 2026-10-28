@@ -226,3 +226,69 @@ def test_single_age_projections_give_population_and_children_3_5():
 def test_single_age_projections_that_do_not_add_up_fail():
     _, checks = intake.projections_from_sheets(_projection_sheets(off_by=3))
     assert any(c.level == "fail" and "female + male" in c.text for c in checks)
+
+
+# --- census sector tables and the MINEDUC master table ---------------------------------------
+def _master_sheets(drop_water: bool = False) -> dict[str, pd.DataFrame]:
+    rows = []
+    for r in SECTORS.itertuples():
+        row = {"district": r.source_district, "sector": r.source_sector, "population_total": 1000,
+               "urban_population_total": 400, "rural_population_total": 600,
+               "households_total_count": 250, "water_households_total_count": 250,
+               "grid_connected_households_count": 100}  # fmt: skip
+        row |= {c: 0.1 for c in intake.IMPROVED_WATER}  # 90% improved
+        row["water_surface_water_pct"] = 0.1
+        rows.append(row)
+    frame = pd.DataFrame(rows)
+    if drop_water:
+        frame = frame.drop(columns="water_borehole_pct")
+    national = pd.DataFrame([["RWANDA", 1000 * len(frame)]], columns=["area", "population"])
+    return {intake.CENSUS_MASTER_SHEET: frame, "District_Validation": national}
+
+
+def test_census_tables_add_population_households_water_and_electricity():
+    out, checks = intake.census_master_from_sheets(_master_sheets())
+    assert not [c for c in checks if c.level == "fail"], [c.text for c in checks]
+    assert len(out) == 416 and (out.hh_improved_water == 225).all()
+    assert (out.hh_electricity == 100).all() and (out.urban_share == 0.4).all()
+    counts = pd.DataFrame({"district_name": out.district_name, "sector_name": out.sector_name,
+                           "children_3_5": 10, "children_3_5_attending": 6,
+                           "children_3_5_never_attended": 4, "source_page": "sample"})  # fmt: skip
+    sectors, districts = intake.merge_census(counts, out)
+    assert len(sectors) == 416 and sectors.population.notna().all()
+    assert districts.population.sum() == 416_000 and districts.children_3_5.sum() == 4160
+    _, missing = intake.census_master_from_sheets(_master_sheets(drop_water=True))
+    assert any(c.level == "fail" and "water_borehole_pct" in c.text for c in missing)
+
+
+def _mineduc_master(path: Path, printed_off: bool = False) -> Path:
+    rows = []
+    for d in DISTRICTS:
+        for year in yearbook_years():
+            rows.append({"district": d, "academic_year": year, "schools_count": 100,
+                         "classrooms_in_use": 200, "male_pupils": 3000, "female_pupils": 3000,
+                         "pupils_reported_total": 6000, "male_teachers": 20,
+                         "female_teachers": 180, "teachers_reported_total": 200,
+                         "qualified_teachers_district": None})  # fmt: skip
+    frame = pd.DataFrame(rows)
+    if printed_off:
+        frame.loc[0, "teachers_reported_total"] = 190
+    frame.to_csv(path / "mineduc_master.csv", index=False)
+    return path / "mineduc_master.csv"
+
+
+def yearbook_years():
+    from irerero.config import YEARBOOK_YEARS
+
+    return YEARBOOK_YEARS
+
+
+def test_the_mineduc_master_table_stages_all_years_with_sums_by_sex(dirs):
+    (result,) = _run(dirs, [_mineduc_master(dirs["in"], printed_off=True)])
+    assert result.staged is not None, [c.text for c in result.checks]
+    staged = pd.read_csv(result.staged)
+    assert len(staged) == 150 and (staged.pupils == 6000).all() and (staged.teachers == 200).all()
+    assert staged.qualified_teachers.isna().all()  # not published by district: left empty
+    assert any("printed total differs" in c.text and "190 vs 200" in c.text for c in result.checks)
+    loaded = yearbook.load(dirs["raw"])
+    assert loaded.real and len(loaded.frame) == 150

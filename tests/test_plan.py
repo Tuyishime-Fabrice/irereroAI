@@ -149,9 +149,19 @@ def test_a_real_census_is_never_moved_by_a_simulated_yearbook(inputs):
     est = estimate(real).set_index("geo_id")
     assert set(est.status) == {MODEL}
     assert np.allclose(est.attendance_rate, est.attendance_rate_2022.clip(upper=0.98), atol=1e-4)
-    assert "not yet moved by MINEDUC" in est.method.iloc[0]
-    demo = estimate(inputs).set_index("geo_id")  # the demo still shows the trend at work
-    assert "moved by the MINEDUC trend" in demo.method.iloc[0]
+    assert "not moved by MINEDUC" in est.method.iloc[0]
+
+
+def test_the_mineduc_trend_moves_attendance_only_when_switched_on(inputs, monkeypatch):
+    from irerero.plan import estimate as module
+
+    off = estimate(inputs).set_index("geo_id")
+    assert np.allclose(off.attendance_rate, off.attendance_rate_2022.clip(upper=0.98), atol=1e-4)
+    assert "not comparable by district" in off.method.iloc[0]
+    monkeypatch.setattr(module, "MINEDUC_TREND_ON_CENSUS", True)
+    on = module.estimate(inputs).set_index("geo_id")  # all simulated: the demo trend applies
+    assert "moved by the MINEDUC trend" in on.method.iloc[0]
+    assert not np.allclose(on.attendance_rate, off.attendance_rate)
 
 
 def test_projected_children_3_5_are_used_when_the_projections_carry_them(inputs):

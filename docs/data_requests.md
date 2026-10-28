@@ -14,37 +14,32 @@ layout) or straight into `data/raw/<dataset>/` (tables typed into the template),
 
 | # | Dataset | From | Access | Unlocks | Priority |
 | --- | --- | --- | --- | --- | --- |
-| 3 | [MINEDUC yearbooks, earlier years and qualified teachers](#3-mineduc-yearbooks) | MINEDUC | Published PDFs | The 2029 trend and status; attendance moved since 2022; the capacity factor | **1, essential** |
-| 7 | [OpenStreetMap extract](#7-openstreetmap-rwanda) (or a MINEDUC school list with coordinates) | Geofabrik, MINEDUC | Open download | Real school points: the 1 km distance, the access factor and most bottlenecks | **1, essential** |
-| 4 | [Stunting by district](#4-stunting-under-5-by-district) | NISR, MoH, DHS Program | Published report | The wellbeing factor; the nutrition course trigger | 2 |
-| 1 | [Census 2022 sector tables, the other columns](#1-census-2022-phc5-sector-tables) | NISR | Published PDFs; ask for CSV | The home-environment factor and richer peer model; a check of the sample counts | 2 |
+| 7 | [School list with coordinates](#7-openstreetmap-rwanda) (every school with pre-primary classes) | MINEDUC (EMIS), or OpenStreetMap | Ask; or open download | The 1 km distance, the access factor and most bottlenecks | **1, essential** |
+| 4 | [Stunting by district](#4-stunting-under-5-by-district) | NISR, MoH, DHS Program | Published report | The wellbeing factor; the nutrition course trigger; with schools, a real diagnosis | **1, essential** |
+| 3 | [Qualified teachers by district](#3-mineduc-yearbooks) | MINEDUC | Ask | The third part of the capacity factor | 2 |
+| 1 | [Census sanitation, women's education, children 0-4 by sector; Table 2.5 totals](#1-census-2022-phc5-sector-tables) | NISR | Thematic reports; ask | The rest of the home-environment factor; a check of the sample counts | 2 |
 | 6 | [WorldPop under-5 rasters](#6-worldpop-under-5-2020) | WorldPop | Open download | Where children live inside a sector; the distance layer | 2 |
 | 2 | [Projection variants](#2-population-projections-2023-2032) | NISR | Published; ask | Low and high variants for the 2026 range | 3 |
 | 8 | [NCDA ECD Mapping extract](#8-ncda-ecd-mapping-system-extract) | NCDA | Data sharing agreement | Real centres for LEARN and the supply connector | 3 |
 | 9 | [EICV7 sector rates and two checks](#9-eicv7-follow-up) | NISR | Published; ask | Poverty that separates sectors inside a district | 3 |
-| 5 | ~~COD-AB boundary files~~ | NISR via HDX | Received 24 Oct 2026 | Official shapes and codes on every map | done |
 
-Received and in use: the census 2022 children aged 3 to 5 (sample records, weighted to sector
-counts), the NISR single-age projections, the COD-AB boundaries and the EICV7 district
-poverty table (see [data_inventory.md](data_inventory.md)). The 2026 estimate, the priority
-ranking and the peer benchmark are now real. What still carries the red SIMULATED label: the
-2028/29 trend (yearbook), the share of children more than 1 km from a school (school points)
-and the bottleneck diagnosis (yearbook, stunting, school points).
+Received and in use: the census 2022 children aged 3 to 5 (sample records) and sector tables,
+the NISR single-age projections, the MINEDUC yearbooks 2020/21 to 2024/25, the COD-AB boundaries
+and the EICV7 district poverty table (see [data_inventory.md](data_inventory.md)). PLAN and
+TRACK are real. What still carries the red SIMULATED label: the share of children more than 1 km
+from a school and the bottleneck diagnosis, until the school list and stunting arrive.
 
 ## 1. Census 2022 (PHC5) sector tables
 
-**Received in part.** The sample records of children aged 3 to 5 give attending and never
-attended per sector (as weighted counts). Still wanted:
+**Received:** the attendance counts (sample records) and, by sector, population, urban share,
+households, drinking water and grid connection (thematic-report tables). Still wanted:
 
-- **Ask for:** by sector, from the 30 district profiles or as CSV: resident population,
-  children aged 0 to 4, private households, households with improved water, improved
-  sanitation and electricity, share urban, and women aged 15+ with secondary education or
-  more. These feed the home-environment factor (now "no data") and the peer model.
-- **Also:** the printed **Table 2.5 district totals** (children aged 3 to 5 attending and never
-  attended), to check the sample counts against the full count. With the full Table 2.5 by
-  sector, the counts become *observed* instead of a model estimate.
-- **Templates:** `census_2022_sectors.csv` (sector rows), `census_2022_districts.csv`.
-- **Where:** https://www.statistics.gov.rw/publication/2093
+- **By sector:** households with improved sanitation, women aged 15+ with secondary education or
+  more (Education thematic report), and children aged 0 to 4. These complete the
+  home-environment factor, which now rests on water alone.
+- **The printed Table 2.5 district totals** (children aged 3 to 5 attending and never attended),
+  to check the counts weighted from the sample records.
+- **Where:** https://www.statistics.gov.rw/publication/2093 and the PHC5 thematic reports
 
 ## 2. Population projections 2023-2032
 
@@ -55,27 +50,14 @@ range reflects projection uncertainty instead of a default error. Template:
 
 ## 3. MINEDUC yearbooks
 
-The 2024/25 extract is received but cannot stand in yet. Still needed, by district, for
-pre-primary:
+**Received:** the master table, 30 districts × 2020/21 to 2024/25 (pupils and teachers by sex,
+schools, classrooms), in use. Still wanted:
 
-| School year | Pupils | Schools | Classrooms | Teachers | Qualified teachers |
-| --- | --- | --- | --- | --- | --- |
-| 2020/21 | needed | needed | needed | needed | needed |
-| 2021/22 | needed | needed | needed | needed | needed |
-| 2022/23 | needed | received | received | needed | needed |
-| 2023/24 | received* | received | received | received* | needed |
-| 2024/25 | received | received | received | received | needed |
-
-\* to confirm against the PDF: Nyarugenge pupils 2023/24 (12,893 or 12,863) and the Southern
-teacher totals 2023/24 (each 10 below male + female). Details in
-[data_inventory.md](data_inventory.md#mineduc-yearbook-not-staged).
-
-- **Ask for / look in:** the Education Statistical Yearbooks 2020/21, 2021/22 and 2022/23 (and
-  2023/24 for qualified teachers), district annex tables for pre-primary pupils, schools,
-  classrooms, teachers and **qualified teachers**.
-- **Format:** the same layout as the extracts received (`preprimary_<measure>_by_district.csv`
-  with `<measure>_<YYYY>_<YY>` columns) through `make intake`, which merges the years and
-  stages the table once it is complete; or the template `mineduc_yearbook_preprimary.csv`.
+- **Qualified teachers by district** for each year (only the national share is published:
+  99.4% in 2024/25).
+- **Confirm with MINEDUC:** Nyarugenge pupils 2023/24 (12,893 printed, 12,863 by sex), the eight
+  Southern teacher totals 2023/24 (each 10 below men + women), 2022/23 district pupils (36 short
+  of the national total) and 2021/22 teachers (6,347 by district vs 7,351 national).
 - **Where:** https://www.mineduc.gov.rw
 
 ## 4. Stunting under 5 by district
@@ -103,11 +85,13 @@ current.
 
 ## 7. OpenStreetMap Rwanda
 
-- **Download:** `rwanda-latest.osm.pbf` into `data/raw/osm/`, and install the road extra
-  with `uv sync --extra osm`. OSM does not mark which schools have pre-primary, so a MINEDUC
-  school list with coordinates and a pre-primary flag (ask MINEDUC's EMIS team) would be a
-  better source. Either one makes the 1 km distance, the access factor and most bottlenecks
-  real.
+- **Best:** the MINEDUC school list with coordinates for **every** school with pre-primary
+  classes (most are primary schools with a pre-primary section), with a pre-primary flag. The
+  list received on 28 October holds only the 139 standalone pre-primary schools, which is not
+  enough: ask MINEDUC's EMIS team for the full register.
+- **Or download:** `rwanda-latest.osm.pbf` into `data/raw/osm/`, and install the road extra
+  with `uv sync --extra osm`. OSM does not mark which schools have pre-primary.
+- Either one makes the 1 km distance, the access factor and most bottlenecks real.
 - **Where:** https://download.geofabrik.de/africa/rwanda.html (ODbL 1.0)
 
 ## 8. NCDA ECD Mapping System extract

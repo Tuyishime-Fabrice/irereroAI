@@ -88,7 +88,7 @@ def settings(secrets: Mapping[str, Any] | None = None) -> dict[str, str | None]:
 
     def get(key: str) -> str | None:
         value = (secrets or {}).get(key) or os.environ.get(key)
-        return str(value).strip() if value else None
+        return str(value).strip().strip("\"'").strip() if value else None  # pasted quotes
 
     return {k: get(k) for k in ("IRERERO_DATA_URL", "IRERERO_DATA_TOKEN", "IRERERO_DATA_SHA256")}
 
@@ -115,11 +115,30 @@ def _download(url: str, token: str | None) -> bytes:
     return data
 
 
+def describe(data: bytes) -> str:
+    """What a download looks like, to tell a wrong file from a wrong address. Holds no secret:
+    only the size and the kind of content."""
+    head = data[:200].lstrip().lower()
+    if data[:4] == b"PK\x03\x04":
+        kind = "a zip file"
+    elif head.startswith((b"<!doctype html", b"<html")):
+        kind = "a web page, not the zip: use the api.github.com/repos/.../contents/... address"
+    elif head.startswith(b"{"):
+        kind = "a JSON reply, not the zip: the host may not have returned the raw file"
+    else:
+        kind = "an unknown file"
+    return f"{kind}, {len(data):,} bytes"
+
+
 def unpack(data: bytes, expected_sha256: str, raw: Path = RAW) -> list[str]:
     """Check the zip and put its files in `raw`. Nothing is written unless every check passes."""
     found = sha256(data)
-    if found != expected_sha256.lower():
-        raise BundleError("the bundle's SHA-256 does not match IRERERO_DATA_SHA256")
+    expected = expected_sha256.strip().strip("\"'").strip().lower()
+    if found != expected:
+        raise BundleError(
+            f"the bundle's SHA-256 does not match IRERERO_DATA_SHA256 (received {describe(data)};"
+            f" its SHA-256 starts {found[:12]}, the secret's starts {expected[:12]})"
+        )
     try:
         zf = zipfile.ZipFile(io.BytesIO(data))
         manifest = json.loads(zf.read(MANIFEST))["files"]

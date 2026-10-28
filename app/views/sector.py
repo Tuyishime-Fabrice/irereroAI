@@ -6,7 +6,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from irerero.config import MODEL, SIMULATED, WEAK_FACTOR
+from irerero.config import MODEL, PROVISIONAL, SIMULATED, WEAK_FACTOR
 from irerero.diagnose.features import LABELS, LEVEL
 from irerero.diagnose.peer import MODEL_LABELS
 from irerero.diagnose.rules import COURSES, FACTOR_LABELS
@@ -45,6 +45,7 @@ peers = diag[diag.district_id == district_id]
 # each factor is simulated while one of its indicators is
 est_status, peer_status, status = row.estimate_status, row.peer_status, row.status
 stand_ins = set(row.simulated_inputs)
+partial = set(row.provisional_inputs)  # shown, not scored: e.g. distance from a partial list
 FACTOR_INPUTS = {
     "access": {"nonattendance", "far_share"},
     "capacity": {"pupils_per_teacher", "pupils_per_classroom", "qualified_share"},
@@ -143,6 +144,8 @@ with (
             label += " · worst quarter"
         if not pd.isna(value) and factor_status(f) == SIMULATED:
             label += " · simulated"
+        if f == "access" and "far_share" in partial:
+            label += " · distance not scored (provisional list)"
         items.append(Bar(FACTOR_LABELS[f], sub, value, label, ico, tone, theme.TONES[tone][1]))
     st.markdown(theme.bars(items, marker=WEAK_FACTOR), unsafe_allow_html=True)
     theme.note(
@@ -292,11 +295,18 @@ def pct(key: str) -> str:
 evidence = [
     {
         "factor": "Place gap (access)",
-        "evidence": f"{pct('nonattendance')} of children aged 3–5 not attending; {pct('far_share')} live more than 1 km from a school.",
+        "evidence": f"{pct('nonattendance')} of children aged 3–5 not attending; "
+        + (
+            f"at most {pct('far_share_listed')} live more than 1 km from a listed school "
+            "(provisional list of standalone pre-primary schools; not used in the bottleneck)."
+            if "far_share" in partial
+            else f"{pct('far_share')} live more than 1 km from a school."
+        ),
         "level": level(row.access),
         "action": "Build or expand rooms where children are far from a school; expand nearby schools otherwise.",
-        "source": "IrereroAI estimate (census 2022, NISR projections, OSM)",
-        "status": factor_status("access"),
+        "source": "IrereroAI estimate (census 2022, NISR projections"
+        + ("; MINEDUC school list)" if "far_share" in partial else ", OSM)"),
+        "status": PROVISIONAL if "far_share" in partial else factor_status("access"),
     },
     {
         "factor": "Caregiver capacity",

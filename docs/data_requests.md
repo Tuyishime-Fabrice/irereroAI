@@ -26,8 +26,9 @@ layout) or straight into `data/raw/<dataset>/` (tables typed into the template),
 Received and in use: the census 2022 children aged 3 to 5 (sample records) and sector tables,
 the NISR single-age projections, the MINEDUC yearbooks 2020/21 to 2024/25, the COD-AB boundaries
 and the EICV7 district poverty table (see [data_inventory.md](data_inventory.md)). PLAN and
-TRACK are real. What still carries the red SIMULATED label: the share of children more than 1 km
-from a school and the bottleneck diagnosis, until the school list and stunting arrive.
+TRACK are real. What still carries the red SIMULATED label: the bottleneck diagnosis, until stunting arrives.
+The share of children more than 1 km from a school is PROVISIONAL (an upper bound from the 139
+standalone pre-primary schools) until the full school list arrives.
 
 ## 1. Census 2022 (PHC5) sector tables
 
@@ -87,8 +88,9 @@ current.
 
 - **Best:** the MINEDUC school list with coordinates for **every** school with pre-primary
   classes (most are primary schools with a pre-primary section), with a pre-primary flag. The
-  list received on 28 October holds only the 139 standalone pre-primary schools, which is not
-  enough: ask MINEDUC's EMIS team for the full register.
+  list received on 28 October holds only the 139 standalone pre-primary schools: it is in use,
+  labelled provisional, but it is not enough. Ask MINEDUC's EMIS team for the full register,
+  then replace the file at the same path (`IRERERO_SCHOOLS_PATH`).
 - **Or download:** `rwanda-latest.osm.pbf` into `data/raw/osm/`, and install the road extra
   with `uv sync --extra osm`. OSM does not mark which schools have pre-primary.
 - Either one makes the 1 km distance, the access factor and most bottlenecks real.

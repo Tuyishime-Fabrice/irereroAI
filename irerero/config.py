@@ -108,7 +108,10 @@ PUBLISHED = "published estimate"
 MODEL = "model estimate"
 USER = "user input"
 SIMULATED = "simulated"
-STATUSES = (OBSERVED, PUBLISHED, MODEL, USER, SIMULATED)
+# Real records, but a partial list (e.g. 139 of the schools with pre-primary): shown, labelled,
+# never read as complete coverage.
+PROVISIONAL = "provisional"
+STATUSES = (OBSERVED, PUBLISHED, MODEL, USER, PROVISIONAL, SIMULATED)
 
 # Brand colours from the IrereroAI logo, plus a colour-blind-safe status set (Okabe-Ito).
 NAVY = "#0B2E50"

@@ -14,7 +14,7 @@ from typing import Any
 
 import streamlit as st
 
-from irerero.config import DEFINITION, ROOT, SIMULATED
+from irerero.config import DEFINITION, PROVISIONAL, ROOT, SIMULATED
 from irerero.ui.i18n import t
 
 ASSETS = ROOT / "app" / "assets"
@@ -355,6 +355,7 @@ CSS = f"""
     line-height: 1.5; white-space: nowrap; }}
   .ir-sim {{ background: {SIM_RED}; color: #fff; }}
   .ir-status {{ background: #E6EDF3; color: {NAVY}; font-weight: 600; }}
+  .ir-prov {{ background: #FDF0D5; color: {GOLD_700}; }}
   .ir-pill {{ display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px;
     font-weight: 600; white-space: nowrap; line-height: 1.5; }}
   .ir-chip {{ display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12px;
@@ -914,6 +915,8 @@ def badge(status: str | None) -> str:
         return '<span class="ir-badge ir-sim">SIMULATED</span>'
     if not status:
         return ""
+    if status == PROVISIONAL:
+        return '<span class="ir-badge ir-prov">PROVISIONAL</span>'
     return f'<span class="ir-badge ir-status">{escape(status)}</span>'
 
 

@@ -22,13 +22,14 @@ data/
 | 3 | [Rwanda Subnational Population Projections 2023-2032](#projections) | district | 2023 to 2032 | PLAN: calibrate the 2026 estimate; TRACK: population for enrolment rates |
 | 4 | [Administrative boundaries, province to sector (COD-AB)](#boundaries) | province, district, sector | 2022 | every map; the join to NISR sector codes |
 | 5 | [OpenStreetMap Rwanda extract](#osm) | points and road network | extract date | PLAN: share of children more than 1 km from a school with pre-primary |
-| 6 | [Education Statistical Yearbooks 2020/21 to 2024/25 (pre-primary)](#yearbook) | district | 2020/21 to 2024/25 | TRACK: enrolment trend to 2029; DIAGNOSE: capacity (ratios, qualifications) |
-| 7 | [Rwanda Demographic and Health Survey 2025](#rdhs_2025) | district | 2025 | DIAGNOSE: wellbeing (district context); LEARN: nutrition course trigger |
-| 8 | [Integrated Household Living Conditions Survey 7 (EICV7), 2023/24](#eicv7) | sector if published, otherwise district | 2023/24 | PLAN: poverty component of the priority index; DIAGNOSE: poverty factor |
-| 9 | [National ECD Standards (2024)](#ecd_standards) | national | 2024 | PLAN: 30 children per room, 1 caregiver per 15 to 30 children, 1 km walk |
-| 10 | [Course source materials (NCDA, UNICEF, WHO)](#courses) | course | as cited | LEARN: the four courses |
-| 11 | [NCDA ECD Mapping System extract (supply_extract schema)](#ncda) | centre | as_of date | LEARN: centres and caregivers in the pilot; Data and methods: optional supply connector (off by default) |
-| 12 | [Simulated check-ins and course progress, Muhanga](#learn_simulation) | centre | 2026 | LEARN: demo caregivers, check-ins, triggers and progress |
+| 6 | [MINEDUC school locations (provisional: standalone pre-primary schools only)](#schools) | school points | register export (date not stated) | PLAN: share of children more than 1 km from a listed school (provisional upper bound); Overview map: school locations |
+| 7 | [Education Statistical Yearbooks 2020/21 to 2024/25 (pre-primary)](#yearbook) | district | 2020/21 to 2024/25 | TRACK: enrolment trend to 2029; DIAGNOSE: capacity (ratios, qualifications) |
+| 8 | [Rwanda Demographic and Health Survey 2025](#rdhs_2025) | district | 2025 | DIAGNOSE: wellbeing (district context); LEARN: nutrition course trigger |
+| 9 | [Integrated Household Living Conditions Survey 7 (EICV7), 2023/24](#eicv7) | sector if published, otherwise district | 2023/24 | PLAN: poverty component of the priority index; DIAGNOSE: poverty factor |
+| 10 | [National ECD Standards (2024)](#ecd_standards) | national | 2024 | PLAN: 30 children per room, 1 caregiver per 15 to 30 children, 1 km walk |
+| 11 | [Course source materials (NCDA, UNICEF, WHO)](#courses) | course | as cited | LEARN: the four courses |
+| 12 | [NCDA ECD Mapping System extract (supply_extract schema)](#ncda) | centre | as_of date | LEARN: centres and caregivers in the pilot; Data and methods: optional supply connector (off by default) |
+| 13 | [Simulated check-ins and course progress, Muhanga](#learn_simulation) | centre | 2026 | LEARN: demo caregivers, check-ins, triggers and progress |
 
 <a id="census_2022"></a>
 
@@ -170,9 +171,40 @@ Schools are amenity=school or amenity=kindergarten. Most Rwandan primary schools
 
 Needs `uv sync --extra osm` (pyosmium and networkx). Without it, or where roads are thin, distance is straight-line and labelled indicative.
 
+<a id="schools"></a>
+
+## 6. MINEDUC school locations (provisional: standalone pre-primary schools only)
+
+| | |
+| --- | --- |
+| Publisher | Ministry of Education (MINEDUC), school register |
+| Folder | `data/raw/schools/` |
+| Expected files | `schools.geojson` |
+| Format | GeoJSON points, EPSG:4326 (the register's export) |
+| Geographic level | school points |
+| Reference period | register export (date not stated) |
+| Licence | MINEDUC data; cite MINEDUC |
+| Where to get it | not public |
+| Status when loaded | provisional |
+| Used by | PLAN: share of children more than 1 km from a listed school (provisional upper bound); Overview map: school locations |
+| While missing | Simulated school points (or OpenStreetMap when its extract is loaded) |
+
+| Column | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `school_code` | text | yes | MINEDUC school code |
+| `school_name` | text | no | School name |
+| `district` | text | no | District |
+| `sector` | text | no | Sector |
+| `school_category` | text | no | Category (PRE_PRIMARY in this copy) |
+| `preprimary_students_total` | whole number ≥ 0 | no | Pre-primary pupils |
+
+Fetched from the team's private repository on first start when IRERERO_SCHOOLS_PATH is set (see docs/deploy_private_data.md), or put in data/raw/schools/schools.geojson.
+
+Partial list: the distance results are provisional and are not used as evidence in the bottleneck rules.
+
 <a id="yearbook"></a>
 
-## 6. Education Statistical Yearbooks 2020/21 to 2024/25 (pre-primary)
+## 7. Education Statistical Yearbooks 2020/21 to 2024/25 (pre-primary)
 
 | | |
 | --- | --- |
@@ -201,7 +233,7 @@ Needs `uv sync --extra osm` (pyosmium and networkx). Without it, or where roads 
 
 <a id="rdhs_2025"></a>
 
-## 7. Rwanda Demographic and Health Survey 2025
+## 8. Rwanda Demographic and Health Survey 2025
 
 | | |
 | --- | --- |
@@ -229,7 +261,7 @@ Write 38.8% as 0.388.
 
 <a id="eicv7"></a>
 
-## 8. Integrated Household Living Conditions Survey 7 (EICV7), 2023/24
+## 9. Integrated Household Living Conditions Survey 7 (EICV7), 2023/24
 
 | | |
 | --- | --- |
@@ -255,7 +287,7 @@ Write 38.8% as 0.388.
 
 <a id="ecd_standards"></a>
 
-## 9. National ECD Standards (2024)
+## 10. National ECD Standards (2024)
 
 | | |
 | --- | --- |
@@ -273,7 +305,7 @@ Write 38.8% as 0.388.
 
 <a id="courses"></a>
 
-## 10. Course source materials (NCDA, UNICEF, WHO)
+## 11. Course source materials (NCDA, UNICEF, WHO)
 
 | | |
 | --- | --- |
@@ -291,7 +323,7 @@ Write 38.8% as 0.388.
 
 <a id="ncda"></a>
 
-## 11. NCDA ECD Mapping System extract (supply_extract schema)
+## 12. NCDA ECD Mapping System extract (supply_extract schema)
 
 | | |
 | --- | --- |
@@ -325,7 +357,7 @@ Never added to census or MINEDUC enrolment: NCDA counts include home-based ECD, 
 
 <a id="learn_simulation"></a>
 
-## 12. Simulated check-ins and course progress, Muhanga
+## 13. Simulated check-ins and course progress, Muhanga
 
 | | |
 | --- | --- |

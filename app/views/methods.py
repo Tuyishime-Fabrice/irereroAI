@@ -35,6 +35,8 @@ STATUS_MEANING = {
     "published estimate": "An estimate published by its producer (projections, survey rates).",
     "model estimate": "Computed by IrereroAI from observed and published inputs.",
     "user input": "Entered by a person in the app (targets, weights, decisions, check-ins).",
+    "provisional": "Built on real but partial records (a school list that is not the full "
+    "register). Shown and labelled; never read as complete coverage.",
     "simulated": "Invented stand-in while the real file is missing. Never a real value; left "
     "out of exports by default.",
 }
@@ -138,6 +140,27 @@ with tabs[0]:
         "File names, formats and required columns for each dataset are in DATA_SOURCES.md. "
         "Put a real file in data/raw/<dataset>/ and rebuild; nothing else changes."
     )
+    _, school_report = data.schools()
+    if school_report.get("features") is not None:
+        missing = {k: v for k, v in school_report.get("missing_properties", {}).items() if v}
+        st.markdown(
+            f"**School locations** {theme.badge(school_report.get('status'))}  \n"
+            f"{school_report.get('loaded', 0)} of {school_report['features']} records loaded "
+            f"and used by the distance layer; {school_report.get('invalid_coordinates', 0)} with "
+            f"coordinates outside Rwanda or not numbers and {school_report.get('missing_geometry', 0)}"
+            f" without a point (left out, never guessed); {school_report.get('duplicate_points', 0)}"
+            f" sharing another school's coordinates; missing properties: "
+            f"{', '.join(f'{k} ({v})' for k, v in missing.items()) or 'none'}."
+            + (f" Errors: {'; '.join(school_report['errors'])}." if school_report.get("errors")
+               else ""),
+            unsafe_allow_html=True,
+        )  # fmt: skip
+        if school_report.get("status") == "provisional":
+            theme.note(
+                "A provisional list: only standalone pre-primary schools. The share of children "
+                "more than 1 km from a listed school is an upper bound, and it is not used as "
+                "evidence in the bottleneck rules; a missing school is not proof of no school."
+            )
 
 with tabs[1]:
     estimates = data.table("estimate_2026")

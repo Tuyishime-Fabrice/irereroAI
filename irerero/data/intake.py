@@ -41,7 +41,7 @@ import pandas as pd
 from irerero.config import DATA, INTERIM, RAW, REFERENCE, YEARBOOK_YEARS
 from irerero.data.crosswalk import district_ids, sector_ids
 from irerero.data.sources import boundaries, census, eicv, projections, yearbook
-from irerero.data.spec import COORDINATE_RANGE
+from irerero.data.sources import schools as school_source
 from irerero.data.validate import SchemaError, validate
 
 MANIFEST = DATA / "received_files.csv"
@@ -831,27 +831,33 @@ def mineduc_long(paths: list[Path]) -> pd.DataFrame:
 
 
 def school_points(path: Path) -> list[Check]:
-    """School locations for the distance layer: staged only when they cover every school with
-    pre-primary, since a partial list makes children look far from schools that exist."""
-    import geopandas as gpd
-
-    key = "osm"
-    frame = gpd.read_file(path)
-    categories = frame.get("school_category", pd.Series(dtype=str)).value_counts().to_dict()
-    pupils = pd.to_numeric(frame.get("preprimary_students_total"), errors="coerce").sum()
-    districts = frame.get("district", pd.Series(dtype=str)).nunique()
-    (lon_lo, lon_hi), (lat_lo, lat_hi) = COORDINATE_RANGE["longitude"], COORDINATE_RANGE["latitude"]
-    inside = frame.geometry.x.between(lon_lo, lon_hi) & frame.geometry.y.between(lat_lo, lat_hi)
-    return [
-        Check(key, "pass" if inside.all() else "warn", f"{len(frame)} points, {int(inside.sum())} "
-              f"inside Rwanda: {categories}; {districts} districts; {pupils:,.0f} pre-primary "
+    """School locations for the distance layer, read by the same loader the app uses. A list
+    of standalone pre-primary schools only is staged as provisional: shown and labelled, its
+    distances an upper bound, never proof that an area has no school nearby."""
+    key = school_source.DATASET.key
+    frame, report = school_source.read(path)
+    checks = [Check(key, "fail", error) for error in report.errors]
+    if report.loaded == 0:
+        return [*checks, Check(key, "fail", "no record with a usable point")]
+    pupils = frame.preprimary_students_total.sum()
+    missing = {k: v for k, v in report.missing_properties.items() if v}
+    checks += [
+        Check(key, "pass", f"{report.loaded} of {report.features} records loaded; categories "
+              f"{report.categories}; {frame.district.nunique()} districts; {pupils:,} pre-primary "
               "pupils"),
-        Check(key, "warn", "not staged: only standalone pre-primary schools are listed. MINEDUC "
-              "counts 4,221 schools with pre-primary and 683,234 pupils (2024/25); most "
-              "pre-primary classes are inside primary schools. With this list as the school "
-              "layer, children near those schools would count as far from school. Needed: the "
-              "full school list with coordinates and a flag for schools with pre-primary classes"),
+        Check(key, "pass" if not report.invalid_coordinates else "warn",
+              f"{report.invalid_coordinates} records with coordinates outside Rwanda or not "
+              f"numbers, {report.missing_geometry} without a point: left out, never guessed"),
+        Check(key, "warn" if missing else "pass", f"missing properties: {missing or 'none'}"),
+        Check(key, "warn" if report.duplicate_points else "pass",
+              f"{report.duplicate_points} points repeat another school's coordinates (kept: "
+              "two schools can share a site)"),
+        Check(key, "warn", "provisional: only standalone pre-primary schools are listed. MINEDUC "
+              "counts 4,221 schools with pre-primary (2024/25), most of them primary schools "
+              "with a pre-primary section. Distances from this list are an upper bound and are "
+              "not used as evidence in the bottleneck rules. Still needed: the full register"),
     ]  # fmt: skip
+    return checks
 
 
 # --- NISR projections -----------------------------------------------------------------------
@@ -1205,7 +1211,16 @@ def run(
     if groups["school_points"]:
         path = groups["school_points"][0]
         receive([path], "mineduc_school_points", raw, manifest)
-        results.append(Result("schools (distance layer)", school_points(path), None, None))
+        checks = school_points(path)
+        staged = None
+        if not any(c.level == "fail" for c in checks):
+            folder = raw / school_source.DATASET.key
+            folder.mkdir(parents=True, exist_ok=True)
+            staged = folder / school_source.FILE
+            shutil.copyfile(path, staged)  # the loader reads the GeoJSON as it is
+            _mark_staged(manifest, [path], f"data/raw/{school_source.DATASET.key}/"
+                         f"{school_source.FILE} (provisional)")  # fmt: skip
+        results.append(Result("schools (distance layer)", checks, staged, None))
     if groups["mineduc_master"]:
         path = groups["mineduc_master"][0]
         receive([path, *groups["mineduc_long"]], "mineduc_master", raw, manifest)

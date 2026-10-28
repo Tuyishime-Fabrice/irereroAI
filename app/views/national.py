@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
+from irerero.config import PROVISIONAL, STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
 from irerero.plan.frame import distance_status, status_of
 from irerero.track import forecast, plans
@@ -93,9 +93,10 @@ with k3:
 with k4:
     far = (needs.far_share * needs.children_3_5).sum() / needs.children_3_5.sum()
     method = needs.distance_method.mode().iat[0] if len(needs) else ""
+    provisional = far_status == PROVISIONAL  # a partial school list: an upper bound
     theme.kpi(
-        "Children > 1 km from a school",
-        theme.fmt_pct(far),
+        "Children > 1 km from a listed school" if provisional else "Children > 1 km from a school",
+        ("≤ " if provisional else "") + theme.fmt_pct(far),
         "IrereroAI distance layer",
         "2026",
         far_status,
@@ -112,7 +113,7 @@ track = track[track.index.isin(in_scope)]
 # --- map and outlook ----------------------------------------------------------------------
 left, right = st.columns([3, 2])
 with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "pin"):
-    views = [f"{TARGET_YEAR} status", "Places needed", "Attendance rate"]
+    views = [f"{TARGET_YEAR} status", "Places needed", "Attendance rate", "Distance to school"]
     view = (
         st.segmented_control(
             "Map layer",
@@ -161,6 +162,51 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             height=400,
             key="national-sectors",
         )
+    elif view == "Distance to school":
+        school_points, school_report = data.schools()
+        listed = [
+            {
+                "lon": p["lon"],
+                "lat": p["lat"],
+                "name": p["name"],
+                "value_text": f"school ({p['status']})",
+                "extra": " · ".join(
+                    x for x in (p.get("sector"), p.get("district"),
+                                f"{p['pupils']} pre-primary pupils" if p.get("pupils") else "")
+                    if x
+                ),
+            }
+            for p in school_points
+        ]  # fmt: skip
+        maps.choropleth(
+            geo_s,
+            dict(zip(needs.geo_id, needs.far_share, strict=True)),
+            "Children > 1 km from a listed school" if provisional else "Children > 1 km",
+            lambda v: theme.fmt_pct(v),
+            tooltip={
+                r.geo_id: f"{r.district} · {far_status}"
+                + (" · upper bound: the school list is partial" if provisional else "")
+                for r in needs.itertuples()
+            },
+            view=zoom,
+            height=400,
+            key="national-distance",
+            points=listed,
+            edges=[0, 0.25, 0.5, 0.75, 0.95, 1],  # fixed: most sectors sit near 100%
+        )
+        maps.legend([(maps.POINT, f"listed school ({len(listed)} shown)")], "Schools used")
+        if provisional:
+            st.markdown(
+                theme.badge(PROVISIONAL) + " "
+                + t(
+                    "Only {n} schools are in the provisional list (standalone pre-primary "
+                    "schools; most pre-primary classes are in primary schools, which it does "
+                    "not list). A sector far from a listed school may still have a school "
+                    "nearby: read these shares as an upper bound, not as areas without schools.",
+                    n=school_report.get("loaded", len(listed)),
+                ),
+                unsafe_allow_html=True,
+            )  # fmt: skip
     else:
         by_district = needs.groupby("district_id").agg(
             children=("children_3_5", "sum"), attending=("attending", "sum")

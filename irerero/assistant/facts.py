@@ -437,7 +437,12 @@ def sector(t: Tables, geo_id: str, target: float) -> dict[str, Any]:
             "drivers_note": "associated with, not caused by",
         },
         "indicators": {
-            "children_more_than_1km_pct": _pct(r.far_share, 0),
+            "children_more_than_1km_pct": _pct(r.far_share_listed, 0),
+            "more_than_1km_note": "provisional upper bound from a partial school list (only "
+            "standalone pre-primary schools); not proof that no school is nearby, and not used "
+            "in the bottleneck"
+            if "far_share" in set(r.provisional_inputs)
+            else None,
             "pupils_per_teacher_district": _int(r.pupils_per_teacher),
             "qualified_teachers_district_pct": _pct(r.qualified_share, 0),
             "stunting_u5_district_pct": _pct(r.stunting, 0),

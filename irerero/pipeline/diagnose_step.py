@@ -53,7 +53,9 @@ def run(inputs: Inputs, tables: dict[str, pd.DataFrame]) -> dict[str, pd.DataFra
 
     scores = rules.factors(features)
     est = tables["estimate_2026"].set_index("geo_id")
-    frame = scores.join(est[["attendance_rate", "children_3_5", "attending", "far_share"]])
+    frame = scores.join(est[["attendance_rate", "children_3_5", "attending"]])
+    # the features' far_share: empty while it comes from a partial school list (not evidence)
+    frame = frame.join(features[["far_share"]])
     frame = frame.join(output.set_index("geo_id")[["observed", "low"]])
     frame["fallback"] = result.fallback
     diagnosed = rules.diagnose(frame.reset_index(names="geo_id"), TARGET_2029.value)

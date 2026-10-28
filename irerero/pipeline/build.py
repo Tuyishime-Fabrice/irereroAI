@@ -15,6 +15,8 @@ from sqlalchemy import Engine
 
 from irerero.config import PROCESSED, RAW
 from irerero.data.registry import FILE_DATASETS
+from irerero.data.sources import osm
+from irerero.data.sources import schools as schools_source
 from irerero.data.sources.boundaries import GEOBOUNDARIES
 from irerero.data.validate import SchemaError
 from irerero.db.session import engine as default_engine
@@ -73,7 +75,8 @@ def sources(inputs: Inputs) -> pd.DataFrame:
         "worldpop": inputs.under5 is not None,
         "projections": inputs.projections.real,
         "boundaries": inputs.boundaries_real,
-        "osm": inputs.schools.real,
+        "osm": inputs.schools.real and inputs.schools.source == "osm",
+        "schools": inputs.schools.source == schools_source.SOURCE,
         "yearbook": inputs.yearbook.real,
         "rdhs_2025": inputs.stunting.real,
         "eicv7": inputs.poverty.real,
@@ -113,6 +116,12 @@ def estimate_2026(inputs: Inputs) -> pd.DataFrame:
     # the layer inherits simulated status from simulated school points
     if not inputs.schools.real:
         out["distance_method"] = out.distance_method + ", simulated schools"
+    elif inputs.schools.source == schools_source.SOURCE:
+        # a partial list: far from a listed school is not proof of no school nearby
+        out["distance_method"] = out.distance_method + (
+            f", provisional: {len(inputs.schools.schools)} listed schools (standalone "
+            "pre-primary only), an upper bound"
+        )
     return out
 
 
@@ -129,6 +138,36 @@ def write_geojson(inputs: Inputs, out: Path) -> None:
         frame = inputs.units[level][["geo_id", "name", "parent_id", "geometry"]]
         simple = frame.assign(geometry=frame.geometry.simplify(SIMPLIFY_DEGREES))
         (out / f"{level}s.geojson").write_text(json.dumps(json.loads(simple.to_json(drop_id=True))))
+    write_schools(inputs.schools, out)
+
+
+def write_schools(network: osm.Network, out: Path) -> None:
+    """The school points the distance layer used, for the map, and the loader's report."""
+    frame = network.schools
+    features = [
+        {
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [float(r.lon), float(r.lat)]},
+            "properties": {
+                "name": str(getattr(r, "school_name", None) or r.school_id),
+                "district": str(getattr(r, "district", None) or ""),
+                "sector": str(getattr(r, "sector", None) or ""),
+                "pupils": None
+                if pd.isna(getattr(r, "preprimary_students_total", None))
+                else int(r.preprimary_students_total),
+                "status": network.status,
+                "source": network.source,
+            },
+        }
+        for r in frame.itertuples()
+    ]
+    (out / "schools.geojson").write_text(
+        json.dumps({"type": "FeatureCollection", "features": features})
+    )
+    (out / "schools_report.json").write_text(
+        json.dumps({"source": network.source, "status": network.status,
+                    "points": len(features), **(network.report or {})})
+    )  # fmt: skip
 
 
 def build(
@@ -165,7 +204,21 @@ def main() -> int:
     missing = tables["source"].query("not loaded and source_id != @GEOBOUNDARIES").source_id
     # geoBoundaries shapes are real; only the NISR codes are missing while it stands in.
     simulated = [s for s in missing if s != "boundaries"]
+    if "schools" not in set(missing):  # the MINEDUC list stands in for OSM: no simulated schools
+        simulated = [s for s in simulated if s != "osm"]
+    else:
+        simulated = [s for s in simulated if s != "schools"]
     print(f"Simulated stand-ins used for: {', '.join(simulated) or 'nothing'}")
+    report = json.loads((PROCESSED / "schools_report.json").read_text())
+    if report["source"] == schools_source.SOURCE:
+        print(
+            f"Schools: PROVISIONAL list, {report['loaded']} of {report['features']} records "
+            f"loaded; {report['invalid_coordinates']} invalid coordinates, "
+            f"{report['missing_geometry']} without a point, {report['duplicate_points']} "
+            f"repeated points; missing properties {report['missing_properties']}"
+        )
+    elif report.get("errors"):
+        print(f"Schools: the school file was not used: {'; '.join(report['errors'])}")
     if "boundaries" in set(missing):
         coded = tables["geo_unit"].query("level == 'sector'").nisr_code.notna().sum()
         print(f"Boundaries: geoBoundaries shapes (real); {coded} of 416 sectors carry NISR codes")

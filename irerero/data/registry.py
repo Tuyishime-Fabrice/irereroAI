@@ -2,7 +2,17 @@
 source table."""
 
 from irerero.config import OBSERVED, PUBLISHED, SIMULATED
-from irerero.data.sources import boundaries, census, eicv, ncda, osm, projections, rdhs, worldpop
+from irerero.data.sources import (
+    boundaries,
+    census,
+    eicv,
+    ncda,
+    osm,
+    projections,
+    rdhs,
+    schools,
+    worldpop,
+)
 from irerero.data.sources import yearbook as yearbook_source
 from irerero.data.spec import Dataset
 
@@ -58,6 +68,7 @@ DATASETS: tuple[Dataset, ...] = (
     projections.DATASET,
     boundaries.DATASET,
     osm.DATASET,
+    schools.DATASET,
     yearbook_source.DATASET,
     rdhs.DATASET,
     eicv.DATASET,

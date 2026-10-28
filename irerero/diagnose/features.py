@@ -72,6 +72,12 @@ def simulated_features(obs: pd.DataFrame, estimates: pd.DataFrame) -> set[str]:
     return {feature for feature, source in SOURCES.items() if source in sources}
 
 
+def provisional_features(estimates: pd.DataFrame) -> set[str]:
+    """The indicators that rest on a partial list (shown, but not evidence in the rules)."""
+    method = estimates.distance_method.astype(str)
+    return {"far_share"} if method.str.contains("provisional").any() else set()
+
+
 def _wide(obs: pd.DataFrame, period: str | None = None) -> pd.DataFrame:
     rows = obs if period is None else obs[obs.reference_period == period]
     rows = rows.sort_values("reference_period").groupby(["geo_id", "indicator_id"]).tail(1)
@@ -96,7 +102,11 @@ def sector_features(
     out["attendance_2022"] = census.attending_3_5 / census.children_3_5
     out["children_3_5_census"] = census.children_3_5
     out["nonattendance"] = 1 - est.attendance_rate
-    out["far_share"] = est.far_share
+    # from a partial school list, the share beyond 1 km is an upper bound: kept for display,
+    # left out of the factor scores and the bottleneck rules (unknown, not "far")
+    out["far_share_listed"] = est.far_share
+    provisional = est.distance_method.astype(str).str.contains("provisional")
+    out["far_share"] = est.far_share.where(~provisional)
     out["urban_share"] = _col(census, "urban_share")
     out["women_secondary_share"] = _col(census, "women_secondary_share")
     households = _col(census, "households")

@@ -14,6 +14,7 @@ from irerero.ui.theme import RAMP
 
 VIRIDIS = list(RAMP)  # low -> high
 NO_DATA = "#D0D5DB"
+POINT = "#B54708"  # school points: orange, apart from the green-blue ramp
 VIEW = pdk.ViewState(latitude=-1.95, longitude=29.9, zoom=7.2, min_zoom=6, max_zoom=13)
 
 
@@ -46,10 +47,14 @@ def choropleth(
     view: pdk.ViewState | None = None,
     height: int = 460,
     key: str | None = None,
+    points: list[dict] | None = None,
+    edges: list[float] | None = None,
 ) -> None:
-    """Colour features by value (quantile bins), or by a given colour per geo_id."""
+    """Colour features by value (quantile bins unless fixed `edges` are given), or by a given
+    colour per geo_id. `points` (dicts with lon, lat, name and extra) are drawn on top, e.g.
+    school locations."""
     data = copy.deepcopy(geojson)
-    edges = bins(values)
+    edges = edges or bins(values)
     palette = VIRIDIS[: max(1, len(edges) - 1)]
     keep = []
     for feature in data["features"]:
@@ -79,8 +84,28 @@ def choropleth(
         line_width_min_pixels=0.6,
         auto_highlight=True,
     )
+    layers = [layer]
+    if points:
+        layers.append(
+            pdk.Layer(
+                "ScatterplotLayer",
+                [
+                    {**p, "value_text": p.get("value_text", ""), "position": [p["lon"], p["lat"]]}
+                    for p in points
+                ],
+                pickable=True,
+                get_position="position",
+                get_fill_color=_rgb(POINT, 235),
+                get_line_color=[255, 255, 255, 255],
+                stroked=True,
+                line_width_min_pixels=1,
+                radius_min_pixels=3,
+                radius_max_pixels=7,
+                get_radius=250,
+            )
+        )
     deck = pdk.Deck(
-        layers=[layer],
+        layers=layers,
         initial_view_state=view or VIEW,
         map_style="light",
         tooltip={

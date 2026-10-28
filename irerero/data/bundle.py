@@ -17,12 +17,19 @@ environment variables):
 The zip is used only if its SHA-256 matches, every file matches the manifest, and every path
 is a known dataset folder. Anything else leaves data/raw/ untouched and the app on the demo
 bundle, with a notice saying why.
+
+A single file kept beside the zip in the same private repository can be fetched the same way,
+with the same token: the school list, when IRERERO_SCHOOLS_PATH names it (its path in the
+repository, e.g. schools/Rwandapreprimarydata_locatios.GeoJSON). IRERERO_SCHOOLS_SHA256 is
+optional; when set, the file must match it. The file must be a GeoJSON FeatureCollection, and
+lands in data/raw/schools/schools.geojson.
 """
 
 import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -32,6 +39,7 @@ import zipfile
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import quote
 
 from irerero.config import DATA, RAW
 from irerero.data.registry import FILE_DATASETS
@@ -40,6 +48,16 @@ BUNDLE = DATA / "bundle" / "irerero-data.zip"
 MANIFEST = "MANIFEST.json"
 MARKER = ".bundle_sha256"  # in data/raw/: which bundle the files there came from
 DATASETS = frozenset(d.key for d in FILE_DATASETS)
+SCHOOLS_DIR, SCHOOLS_FILE = "schools", "schools.geojson"  # where data/sources/schools reads
+SCHOOLS_MARKER = ".source_sha256"  # in data/raw/schools/: which download the file came from
+SETTINGS = (
+    "IRERERO_DATA_URL",
+    "IRERERO_DATA_TOKEN",
+    "IRERERO_DATA_SHA256",
+    "IRERERO_SCHOOLS_PATH",
+    "IRERERO_SCHOOLS_URL",
+    "IRERERO_SCHOOLS_SHA256",
+)
 MAX_BYTES = 200 * 1024 * 1024
 TIMEOUT = 60
 
@@ -90,7 +108,7 @@ def settings(secrets: Mapping[str, Any] | None = None) -> dict[str, str | None]:
         value = (secrets or {}).get(key) or os.environ.get(key)
         return str(value).strip().strip("\"'").strip() if value else None  # pasted quotes
 
-    return {k: get(k) for k in ("IRERERO_DATA_URL", "IRERERO_DATA_TOKEN", "IRERERO_DATA_SHA256")}
+    return {k: get(k) for k in SETTINGS}
 
 
 def _download(url: str, token: str | None) -> bytes:
@@ -111,7 +129,7 @@ def _download(url: str, token: str | None) -> bytes:
     except (urllib.error.URLError, TimeoutError, OSError):
         raise BundleError("could not reach the data host") from None
     if len(data) > MAX_BYTES:
-        raise BundleError("the bundle is larger than expected")
+        raise BundleError("the download is larger than expected")
     return data
 
 
@@ -122,9 +140,9 @@ def describe(data: bytes) -> str:
     if data[:4] == b"PK\x03\x04":
         kind = "a zip file"
     elif head.startswith((b"<!doctype html", b"<html")):
-        kind = "a web page, not the zip: use the api.github.com/repos/.../contents/... address"
+        kind = "a web page, not the file: use the api.github.com/repos/.../contents/... address"
     elif head.startswith(b"{"):
-        kind = "a JSON reply, not the zip: the host may not have returned the raw file"
+        kind = "JSON (not a zip: the host may not have returned the raw file)"
     else:
         kind = "an unknown file"
     return f"{kind}, {len(data):,} bytes"
@@ -184,6 +202,68 @@ def sync(secrets: Mapping[str, Any] | None = None, raw: Path = RAW) -> str:
         return "current"
     unpack(_download(s["IRERERO_DATA_URL"], s["IRERERO_DATA_TOKEN"]), s["IRERERO_DATA_SHA256"], raw)
     return "updated"
+
+
+def schools_url(s: Mapping[str, str | None]) -> str | None:
+    """Where the school list is: IRERERO_SCHOOLS_URL, or IRERERO_SCHOOLS_PATH inside the same
+    GitHub repository as the bundle (taken from IRERERO_DATA_URL). None when not set up."""
+    if s.get("IRERERO_SCHOOLS_URL"):
+        return s["IRERERO_SCHOOLS_URL"]
+    path = s.get("IRERERO_SCHOOLS_PATH")
+    if not path:
+        return None
+    base = s.get("IRERERO_DATA_URL") or ""
+    repo = re.match(r"^(https://api\.github\.com/repos/[^/]+/[^/]+)/contents/", base)
+    if not repo:
+        raise BundleError(
+            "IRERERO_SCHOOLS_PATH needs IRERERO_DATA_URL to be an "
+            "api.github.com/repos/<owner>/<repo>/contents/... address (or set IRERERO_SCHOOLS_URL)"
+        )
+    return f"{repo.group(1)}/contents/{quote(path.strip().strip('/'))}"
+
+
+def schools_current(raw: Path = RAW) -> str | None:
+    marker = raw / SCHOOLS_DIR / SCHOOLS_MARKER
+    return marker.read_text().strip() if marker.exists() else None
+
+
+def sync_schools(secrets: Mapping[str, Any] | None = None, raw: Path = RAW) -> str:
+    """Fetch the configured school list into data/raw/schools/. Returns "off", "current" (the
+    same file is already there) or "updated" (rebuild). Raises BundleError; nothing is written
+    unless the file checks out."""
+    s = settings(secrets)
+    url = schools_url(s)
+    if not url:
+        return "off"
+    data = _download(url, s["IRERERO_DATA_TOKEN"])
+    found = sha256(data)
+    expected = (s["IRERERO_SCHOOLS_SHA256"] or "").lower()
+    if expected and found != expected:
+        raise BundleError(
+            f"the school list's SHA-256 does not match IRERERO_SCHOOLS_SHA256 (received "
+            f"{describe(data)}; its SHA-256 starts {found[:12]}, the secret's {expected[:12]})"
+        )
+    try:
+        parsed = json.loads(data.decode("utf-8-sig"))
+    except (UnicodeDecodeError, ValueError):
+        raise BundleError(f"the school list is not GeoJSON (received {describe(data)})") from None
+    if not isinstance(parsed, dict) or parsed.get("type") != "FeatureCollection":
+        raise BundleError("the school list is not a GeoJSON FeatureCollection")
+    if schools_current(raw) == found and (raw / SCHOOLS_DIR / SCHOOLS_FILE).exists():
+        return "current"
+    folder = raw / SCHOOLS_DIR
+    folder.mkdir(parents=True, exist_ok=True)
+    partial = folder / f"{SCHOOLS_FILE}.part"
+    partial.write_bytes(data)
+    partial.replace(folder / SCHOOLS_FILE)  # whole file or nothing
+    (folder / SCHOOLS_MARKER).write_text(found)
+    return "updated"
+
+
+def fingerprint(raw: Path = RAW) -> str:
+    """Which fetched data the tables were built from: the bundle, and the school list."""
+    schools = schools_current(raw)
+    return (current(raw) or "") + (f"+schools:{schools[:16]}" if schools else "")
 
 
 def main() -> int:

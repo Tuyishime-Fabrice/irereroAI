@@ -37,7 +37,7 @@ copies are identical.
 | MINEDUC master table | `IrereroAI_MINEDUC_Master_District_Year_2020-21_to_2024-25.csv`: 30 districts × 5 school years, pupils and teachers by sex, schools, classrooms | MINEDUC yearbooks 2021/22 and 2024/25, district annexes | **Yes**: `data/raw/yearbook/mineduc_yearbook_preprimary.csv`, status *observed* | TRACK (the 2028/29 trend and status) and the capacity factor are real |
 | MINEDUC validated tables | `irereroai_mineduc_validated_datasets_3.zip`: the same measures, long layout, 2021/22 to 2024/25 | MINEDUC yearbooks 2023/24 and 2024/25 | Cross-check only | Agrees with the master table in every shared cell |
 | Census 2022 sector tables | `IrereroAI_Census_2022_Master_Dataset_v1.xlsx`: population, urban share, households, drinking water, lighting and grid connection by sector, with the raw thematic-report tables | NISR, PHC5 2022 thematic reports (Population, Housing): Tables D1, C1.1, C1.2, C1.3, C1.5, 3.2, 3.10 | **Yes**, merged into `data/raw/census_2022/` | The home-environment factor (water) and the peer model's urban, water, electricity and density features |
-| MINEDUC school locations | `Rwandapreprimarydata_locatios.GeoJSON`: 139 schools with coordinates | MINEDUC school register | **No** | None: only standalone pre-primary schools, see below |
+| MINEDUC school locations | `Rwandapreprimarydata_locatios.GeoJSON`: 139 schools with coordinates | MINEDUC school register | **Yes, provisional**: `data/raw/schools/schools.geojson` (or fetched from the private repository, `IRERERO_SCHOOLS_PATH`) | The distance layer and the Overview school map, labelled provisional; not used in the bottleneck rules |
 | COD-AB gazetteer | `rwa_gazetteer_rphc2012_v2.xlsx` | OCHA COD-AB for Rwanda, RPHC 2012 base, via HDX | **Codes only**: `data/reference/pcodes_cod_ab.csv` and both crosswalks | All 416 sectors and 30 districts carry their codes (e.g. Muhanga RW27, Cyeza RW2701) |
 | Census 2022 sample records | `children_age_3_5_clean.csv`: 107,238 records of children aged 3 to 5, with sector code, age, attendance and population weight | NISR, PHC5 2022 | **Yes**, as weighted counts: `data/raw/census_2022/`, 416 sectors and 30 district sums, `basis = sample`, status *model estimate* | The 2026 estimate is real: each sector's share of its district's children and its 2022 attendance rate come from the census |
 | NISR projections | `nisr_projections_2023_2032.xlsx`: single-age, by sex, 30 districts, 2023 to 2032, with district totals | NISR, Subnational Population Projections 2023-2032 | **Yes**: `data/raw/projections/nisr_projections_2023_2032.csv`, population and children aged 3 to 5 per district and year, status *published estimate* | The 2026 estimate takes each district's children aged 3 to 5 straight from the projection (no 2022 age share held constant) |
@@ -79,14 +79,20 @@ copies are identical.
 - **A jump, not a typo.** Pupils rose from 355,325 (2021/22) to 540,962 (2022/23), +52% in one
   year; MINEDUC's participation rate rose from 28% (2022) to 43.7% (2023) at the same time.
 
-### MINEDUC school locations (not staged)
+### MINEDUC school locations (staged, provisional)
 
 139 points, all inside Rwanda, all category PRE_PRIMARY (123 private), in 21 districts, with
 10,649 pre-primary pupils. MINEDUC counts 4,221 schools with pre-primary and 683,234 pupils in
 2024/25: most pre-primary classes are inside primary schools, which this file does not list.
-Used as the school layer it would make children near those schools look far from school, so it
-is kept in `data/raw/_received/` and the distance layer stays labelled simulated. Needed: the
-full school list with coordinates and a flag for schools with pre-primary classes.
+
+The loader checks every record: 139 of 139 loaded, 0 coordinates outside Rwanda or not
+numbers, 0 without a point, 2 sharing another school's coordinates, 11 without a pupil count.
+The distance layer uses them with the status **provisional**: the share of children more than
+1 km (straight line) from a *listed* school is an upper bound (≤ 94% nationally; 17 sectors
+under 50%), shown with that label on the Overview, the sector page and Data & methods. It is
+not used as evidence in the bottleneck rules or the access score, and a sector far from a
+listed school is never read as having no school. Still needed: the full school list with
+coordinates and a flag for schools with pre-primary classes.
 
 ### Census 2022 sector tables (staged, merged with the sample counts)
 
@@ -171,7 +177,8 @@ full school list with coordinates and a flag for schools with pre-primary classe
 
 ## Status after intake
 
-`make data` now reports simulated stand-ins for **worldpop, osm, rdhs_2025 and ncda** only.
+`make data` now reports simulated stand-ins for **worldpop, rdhs_2025 and ncda** only, and the
+school list as provisional (OpenStreetMap is not needed while it is in use).
 Census 2022 (sample counts and sector tables), the projections, the yearbooks, the boundaries
 and EICV7 are real.
 
@@ -181,8 +188,8 @@ and EICV7 are real.
 | Priority ranking (PLAN) | **model estimate** | Estimate, peer gap, EICV7 poverty |
 | Peer benchmark (DIAGNOSE) | **model estimate** | Census attendance; no model beat the district average |
 | 2028/29 trend and status (TRACK) | **model estimate** on **observed** yearbooks | MINEDUC master table |
-| Share of children more than 1 km from a school | simulated | A full school list with coordinates is missing |
-| Bottlenecks and factor scores (DIAGNOSE) | simulated | Wellbeing (stunting) and distance are stand-ins |
+| Share of children more than 1 km from a school | **provisional** (upper bound) | Only the 139 standalone pre-primary schools are listed |
+| Bottlenecks and factor scores (DIAGNOSE) | simulated | Wellbeing (stunting) is a stand-in; distance is provisional and left out of the rules |
 
 **Attendance in 2026, a stated choice.** The app can move the census 2022 rate by the
 district's MINEDUC growth since 2021/22. With the real yearbooks that puts 250 of 416 sectors at

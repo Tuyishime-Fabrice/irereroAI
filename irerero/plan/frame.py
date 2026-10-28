@@ -6,7 +6,7 @@ from collections.abc import Mapping
 import pandas as pd
 from sqlalchemy import Engine
 
-from irerero.config import MODEL, SIMULATED
+from irerero.config import MODEL, PROVISIONAL, SIMULATED
 from irerero.db.store import read
 from irerero.plan import gap, priority
 
@@ -91,6 +91,11 @@ def status_of(frame: pd.DataFrame) -> str:
 
 
 def distance_status(frame: pd.DataFrame) -> str:
-    """The distance layer is simulated while the school points are, even on a real estimate."""
-    simulated = frame.distance_method.astype(str).str.contains("simulated").any()
-    return SIMULATED if simulated else status_of(frame)
+    """The distance layer is simulated while the school points are, even on a real estimate,
+    and provisional while they are a partial list."""
+    method = frame.distance_method.astype(str)
+    if method.str.contains("simulated").any():
+        return SIMULATED
+    if method.str.contains("provisional").any():
+        return PROVISIONAL
+    return status_of(frame)

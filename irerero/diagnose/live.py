@@ -7,7 +7,11 @@ import pandas as pd
 
 from irerero.config import MODEL, SIMULATED
 from irerero.diagnose import rules
-from irerero.diagnose.features import sector_features, simulated_features
+from irerero.diagnose.features import (
+    provisional_features,
+    sector_features,
+    simulated_features,
+)
 
 
 def frame(
@@ -34,6 +38,7 @@ def frame(
     simulated = simulated_features(observation, estimate)
     out["status"] = SIMULATED if simulated else MODEL
     out["simulated_inputs"] = [sorted(simulated)] * len(out)  # indicator keys
+    out["provisional_inputs"] = [sorted(provisional_features(estimate))] * len(out)
     chosen = model_run[model_run.chosen]
     out["fallback"] = bool(chosen.metrics.iat[0].get("fallback", False)) if len(chosen) else True
     out = out.reset_index(names="geo_id")

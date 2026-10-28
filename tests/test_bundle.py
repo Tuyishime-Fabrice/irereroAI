@@ -144,7 +144,77 @@ def test_a_mismatch_says_what_was_received_without_any_secret(staged, tmp_path):
     assert "a zip file" in message and f"starts {digest[:12]}" in message
     assert "the secret's starts 000000000000" in message
     page = b"<!DOCTYPE html><html><body>GitHub</body></html>"
-    with pytest.raises(bundle.BundleError, match="a web page, not the zip"):
+    with pytest.raises(bundle.BundleError, match="a web page, not the file"):
         bundle.unpack(page, "0" * 64, tmp_path / "server_raw")
     # a secret pasted with its quotes still matches
     assert bundle.unpack(path.read_bytes(), f'"{digest}"', tmp_path / "server_raw")
+
+
+# --- the school list, fetched beside the bundle with the same token ---------------------------
+SCHOOLS = json.dumps(
+    {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {},
+     "geometry": {"type": "Point", "coordinates": [30.06, -1.95]}}]}
+).encode()  # fmt: skip
+
+
+@pytest.fixture
+def school_host():
+    hits = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_GET(self):
+            hits.append(self.path)
+            if self.headers.get("Authorization") != f"Bearer {TOKEN}":
+                self.send_response(401)
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"<!DOCTYPE html><html></html>" if "page" in self.path else SCHOOLS)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{server.server_port}", hits
+    server.shutdown()
+
+
+def test_the_school_path_resolves_inside_the_bundles_repository():
+    url = bundle.schools_url({
+        "IRERERO_DATA_URL": "https://api.github.com/repos/team/irereroai-data/contents/irerero-data.zip",
+        "IRERERO_SCHOOLS_PATH": "/schools/Rwandapreprimarydata_locatios.GeoJSON",
+    })  # fmt: skip
+    assert url == (
+        "https://api.github.com/repos/team/irereroai-data/contents/schools/"
+        "Rwandapreprimarydata_locatios.GeoJSON"
+    )
+    assert bundle.schools_url({}) is None
+    with pytest.raises(bundle.BundleError, match=r"api\.github\.com/repos"):
+        bundle.schools_url({"IRERERO_DATA_URL": "https://example.org/x.zip",
+                            "IRERERO_SCHOOLS_PATH": "schools/x.geojson"})  # fmt: skip
+
+
+def test_sync_schools_fetches_checks_and_keeps_the_copy(school_host, tmp_path):
+    host, hits = school_host
+    assert not hits
+    secrets = {"IRERERO_SCHOOLS_URL": f"{host}/schools.geojson", "IRERERO_DATA_TOKEN": TOKEN}
+    raw = tmp_path / "raw"
+    assert bundle.sync_schools({}, raw) == "off"
+    before = bundle.fingerprint(raw)
+    assert bundle.sync_schools(secrets, raw) == "updated"
+    assert (raw / "schools" / "schools.geojson").read_bytes() == SCHOOLS
+    assert bundle.sync_schools(secrets, raw) == "current"  # same file: no rebuild
+    assert len(hits) == 2
+    assert bundle.fingerprint(raw) != before and "+schools:" in bundle.fingerprint(raw)
+    good = {**secrets, "IRERERO_SCHOOLS_SHA256": bundle.sha256(SCHOOLS)}
+    assert bundle.sync_schools(good, raw) == "current"
+    with pytest.raises(bundle.BundleError, match="does not match IRERERO_SCHOOLS_SHA256"):
+        bundle.sync_schools({**secrets, "IRERERO_SCHOOLS_SHA256": "0" * 64}, tmp_path / "r2")
+    with pytest.raises(bundle.BundleError, match="not GeoJSON") as caught:
+        bundle.sync_schools({**secrets, "IRERERO_SCHOOLS_URL": f"{host}/page"}, tmp_path / "r3")
+    assert "web page" in str(caught.value) and not (tmp_path / "r3" / "schools").exists()
+    with pytest.raises(bundle.BundleError) as caught:
+        bundle.sync_schools({**secrets, "IRERERO_DATA_TOKEN": "nope"}, tmp_path / "r4")
+    assert "401" in str(caught.value) and "nope" not in str(caught.value)

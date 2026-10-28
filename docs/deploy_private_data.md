@@ -48,6 +48,48 @@ same aggregates the app shows on screen.
    it, and builds the tables from it. The screens then show *model estimate* where the data
    are real and SIMULATED only where a stand-in remains.
 
+## The school list (provisional)
+
+The MINEDUC school locations can sit in the same private repository as a separate file; the app
+fetches it with the **same token**, server side, and never sends the token to the browser.
+Add one secret beside the three above (same place: the app → **Settings → Secrets**):
+
+```toml
+IRERERO_SCHOOLS_PATH = "schools/Rwandapreprimarydata_locatios.GeoJSON"
+# optional: pin the file, as for the bundle (sha256sum of the file)
+# IRERERO_SCHOOLS_SHA256 = "..."
+```
+
+The path is inside the repository named in `IRERERO_DATA_URL`. For a file somewhere else, set
+the full address instead: `IRERERO_SCHOOLS_URL = "https://api.github.com/repos/<owner>/<repo>/contents/<path>"`
+(it must be `https`; the token is sent only there). The token needs **Contents: Read-only** on
+that repository, as for the bundle.
+
+Reboot the app. On first start it downloads the file, checks that it is a GeoJSON
+FeatureCollection (and its SHA-256 when given), keeps a copy in `data/raw/schools/`, and
+rebuilds the distance layer from it. Each record is checked: points outside Rwanda, swapped
+coordinates or missing geometry are counted and left out, never guessed.
+
+**How to check it worked**
+
+- Overview → map → **Distance to school**: orange points (139 with the current file) over the
+  sector shares, and a PROVISIONAL note under the map.
+- The fourth KPI reads **≤ …% Children > 1 km from a listed school**, badge PROVISIONAL.
+- Data & methods → **School locations**: "139 of 139 records loaded …" with the counts of
+  invalid coordinates, missing points, repeated points and missing properties.
+- If the download or a check fails, every page shows "The school list was not loaded: …
+  Distances keep their stand-in." (never the token or the address), and the app carries on.
+
+Locally the same works with the variables in `.env`, or by staging the file:
+`make intake FILES="Rwandapreprimarydata_locatios.GeoJSON"` then `make data`.
+
+**Why provisional.** The file lists only the 139 standalone pre-primary schools; most
+pre-primary classes are inside primary schools, which it does not list. So the share of
+children more than 1 km from a *listed* school is an upper bound, shown with that label, and it
+is not used as evidence in the bottleneck rules. A sector far from a listed school may still
+have a school nearby. When the full MINEDUC register arrives, replace the file (same path) and
+update `IRERERO_SCHOOLS_SHA256` if you set it; the app rebuilds on the next start.
+
 ## What the app checks before using the bundle
 
 - The address is `https` (no plain-text download), and the token is sent only to it.
@@ -66,7 +108,7 @@ When new files arrive: `make intake FILES="..."`, `make data`, check the screens
 ## Taking the data down
 
 Delete the zip from the private repository and revoke the token (GitHub → Settings →
-Personal access tokens), remove the three secrets, and reboot the app. It returns to the demo
+Personal access tokens), remove the secrets (with `IRERERO_SCHOOLS_PATH`), and reboot the app. It returns to the demo
 data. Nothing has to change in the public repository.
 
 ## Before you switch it on

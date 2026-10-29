@@ -1,26 +1,23 @@
-"""IrereroAI assistant: Gemini, answering from the dashboard's own figures.
+"""IrereroAI assistant: Claude, answering from the dashboard's own figures.
 
 The model sees a frozen system prompt (method, definitions, rules), a fixed tool set that reads
 the dashboard tables through irerero.assistant.facts, and, with each question, a snapshot of
 the screen the person is on. Conversations are append-only: earlier turns, including the
-model's function calls and their thought signatures, go back unchanged, which Gemini needs for
-multi-step function calling and which keeps its prompt cache warm. Role permissions are
-enforced when a tool runs, so the tool list never changes during a conversation.
+model's thinking and tool calls, go back unchanged, which keeps thinking blocks valid and the
+prompt cache warm. Role permissions are enforced when a tool runs, so the tool list never
+changes during a conversation.
 
 No figure is computed here. Without an API key the assistant reports that it is not
 configured; it never pretends to answer.
 """
 
 import json
-import math
 import os
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
-import httpx
-from google import genai
-from google.genai import errors, types
+import anthropic
 
 from irerero.assistant import facts
 from irerero.config import (
@@ -37,14 +34,13 @@ from irerero.config import (
 )
 from irerero.roles import ADMIN, ANALYST, CAREGIVER, OFFICER, PLANNER, ROLE_LABELS, User
 
-DEFAULT_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_MODEL = "claude-haiku-5-5"
 DEFAULT_EFFORT = "medium"
-"""Gemini thinking level: minimal, low, medium or high. Minimal can end multi-step tool use
-too early, so the default stays at medium."""
 MAX_TOKENS = 16000
 MAX_TOOL_ROUNDS = 6
 MAX_QUESTIONS = 20
 MAX_QUESTION_CHARS = 2000
+FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 
 @dataclass(frozen=True)
@@ -53,6 +49,9 @@ class Config:
     model: str = DEFAULT_MODEL
     effort: str = DEFAULT_EFFORT
     base_url: str | None = None
+    fallbacks: bool = False
+    """Server-side refusal fallback ("default" routing). Off by default: Claude Haiku 5.5 has
+    no server-side fallback. Turn it on only with a model that has one."""
 
     @property
     def ready(self) -> bool:
@@ -66,10 +65,12 @@ class Config:
             return (secrets or {}).get(key) or os.environ.get(key)
 
         return cls(
-            api_key=get("GEMINI_API_KEY"),
+            api_key=get("ANTHROPIC_API_KEY"),
             model=get("IRERERO_ASSISTANT_MODEL") or DEFAULT_MODEL,
             effort=get("IRERERO_ASSISTANT_EFFORT") or DEFAULT_EFFORT,
             base_url=get("IRERERO_ASSISTANT_BASE_URL"),
+            fallbacks=str(get("IRERERO_ASSISTANT_FALLBACKS") or "off").lower()
+            in ("1", "on", "true", "yes"),
         )
 
 
@@ -146,16 +147,17 @@ are a simulated Muhanga pilot. Exports show counts under {SUPPRESS_BELOW} as \
 
 
 def _tool(name: str, description: str, properties: dict, required: list[str]) -> dict:
-    """A Gemini function declaration. Unknown arguments are refused in run_tool (Gemini does
-    not accept additionalProperties); a tool without arguments declares no parameters."""
-    declaration: dict[str, Any] = {"name": name, "description": description}
-    if properties:
-        declaration["parameters_json_schema"] = {
+    return {
+        "name": name,
+        "description": description,
+        "eager_input_streaming": True,
+        "input_schema": {
             "type": "object",
             "properties": properties,
             "required": required,
-        }
-    return declaration
+            "additionalProperties": False,
+        },
+    }
 
 
 _TARGET = {"type": "number", "description": "Target attendance as a share, e.g. 0.65. "
@@ -205,9 +207,6 @@ TOOLS = [
     ),
 ]  # fmt: skip
 TOOL_NAMES = {t["name"] for t in TOOLS}
-TOOL_ARGUMENTS = {
-    t["name"]: set(t.get("parameters_json_schema", {}).get("properties", {})) for t in TOOLS
-}
 
 # What each role may read through the tools, mirroring the screens it can open.
 ALLOWED = {
@@ -268,9 +267,6 @@ def run_tool(name: str, args: Any, ctx: Context, tables: facts.Tables) -> dict[s
         raise ValueError(f"unknown tool {name}")
     if not isinstance(args, dict):
         raise ValueError("tool input must be an object")
-    unknown = sorted(set(args) - TOOL_ARGUMENTS[name])
-    if unknown:
-        raise ValueError(f"unknown argument {unknown[0]}")
     if name not in ALLOWED.get(ctx.user.role, set()):
         raise PermissionError(
             f"The {ROLE_LABELS[ctx.user.role]} role cannot open this information in the app."
@@ -305,38 +301,52 @@ def run_tool(name: str, args: Any, ctx: Context, tables: facts.Tables) -> dict[s
 
 
 # --- the conversation ---------------------------------------------------------------------
+def _block(block: Any) -> dict[str, Any] | None:
+    """A response content block as a request block, unchanged in every field that matters."""
+    kind = block.type
+    if kind == "text":
+        return {"type": "text", "text": block.text}
+    if kind == "thinking":
+        return {"type": "thinking", "thinking": block.thinking, "signature": block.signature}
+    if kind == "redacted_thinking":
+        return {"type": "redacted_thinking", "data": block.data}
+    if kind == "tool_use":
+        return {"type": "tool_use", "id": block.id, "name": block.name, "input": block.input}
+    if kind == "fallback":
+        return None  # an audit marker; the API ignores it
+    return block.model_dump(mode="json", exclude_none=True)
+
+
+def assistant_content(content: list[Any]) -> list[dict[str, Any]]:
+    """Echo rules after a mid-output fallback: drop thinking and tool_use blocks that came
+    before the last fallback marker; keep text and everything after it."""
+    last = max((i for i, b in enumerate(content) if b.type == "fallback"), default=-1)
+    out = []
+    for i, b in enumerate(content):
+        if i < last and b.type in ("thinking", "redacted_thinking", "tool_use"):
+            continue
+        block = _block(b)
+        if block is not None:
+            out.append(block)
+    return out
+
+
 @dataclass
 class Turn:
     text: str
     messages: list[dict[str, Any]]
-    """Request contents this turn adds to the history (user, model, function rounds)."""
+    """Request messages this turn adds to the history (user, assistant, tool rounds)."""
     stop_reason: str
     notice: str | None = None
     tools_used: list[str] = field(default_factory=list)
 
 
-def make_client(config: Config) -> genai.Client:
-    if not config.api_key:
-        raise AssistantError("No API key is configured for IrereroAI.", retryable=False)
-    return genai.Client(
+def make_client(config: Config) -> anthropic.Anthropic:
+    return anthropic.Anthropic(
         api_key=config.api_key,
-        vertexai=False,
-        http_options=types.HttpOptions(
-            base_url=config.base_url,
-            timeout=120_000,  # milliseconds
-            retry_options=types.HttpRetryOptions(attempts=3),  # the first try and two retries
-        ),
-    )
-
-
-def _request(config: Config) -> types.GenerateContentConfig:
-    """The same system prompt, tools and settings on every request of a conversation."""
-    return types.GenerateContentConfig(
-        system_instruction=SYSTEM,
-        tools=[types.Tool(function_declarations=[types.FunctionDeclaration(**t) for t in TOOLS])],
-        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-        thinking_config=types.ThinkingConfig(thinking_level=config.effort.upper()),
-        max_output_tokens=MAX_TOKENS,
+        base_url=config.base_url,
+        max_retries=2,
+        timeout=anthropic.Timeout(120.0, connect=10.0),
     )
 
 
@@ -347,80 +357,56 @@ STATUS_TEXT = {
     "get_sector": "Reading the sector diagnosis",
     "get_data_status": "Checking which data are real",
 }
-# Finish reasons for an answer the model declined or the service blocked.
-REFUSED = {"SAFETY", "RECITATION", "LANGUAGE", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII"}
-
-
-def _retry_delay(exc: errors.APIError) -> str | None:
-    """Seconds to wait, from a Retry-After header or the error's RetryInfo detail."""
-    headers = getattr(exc.response, "headers", None) or {}
-    if headers.get("retry-after"):
-        return str(headers["retry-after"])
-    details = (
-        exc.details.get("error", {}).get("details", []) if isinstance(exc.details, dict) else []
-    )
-    for detail in details:
-        if isinstance(detail, dict) and str(detail.get("@type", "")).endswith("RetryInfo"):
-            try:
-                return str(math.ceil(float(str(detail.get("retryDelay", "")).removesuffix("s"))))
-            except ValueError:
-                return None
-    return None
 
 
 def _error(exc: Exception, config: Config) -> AssistantError:
-    """SDK and network errors, most specific first, to a message a person can act on."""
-    if isinstance(exc, errors.APIError):
-        message = str(exc.message or "")
-        if exc.code == 401 or (exc.code == 400 and "api key" in message.lower()):
-            return AssistantError(
-                "The AI service rejected the configured API key. An administrator needs to "
-                "check GEMINI_API_KEY.",
-                retryable=False,
-            )
-        if exc.code == 403:
-            return AssistantError(
-                "The configured API key is not allowed to use this model.", retryable=False
-            )
-        if exc.code == 404:
-            return AssistantError(
-                f"The model '{config.model}' is not available to this API key. Set "
-                "IRERERO_ASSISTANT_MODEL to a model the key can use.",
-                retryable=False,
-            )
-        if exc.code == 429:
-            wait = _retry_delay(exc)
-            return AssistantError(
-                "IrereroAI is receiving too many requests right now, or the API key has used "
-                "up its quota or credits. "
-                + (f"Try again in about {wait} seconds." if wait else "Try again in a minute.")
-                + " If this keeps happening, an administrator checks the key's plan and billing."
-            )
-        if exc.code == 400:
-            return AssistantError(
-                f"The AI service could not process this conversation ({message}). Start a "
-                "new conversation and try again.",
-                retryable=False,
-            )
+    """Typed SDK errors, most specific first, to a message a person can act on."""
+    if isinstance(exc, anthropic.AuthenticationError):
         return AssistantError(
-            f"The AI service is temporarily unavailable (error {exc.code}). Try again shortly."
+            "The AI service rejected the configured API key. An administrator needs to "
+            "check ANTHROPIC_API_KEY.",
+            retryable=False,
         )
-    if isinstance(exc, httpx.TimeoutException):
+    if isinstance(exc, anthropic.PermissionDeniedError):
+        return AssistantError(
+            "The configured API key is not allowed to use this model.", retryable=False
+        )
+    if isinstance(exc, anthropic.NotFoundError):
+        return AssistantError(
+            f"The model '{config.model}' is not available to this API key. Set "
+            "IRERERO_ASSISTANT_MODEL to a model the key can use.",
+            retryable=False,
+        )
+    if isinstance(exc, anthropic.RateLimitError):
+        wait = exc.response.headers.get("retry-after") if exc.response is not None else None
+        return AssistantError(
+            "IrereroAI is receiving too many requests right now. "
+            + (f"Try again in about {wait} seconds." if wait else "Try again in a minute.")
+        )
+    if isinstance(exc, anthropic.BadRequestError):
+        return AssistantError(
+            f"The AI service could not process this conversation ({exc.message}). Start a "
+            "new conversation and try again.",
+            retryable=False,
+        )
+    if isinstance(exc, anthropic.APIStatusError):
+        return AssistantError(
+            "The AI service is temporarily unavailable"
+            f" (error {exc.status_code}). Try again shortly."
+        )
+    if isinstance(exc, anthropic.APITimeoutError):
         return AssistantError("The AI service took too long to answer. Try again.")
-    if isinstance(exc, httpx.TransportError):
+    if isinstance(exc, anthropic.APIConnectionError):
         return AssistantError(
             "Could not reach the AI service. Check the network connection and try again."
         )
+    if isinstance(exc, anthropic.CredentialsError):
+        return AssistantError("No API key is configured for IrereroAI.", retryable=False)
     return AssistantError(f"Something went wrong while answering ({type(exc).__name__}).")
 
 
-def _json_safe(result: dict[str, Any]) -> dict[str, Any]:
-    """A tool result as plain JSON (NaN and infinities become null)."""
-    return json.loads(json.dumps(result, default=str), parse_constant=lambda _: None)
-
-
 def stream_turn(
-    client: genai.Client,
+    client: anthropic.Anthropic,
     config: Config,
     history: list[dict[str, Any]],
     question: str,
@@ -429,69 +415,74 @@ def stream_turn(
 ) -> Iterator[tuple[str, Any]]:
     """Answer one question. Yields ("text", chunk) and ("status", label) as they happen, then
     ("done", Turn). Raises AssistantError; the history is unchanged when it does."""
-    user = {"role": "user", "parts": [{"text": ctx.block(tables)}, {"text": question}]}
+    user = {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": ctx.block(tables)},
+            {"type": "text", "text": question},
+        ],
+    }
     messages = [*history, user]
     added: list[dict[str, Any]] = [user]
     text: list[str] = []
     used: list[str] = []
-    request = _request(config)
+    extra: dict[str, Any] = (
+        {"betas": [FALLBACK_BETA], "fallbacks": "default"} if config.fallbacks else {}
+    )
     json_retries = 0
     rounds = 0
     while True:
         round_start = len(text)
-        parts: list[types.Part] = []
-        finish, blocked = None, None
         try:
-            stream = client.models.generate_content_stream(
+            with client.beta.messages.stream(
                 model=config.model,
-                contents=[types.Content.model_validate(m) for m in messages],
-                config=request,
-            )
-            for chunk in stream:
-                if chunk.prompt_feedback and chunk.prompt_feedback.block_reason:
-                    blocked = chunk.prompt_feedback.block_reason
-                if not chunk.candidates:
-                    continue
-                candidate = chunk.candidates[0]
-                finish = candidate.finish_reason or finish
-                for part in (candidate.content.parts or []) if candidate.content else []:
-                    parts.append(part)
-                    if part.text and not part.thought:
-                        text.append(part.text)
-                        yield "text", part.text
-            if finish == types.FinishReason.MALFORMED_FUNCTION_CALL:
-                raise ValueError("malformed function call")
+                max_tokens=MAX_TOKENS,
+                system=[{"type": "text", "text": SYSTEM}],
+                tools=TOOLS,
+                messages=messages,
+                thinking={"type": "adaptive"},
+                output_config={"effort": config.effort},
+                cache_control={"type": "ephemeral"},
+                **extra,
+            ) as stream:
+                for event in stream:
+                    if event.type == "text":
+                        text.append(event.text)
+                        yield "text", event.text
+                final = stream.get_final_message()
             json_retries = 0
         except ValueError as exc:
-            # a function call the model or the SDK could not form: re-issue the turn, bounded,
-            # and take back the text this attempt streamed
+            # tool input the SDK could not parse at all: re-issue the turn, bounded, and
+            # take back the text this attempt streamed
             json_retries += 1
             if json_retries > 2:
                 raise AssistantError("The answer could not be read. Try again.") from exc
             del text[round_start:]
             yield "reset", "".join(text)
             continue
-        except (errors.APIError, httpx.HTTPError) as exc:
+        except anthropic.AnthropicError as exc:
             raise _error(exc, config) from exc
 
-        if blocked or (finish is not None and finish.value in REFUSED):
+        if final.stop_reason == "refusal":
             # Nothing from a declined turn goes into the history.
             yield "done", Turn("", [], "refusal", "IrereroAI cannot help with that request.")
             return
-        # the model's parts go back exactly as received, thought signatures included
-        reply = {"role": "model", "parts": [p.model_dump(mode="json", exclude_none=True)
-                                            for p in parts]}  # fmt: skip
-        calls = [p.function_call for p in parts if p.function_call]
-        if not calls:
-            stop = "max_tokens" if finish == types.FinishReason.MAX_TOKENS else "end_turn"
+        if final.stop_reason == "pause_turn":
+            reply = {"role": "assistant", "content": assistant_content(final.content)}
+            messages.append(reply)
+            added.append(reply)
+            continue
+        reply = {"role": "assistant", "content": assistant_content(final.content)}
+        tool_uses = [b for b in final.content if b.type == "tool_use"]
+        if final.stop_reason != "tool_use" or not tool_uses:
             notice = None
-            if stop == "max_tokens":
+            if final.stop_reason == "max_tokens":
                 notice = "The answer was cut short. Ask a narrower question for the rest."
-            if not parts or not "".join(text).strip():
-                yield "done", Turn("", [], stop, "No answer came back. Try again.")
+            if not reply["content"]:
+                yield "done", Turn("", [], final.stop_reason, "No answer came back. Try again.")
                 return
             added.append(reply)
-            yield "done", Turn("".join(text), added, stop, notice, used)
+            yield "done", Turn("".join(text), added, final.stop_reason, notice, used)
             return
         rounds += 1
         if rounds > MAX_TOOL_ROUNDS:
@@ -500,23 +491,25 @@ def stream_turn(
                                used)  # fmt: skip
             return
         results = []
-        for call in calls:
-            name = call.name or ""
-            used.append(name)
-            yield "status", STATUS_TEXT.get(name, "Looking up the data")
+        for block in tool_uses:
+            used.append(block.name)
+            yield "status", STATUS_TEXT.get(block.name, "Looking up the data")
             try:
-                response = {"output": _json_safe(run_tool(name, call.args or {}, ctx, tables))}
+                content, is_error = (
+                    json.dumps(run_tool(block.name, block.input, ctx, tables), default=str),
+                    False,
+                )
             except (ValueError, PermissionError) as exc:  # facts.NotFound is a ValueError
-                response = {"error": str(exc)}
+                content, is_error = str(exc), True
             except Exception as exc:  # a figure that cannot be computed is reported, not fatal
-                response = {"error": f"Could not compute this ({type(exc).__name__})."}
-            result: dict[str, Any] = {"name": name, "response": response}
-            if call.id:
-                result["id"] = call.id
-            results.append({"function_response": result})
+                content, is_error = f"Could not compute this ({type(exc).__name__}).", True
+            results.append(
+                {"type": "tool_result", "tool_use_id": block.id, "content": content,
+                 "is_error": is_error}
+            )  # fmt: skip
         if text and not text[-1].endswith(("\n", " ")):
             text.append("\n\n")
             yield "text", "\n\n"
-        tool_message = {"role": "user", "parts": results}
+        tool_message = {"role": "user", "content": results}
         messages += [reply, tool_message]
         added += [reply, tool_message]

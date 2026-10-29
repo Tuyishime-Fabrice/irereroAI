@@ -45,7 +45,7 @@ HERO = {
               "Ask which datasets are real files and which are stand-ins…"),
 }  # fmt: skip
 PRIVACY = (
-    "Answers are written by an AI model (Claude) from this dashboard's figures. Check them "
+    "Answers are written by an AI model (Gemini) from this dashboard's figures. Check them "
     "before you use them, and don't type personal information."
 )
 
@@ -370,8 +370,8 @@ def question_box(page: str, user: User, scope: str) -> None:
         state["flash"] = None
     if not cfg.ready:
         theme.note(
-            "The assistant needs an Anthropic API key. An administrator adds "
-            "ANTHROPIC_API_KEY to the app's secrets (or environment) and restarts the app; "
+            "The assistant needs a Gemini API key, which is not configured. An administrator "
+            "adds GEMINI_API_KEY to the app's secrets (or environment) and restarts the app; "
             "see README, IrereroAI assistant."
         )
 

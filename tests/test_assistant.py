@@ -1,6 +1,6 @@
 """The assistant: its figures come from the screens' own calculations, it respects roles,
 and its conversation loop works end to end through the real SDK, against a local stand-in for
-the Messages API (tests/fake_anthropic.py) that also checks the history is append-only."""
+the Gemini API (tests/fake_gemini.py) that also checks the history is append-only."""
 
 import socket
 
@@ -13,7 +13,7 @@ from irerero.plan.frame import ranked
 from irerero.plan.frame import sectors as plan_sectors
 from irerero.roles import DEMO_USERS
 from irerero.track import forecast
-from tests import fake_anthropic
+from tests import fake_gemini
 
 PLANNER, ANALYST, OFFICER, CAREGIVER, ADMIN = DEMO_USERS
 TARGET = 0.65
@@ -41,14 +41,14 @@ def t(tables, build_eng) -> facts.Tables:
 
 @pytest.fixture(scope="module")
 def server():
-    srv = fake_anthropic.serve()
+    srv = fake_gemini.serve()
     yield f"http://127.0.0.1:{srv.server_port}"
     srv.shutdown()
 
 
 @pytest.fixture
 def config(server) -> chat.Config:
-    fake_anthropic.STATE.violations.clear()
+    fake_gemini.STATE.violations.clear()
     return chat.Config(api_key="test-key", base_url=server)  # pragma: allowlist secret
 
 
@@ -114,16 +114,23 @@ def test_tools_respect_the_roles_screens(t):
     assert "real_files" in run("get_data_status", ADMIN)
     with pytest.raises(ValueError, match="target"):
         run("get_overview", ANALYST, target=65)
+    with pytest.raises(ValueError, match="unknown argument"):  # the schema allows no others
+        run("get_overview", ANALYST, weights="volume")
 
 
 def test_config_reads_secrets_before_the_environment(monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "an-old-key")  # no longer used
     assert not chat.Config.from_env({}).ready
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "from-env")
-    secrets = {"ANTHROPIC_API_KEY": "from-secrets"}  # pragma: allowlist secret
-    cfg = chat.Config.from_env({**secrets, "IRERERO_ASSISTANT_FALLBACKS": "off"})
-    assert cfg.api_key == secrets["ANTHROPIC_API_KEY"]
-    assert cfg.model == chat.DEFAULT_MODEL and not cfg.fallbacks
+    with pytest.raises(chat.AssistantError, match="No API key"):
+        chat.make_client(chat.Config.from_env({}))
+    monkeypatch.setenv("GEMINI_API_KEY", "from-env")
+    assert chat.Config.from_env({}).api_key == "from-env"
+    secrets = {"GEMINI_API_KEY": "from-secrets"}  # pragma: allowlist secret
+    cfg = chat.Config.from_env(secrets)
+    assert cfg.api_key == secrets["GEMINI_API_KEY"]
+    assert cfg.model == chat.DEFAULT_MODEL == "gemini-3.5-flash-lite"
+    assert cfg.effort == "medium"
 
 
 # --- conversation, end to end through the SDK ----------------------------------------------
@@ -132,12 +139,15 @@ def test_answer_uses_a_tool_and_quotes_the_dashboard(config, t):
     pct = facts.overview(t, TARGET)["estimate_2026"]["attending_pre_primary_pct"]
     assert f"{pct}%" in text and "simulated" in text
     assert "status" in kinds and turn.tools_used == ["get_overview"]
-    # user question, assistant tool call, tool result, final answer
-    assert [m["role"] for m in turn.messages] == ["user", "assistant", "user", "assistant"]
-    thinking = [b for b in turn.messages[1]["content"] if b["type"] == "thinking"]
-    assert thinking and thinking[0]["signature"].startswith("sig-")
-    assert "<dashboard_context>" in turn.messages[0]["content"][0]["text"]
-    assert not fake_anthropic.STATE.violations
+    # user question, model function call, function response, final answer
+    assert [m["role"] for m in turn.messages] == ["user", "model", "user", "model"]
+    call = [p for p in turn.messages[1]["parts"] if "function_call" in p]
+    assert call and call[0]["function_call"]["name"] == "get_overview"
+    assert call[0]["thought_signature"]  # kept, so it goes back with the history
+    response = turn.messages[2]["parts"][0]["function_response"]
+    assert response["id"] == call[0]["function_call"]["id"] and "output" in response["response"]
+    assert "<dashboard_context>" in turn.messages[0]["parts"][0]["text"]
+    assert not fake_gemini.STATE.violations
 
 
 def test_follow_up_questions_keep_the_history_append_only(config, t):
@@ -147,12 +157,17 @@ def test_follow_up_questions_keep_the_history_append_only(config, t):
     assert "Muhanga needs" in text
     third, _, _ = ask(config, t, "What does the scope warning mean?", history + second.messages)
     assert third.tools_used == []
-    assert not fake_anthropic.STATE.violations, fake_anthropic.STATE.violations
+    assert not fake_gemini.STATE.violations, fake_gemini.STATE.violations
 
 
 def test_a_refused_tool_call_is_explained_not_guessed(config, t):
     _, text, _ = ask(config, t, "Explain the sector Cyeza", user=ADMIN)
     assert "not available" in text and "role" in text
+
+
+def test_a_tool_without_arguments_runs(config, t):
+    turn, text, _ = ask(config, t, "Which data are real?", user=ADMIN)
+    assert turn.tools_used == ["get_data_status"] and "real files" in text
 
 
 def test_refusal_and_truncation_are_reported(config, t):
@@ -168,9 +183,19 @@ def test_refusal_and_truncation_are_reported(config, t):
      ("[401]", "API key", False)],
 )  # fmt: skip
 def test_api_failures_become_messages_a_person_can_act_on(config, t, marker, words, retryable):
+    before = fake_gemini.STATE.attempts
     with pytest.raises(chat.AssistantError) as caught:
         ask(config, t, f"{marker} attendance?")
     assert words in caught.value.message and caught.value.retryable is retryable
+    # busy and server errors are retried twice by the SDK; a bad key is not
+    assert fake_gemini.STATE.attempts - before == (3 if retryable else 1)
+
+
+def test_an_unavailable_model_is_named(server, t):
+    cfg = chat.Config(api_key="test-key", model="missing-model", base_url=server)
+    with pytest.raises(chat.AssistantError, match="'missing-model' is not available") as caught:
+        ask(cfg, t, "attendance?")
+    assert "IRERERO_ASSISTANT_MODEL" in caught.value.message and not caught.value.retryable
 
 
 def test_network_failure_and_a_wrong_key(t, server):
@@ -185,19 +210,23 @@ def test_network_failure_and_a_wrong_key(t, server):
         ask(wrong, t, "attendance?")
 
 
-def test_requests_carry_the_frozen_prompt_tools_and_fallback(config, t):
+def test_requests_carry_the_frozen_prompt_tools_and_settings(config, t):
     ask(config, t, "attendance?")
-    body = fake_anthropic.STATE.requests[-1]
-    assert body["system"][0]["text"] == chat.SYSTEM
-    assert [x["name"] for x in body["tools"]] == [x["name"] for x in chat.TOOLS]
-    assert body["model"] == "claude-opus-5-5" and body["fallbacks"] == "default"
-    assert body["thinking"] == {"type": "adaptive"} and body["output_config"]["effort"]
+    body = fake_gemini.STATE.requests[-1]
+    assert body["systemInstruction"]["parts"][0]["text"] == chat.SYSTEM
+    declared = body["tools"][0]["functionDeclarations"]
+    assert [x["name"] for x in declared] == [x["name"] for x in chat.TOOLS]
+    assert body["model"] == "gemini-3.5-flash-lite"
+    generation = body["generationConfig"]
+    # the SDK sends this object's fields under their Python names; the API takes either
+    assert list(generation["thinkingConfig"].values()) == ["MEDIUM"]
+    assert generation["maxOutputTokens"] == chat.MAX_TOKENS
 
 
 def test_the_stand_in_catches_an_edited_history(config, t):
     """The append-only check is not vacuous: editing an earlier turn is reported."""
     first, _, _ = ask(config, t, "Which districts should we prioritize?")
     edited = [dict(m) for m in first.messages]
-    edited[0] = {"role": "user", "content": [{"type": "text", "text": "a different question"}]}
+    edited[0] = {"role": "user", "parts": [{"text": "a different question"}]}
     ask(config, t, "And Muhanga?", edited)
-    assert "earlier messages were edited, not appended" in fake_anthropic.STATE.violations
+    assert "earlier messages were edited, not appended" in fake_gemini.STATE.violations

@@ -23,7 +23,7 @@ dependencies = [
   "sqlalchemy>=2.0",
   "psycopg[binary]>=3.2",
   "fpdf2>=2.8",
-  "google-genai>=2.34",
+  "anthropic>=1.0",
 ]
 
 [project.optional-dependencies]

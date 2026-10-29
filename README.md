@@ -252,8 +252,8 @@ caregivers, Admin) the question box sits at the top of the page; every other scr
 
 ## AI-use disclosure
 
-The code, tests and documentation were written with the help of an AI coding assistant
-(Claude Code, by Anthropic), directed and reviewed by the team. The app's planning layer is
+The code, tests and documentation were written with the help of AI coding tools, directed
+and reviewed by the team. The app's planning layer is
 the statistical and machine-learning work described above: calibrated estimates, the peer
 benchmark model with conformal intervals, rank stability and rule-based diagnosis. Every model
 output carries its status and uncertainty, and people make the decisions. The optional
@@ -278,7 +278,7 @@ irerero/             Python package
   pipeline/          make data: observations, estimates, model, forecast, content
   plan/ diagnose/ track/ learn/   the four modules
   db/                SQLAlchemy models (SQLite or Postgres)
-  assistant/         IrereroAI assistant: dashboard facts, Claude conversation loop
+  assistant/         IrereroAI assistant: dashboard facts, AI conversation loop
   ui/                design system, charts, maps, the assistant's screens
 content/courses/     LEARN lessons (Markdown) and quizzes (JSON)
 data/demo/           committed stand-ins (simulated tables, simplified boundaries)

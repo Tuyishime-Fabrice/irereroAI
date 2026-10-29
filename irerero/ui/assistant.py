@@ -45,7 +45,7 @@ HERO = {
               "Ask which datasets are real files and which are stand-ins…"),
 }  # fmt: skip
 PRIVACY = (
-    "Answers are written by an AI model (Claude) from this dashboard's figures. Check them "
+    "Answers are written by an AI model from this dashboard's figures. Check them "
     "before you use them, and don't type personal information."
 )
 

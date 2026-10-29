@@ -8,15 +8,14 @@ NISR 2026 Big Data Hackathon, Track 3 (Open Innovation).
 > In my district, which sectors need action first, what is holding ECD back there, and are we on
 > track for the NST2 target of 65% pre-primary enrolment by 2028/29?
 
-**Live app:** [irereroai.streamlit.app](https://irereroai.streamlit.app/) (demo build, simulated data) · **Docs:**
+**Live app:** [irereroai.streamlit.app](https://irereroai.streamlit.app/) (demo build) · **Docs:**
 [methodology](docs/methodology.md) · [model card](docs/model_card.md) ·
 [limitations](docs/limitations.md) · [data dictionary](docs/data_dictionary.md) ·
 [data sources](DATA_SOURCES.md)
 
 > **Everything in the demo build is simulated except the boundaries.** The real NISR, MINEDUC,
 > RDHS, EICV, WorldPop and OSM files are not in this repository: their licences forbid
-> redistribution, and the team adds them locally. While a file is missing, the app shows a
-> labelled stand-in with a red **SIMULATED** badge and leaves it out of exports.
+> redistribution, and the team adds them locally.
 
 ## Problem and users
 

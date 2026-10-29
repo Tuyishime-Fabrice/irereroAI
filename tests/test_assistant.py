@@ -125,7 +125,7 @@ def test_config_reads_secrets_before_the_environment(monkeypatch):
     with pytest.raises(chat.AssistantError, match="No API key"):
         chat.make_client(chat.Config.from_env({}))
     monkeypatch.setenv("GEMINI_API_KEY", "from-env")
-    assert chat.Config.from_env({}).api_key == "from-env"
+    assert chat.Config.from_env({}).api_key == "from-env"  # pragma: allowlist secret
     secrets = {"GEMINI_API_KEY": "from-secrets"}  # pragma: allowlist secret
     cfg = chat.Config.from_env(secrets)
     assert cfg.api_key == secrets["GEMINI_API_KEY"]

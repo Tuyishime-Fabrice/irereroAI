@@ -1,35 +1,27 @@
-# Data
+# Data Sources and Methodology — IrereroAI
 
-| Folder | Contents | In git |
-| --- | --- | --- |
-| `raw/<dataset>/` | Source files you add, one folder per dataset in [DATA_SOURCES.md](../DATA_SOURCES.md) | no |
-| `raw/_received/<package>/` | Read-only copies of files exactly as received, kept by `make intake` | no |
-| `received_files.csv` | What the team holds: file name, size, SHA-256, date received and where it was staged. Metadata only, no values | yes |
-| `interim/` | Tables parsed from PDFs (census Table 2.5) | no |
-| `processed/` | Parquet and simplified GeoJSON written by `make data` | no |
-| `demo/` | Stand-ins in the same formats as the real files: simulated tables (seed 2026) and simplified geoBoundaries shapes | yes |
-| `reference/` | Reviewed crosswalks from source spellings to `geo_id` and NISR codes; `pcodes_cod_ab.csv`, the province, district and sector codes from the COD-AB gazetteer | yes |
+IrereroAI combines official Rwandan statistics, geospatial datasets, household surveys, and early childhood development (ECD) standards to support evidence-based planning and monitoring. Where official data was not readily available in a usable format or could not be obtained in time, some information was compiled from publicly available sources or web-extracted and treated as provisional. Policy standards are used as parameters, while simulated caregiver check-ins and learning progress are included solely to demonstrate the platform's functionality, as it has not yet been used by real caregivers.
 
-## Receiving files
+## Data Storage and Access
 
-Files that arrive as tables in their own layout (the EICV7 district chart, the MINEDUC yearbook
-annexes) go through `make intake FILES="<file or folder> ..."`. It keeps the original read-only
-in `raw/_received/`, records its checksum in `received_files.csv`, converts it to the declared
-columns through the crosswalks, and checks it: districts once each, parts adding to totals,
-district rows adding to province and national rows, breaks in a series. A converted table goes
-into `raw/<dataset>/` only when it is complete; otherwise it waits in `interim/` and
-`interim/intake_report.md` lists what is missing. Nothing is filled in or estimated. See
-[docs/data_inventory.md](../docs/data_inventory.md) for what has been received and checked, and
-[docs/data_requests.md](../docs/data_requests.md) for what is still needed.
+For responsible data handling, I stored the project datasets in a **private GitHub repository** rather than publishing them in a public repository. This was a precaution because redistribution permissions were not confirmed for every dataset, and some sources may have access restrictions or data-sharing conditions. Repository access is limited to authorized project collaborators. Private hosting helps prevent unintended public exposure, but it does not replace the need to comply with each dataset's original licence, terms of use, and any applicable data-sharing agreement.
 
-Run `make sources` to create the `raw/` folders and see which files are present, then
-`make data` to load them. A dataset whose file is missing is read from `demo/`, and every value
-from it carries the status **simulated**: shown with a red SIMULATED badge and left out of
-exports by default.
+## Data Sources
 
-`demo/` is regenerated with `uv run python -m irerero.data.demo_bundle` (needs the geoBoundaries
-files in `raw/geoboundaries/`); the output is committed so the app runs without any downloads.
+| Dataset / Source | Institution | Use in IrereroAI |
+|---|---|---|
+| [Fifth Population and Housing Census (PHC5), 2022](https://www.statistics.gov.rw/data-sources/censuses/Population-and-Housing-Census/fifth-population-and-housing-census-2022/main-indicators-5th-rwanda-population-and-housing-census-phc) | NISR | Population estimates, planning gaps, and household context |
+| [WorldPop Rwanda population data, 2020](https://hub.worldpop.org/geodata/summary?id=49708) | University of Southampton / WorldPop | Population distribution and spatial analysis |
+| [WorldPop population data, 2015–2030](https://hub.worldpop.org/geodata/summary?id=50514) | University of Southampton / WorldPop | Population distribution and planning estimates |
+| [Rwanda Subnational Population Projections, 2023–2032 — Provinces](https://gis.statistics.gov.rw/data-sources/censuses/Population-and-Housing-Census/fifth-population-and-housing-census-2022/rwanda-subnational-population-projections-provinces-2023-2032) and [Districts](https://gis.statistics.gov.rw/data-sources/censuses/Population-and-Housing-Census/fifth-population-and-housing-census-2022/rwanda-subnational-population-projections-districts-2023-2032) | NISR | Population denominators and projection of planning needs |
+| [Rwanda Sector Boundaries, 2022](https://services5.arcgis.com/deNm5epdmeZgcm16/ArcGIS/rest/services/Sector_Boundary_2022/FeatureServer/1) | NISR / Rwanda geospatial services | Administrative mapping and geographic data joins |
+| [OpenStreetMap Rwanda extract](https://download.geofabrik.de/africa/rwanda.html) | OpenStreetMap contributors / Geofabrik | Mapping nearby facilities and estimating distance to services |
+| Rwanda pre-primary school locations and Education Statistical Yearbooks, 2020/21–2024/25 | MINEDUC | School mapping, enrolment trends, and education capacity indicators |
+| [Rwanda Demographic and Health Survey (DHS), 2025](https://microdata.worldbank.org/catalog/8555/get-microdata) | NISR, Ministry of Health, and The DHS Program | Child wellbeing and nutrition-related context |
+| [Integrated Household Living Conditions Survey (EICV7), 2023/24](https://microdata.statistics.gov.rw/index.php/catalog/119/get_microdata) | NISR | Poverty-related indicators for planning and diagnosis |
+| National ECD Standards, 2024 | NCDA | ECD service standards and planning parameters |
+| ECD learning and course materials | NCDA, UNICEF, and WHO | Learning content, guidance, and programme parameters |
+| NCDA ECD Mapping System extract | NCDA | Potential supply-side information on ECD centres and caregivers; subject to the required data-sharing approval |
+| Simulated caregiver check-ins and course progress | IrereroAI synthetic data generator, 2026 | Demonstration of caregiver engagement, learning progress, and platform alerts |
 
-NISR licences forbid redistributing microdata. Raw files stay on the machine that holds them.
-The pre-commit hook and CI block data formats (`.dta`, `.sav`, `.tif`, `.pbf`, `.parquet` and
-others) and anything under `raw/`, `interim/` or `processed/`.
+**Data limitations and interpretation:** Some datasets are provisional or subject to access and sharing conditions. Household survey indicators should be interpreted in light of their sampling design and geographic coverage. Simulated records are used only for demonstration and should not be interpreted as actual caregiver activity or programme outcomes.

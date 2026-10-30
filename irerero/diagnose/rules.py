@@ -132,9 +132,14 @@ def bottleneck(row: Mapping, target: float) -> tuple[str, str, list[str]]:
         and observed < low
     ):
         peers = "the district average" if row.get("fallback") else "similar sectors"
+        nearby = (
+            "A school is nearby, but attendance"
+            if far is not None and far == far
+            else "Distance to a school is not known (no complete school list); attendance"
+        )
         reasons.append(
-            f"A school is nearby, but attendance ({observed:.0%} in 2022) is below the range "
-            f"expected from {peers} ({low:.0%} or more)."
+            f"{nearby} ({observed:.0%} in 2022) is below the range expected from {peers} "
+            f"({low:.0%} or more)."
         )
         flags.append(("DEMAND", "Parent outreach; check fees and awareness."))
     capacity = row.get("capacity")

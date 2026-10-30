@@ -10,6 +10,7 @@ from irerero.config import SIMULATED
 from irerero.learn import certificate, checkins, progress, triggers
 from irerero.learn.checkins import CHALLENGES, LABELS, Checkin
 from irerero.ui import data, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import current, demo_mode
 
 user = current()
@@ -29,9 +30,11 @@ def bilingual(key: str) -> str:
 
 theme.header(
     "Caregiver learning",
-    f"{centre['name']} · monthly check-in and your courses",
+    t("{centre} · monthly check-in and your courses", centre=centre["name"]),
     simulated=centre.status == SIMULATED,
     crumbs=["Muhanga", f"{sector_name} sector", "Caregiver learning"],
+    assistant="caregiver",
+    hero=True,
 )
 
 history = checkins.frame(eng, [user.centre_id])
@@ -58,7 +61,6 @@ with k4:
     waiting = int((mine.status == "recommended").sum())
     theme.kpi("Suggested courses", str(waiting), "LEARN triggers", "2026", None,
               "waiting for your sector officer", "info", "purple")  # fmt: skip
-st.write("")
 check_col, learn_col = st.columns([3, 2])
 
 # --- check-in -----------------------------------------------------------------------------
@@ -82,6 +84,7 @@ with (
             500.0,
             float(last.attendance_avg) if last is not None else 0.0,
             step=1.0,
+            format="%g",  # an average can be 25.5, but 31 shows as 31, not 31.00
         )
         carers_present = c1.number_input(
             bilingual("caregivers_present"),
@@ -96,17 +99,24 @@ with (
             float(last.meal_days_avg) if last is not None else 5.0,
             0.5,
         )
+        # Pre-filled from the last check-in, like the counts, so a correction keeps them.
         water = c1.radio(
             bilingual("water_available"),
             ["Yes · Yego", "No · Oya"],
+            index=0 if last is None or bool(last.water_available) else 1,
             horizontal=True,
         )
         challenge = c2.selectbox(
             bilingual("main_challenge"),
             list(CHALLENGES),
+            index=list(CHALLENGES).index(last.main_challenge)
+            if last is not None and last.main_challenge in CHALLENGES
+            else 0,
             format_func=lambda k: f"{CHALLENGES[k][0]} · {CHALLENGES[k][1]}",
         )
         sent = st.form_submit_button("Submit · Ohereza", type="primary")
+    for i, message in enumerate(st.session_state.pop("checkin-saved", [])):
+        (st.success if i == 0 else st.info)(message)
     if sent:
         entry = Checkin(
             centre_id=user.centre_id,
@@ -122,17 +132,19 @@ with (
             checkins.submit(eng, user, entry)
             flagged = triggers.run(eng, data.diagnosis_now(data.target()))
             new_flags = [f for f in flagged if f[0] == user.user_id]
-            st.success("Check-in saved. Murakoze!")
-            for _, course_id, _ in new_flags:
-                st.info(
+            # Rerun so the cards above show this month as submitted; the messages survive it.
+            st.session_state["checkin-saved"] = [
+                "Check-in saved. Murakoze!",
+                *(
                     f"The course '{courses.at[course_id, 'title_en']}' is suggested for you. "
                     "Your sector officer will confirm it."
-                )
-            history = checkins.frame(eng, [user.centre_id])
-            mine = progress.assignments(eng, [user.user_id])
+                    for _, course_id, _ in new_flags
+                ),
+            ]
+            st.rerun()
         except ValueError as error:
             st.error(str(error))
-    with st.expander("Your centre's check-ins"):
+    with st.expander(t("Your centre's check-ins")):
         st.dataframe(
             pd.DataFrame(
                 {
@@ -182,11 +194,12 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
     open_ids = mine[mine.status.isin(order)].sort_values("status", key=lambda s: s.map(order))
     if len(open_ids):
         pick = st.selectbox(
-            "Open a course",
+            t("Open a course"),
             open_ids.id.tolist(),
             format_func=lambda i: courses.at[
                 open_ids.set_index("id").at[i, "course_id"], "title_en"
             ],
+            key="course-pick",  # keeps the open course when a pass moves it to Completed
         )
         a = open_ids.set_index("id").loc[pick]
         course = courses.loc[a.course_id]
@@ -197,7 +210,9 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
             ticked = lesson.position in (a.lessons_done or [])
             with st.expander(f"{'✓ ' if ticked else ''}Lesson {lesson.position}: {lesson.title}"):
                 st.markdown(lesson.body_md)
-                if not ticked and st.button("Mark as done", key=f"done-{pick}-{lesson.position}"):
+                if not ticked and st.button(
+                    t("Mark as done"), key=f"done-{pick}-{lesson.position}"
+                ):
                     progress.mark_lesson(eng, user, int(pick), int(lesson.position))
                     st.rerun()
         if a.status == "recommended":
@@ -209,8 +224,16 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
             for q in items.itertuples():
                 choice = st.radio(q.question, q.options, index=None, key=f"q-{pick}-{q.position}")
                 answers[int(q.position)] = q.options.index(choice) if choice is not None else -1
-            if st.form_submit_button("Submit answers"):
+            submitted = st.form_submit_button(t("Submit answers"))
+            unanswered = sum(1 for chosen in answers.values() if chosen < 0)
+            if submitted and unanswered:  # a blank answer is not a wrong one: ask, do not score
+                st.warning(
+                    f"Answer all {len(answers)} questions first: {unanswered} still to answer."
+                )
+            elif submitted:
                 result = progress.submit_quiz(eng, user, int(pick), answers)
+                # Re-read the course, so a pass shows the certificate straight away.
+                a = progress.assignments(eng, [user.user_id]).set_index("id").loc[pick]
                 if result["passed"]:
                     st.success(f"{result['correct']} of {result['total']}: course completed.")
                 else:
@@ -220,7 +243,7 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
                     )
         if pd.notna(a.completed_at):
             st.download_button(
-                "Download certificate (PDF)",
+                t("Download certificate (PDF)"),
                 certificate.pdf(
                     user.name,
                     str(centre["name"]),

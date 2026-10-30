@@ -2,43 +2,49 @@
 
 import streamlit as st
 
-from irerero.config import STATUS_COLOURS, TARGET_2029, TARGET_YEAR
+from irerero.config import PROVISIONAL, STATUS_COLOURS, TARGET_2029, TARGET_YEAR
 from irerero.plan import gap
-from irerero.plan.frame import any_simulated
+from irerero.plan.frame import distance_status, status_of
 from irerero.track import forecast, plans
-from irerero.ui import charts, data, maps, theme
+from irerero.ui import assistant, charts, data, i18n, maps, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import PLANNER, current
 from irerero.ui.theme import Col
 
 user = current()
 sectors = data.sectors()
-simulated = any_simulated(sectors)
-status = "simulated" if simulated else "model estimate"
+forecast_rows = data.table("forecast")
+# each part keeps its own status: the estimate (census, projections), the distance layer
+# (school points) and the outlook (yearbook trend) become real at different times
+status = status_of(sectors)
+far_status = distance_status(sectors)
+track_status = status_of(forecast_rows)
+simulated = "simulated" in (status, far_status, track_status)
 source = "IrereroAI 2026 estimate"
 
-theme.header(
-    "Early Childhood Development Overview",
-    "Plan where to act. Understand why. Track progress to 2029.",
-    simulated=simulated,
-    crumbs=["Rwanda", "Overview"],
-    aside=theme.target_callout("NST2 target", "65% by 2028/29", "Pre-primary enrolment"),
-)
+theme.topbar(["Rwanda", "Overview"])
+assistant.hero(user, simulated, sr_title="Early Childhood Development Overview")
 
 # --- filters ------------------------------------------------------------------------------
 with theme.panel(key="filters"):
     f1, f2, f3 = st.columns([1, 1, 1])
     provinces = ["All provinces", *sorted(sectors.province.dropna().unique())]
-    province = f1.selectbox("Province", provinces)
+    province = i18n.select(f1, t("Province"), provinces, key="ov-province")
     target_pct = f2.slider(
-        "Target attendance (%)",
+        t("Target attendance (%)"),
         30,
         90,
         round(data.target() * 100),
         help=f"Default {theme.fmt_pct(TARGET_2029.value)}: {TARGET_2029.citation}",
     )
     st.session_state["target_pct"] = target_pct
+    if target_pct != round(TARGET_2029.value * 100):
+        theme.note(
+            f"Planning at {target_pct}%: the numbers below use this target, not the NST2 "
+            f"{theme.fmt_pct(TARGET_2029.value)}."
+        )
     f3.selectbox(
-        "Reference year",
+        t("Reference year"),
         ["2026 estimate (census 2022 base)"],
         disabled=True,
         help="Estimates are calibrated to NISR projections for 2026.",
@@ -75,7 +81,7 @@ with k2:
     )
 with k3:
     theme.kpi(
-        f"Places needed for {theme.fmt_pct(target)}",
+        t("Places needed for {target}", target=theme.fmt_pct(target)),
         theme.fmt_int(needs.places.sum()),
         source,
         "2026",
@@ -87,19 +93,19 @@ with k3:
 with k4:
     far = (needs.far_share * needs.children_3_5).sum() / needs.children_3_5.sum()
     method = needs.distance_method.mode().iat[0] if len(needs) else ""
+    provisional = far_status == PROVISIONAL  # a partial school list: an upper bound
     theme.kpi(
-        "Children > 1 km from a school",
-        theme.fmt_pct(far),
+        "Children > 1 km from a listed school" if provisional else "Children > 1 km from a school",
+        ("≤ " if provisional else "") + theme.fmt_pct(far),
         "IrereroAI distance layer",
         "2026",
-        status,
+        far_status,
         method,
         "route",
         "rose",
     )
 
-st.write("")
-track_all = forecast.summary(data.table("forecast"), target)
+track_all = forecast.summary(forecast_rows, target)
 track = track_all.drop(index=forecast.NATIONAL)
 in_scope = set(scope.district_id)
 track = track[track.index.isin(in_scope)]
@@ -107,11 +113,17 @@ track = track[track.index.isin(in_scope)]
 # --- map and outlook ----------------------------------------------------------------------
 left, right = st.columns([3, 2])
 with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "pin"):
-    view = st.radio(
-        "Map",
-        [f"{TARGET_YEAR} status", "Places needed", "Attendance rate"],
-        horizontal=True,
-        label_visibility="collapsed",
+    views = [f"{TARGET_YEAR} status", "Places needed", "Attendance rate", "Distance to school"]
+    view = (
+        st.segmented_control(
+            "Map layer",
+            views,
+            default=views[0],
+            label_visibility="collapsed",
+            key="map-view",
+            format_func=i18n.shown(views, {views[0]: t("{year} status", year=TARGET_YEAR)}),
+        )
+        or views[0]  # clicking the selected segment clears it; keep showing a layer
     )
     geo_d, geo_s = data.geojson("district"), data.geojson("sector")
     zoom = maps.view_for(geo_d, in_scope) if province != "All provinces" else None
@@ -122,12 +134,13 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             f"Projected {TARGET_YEAR} enrolment",
             lambda v: theme.fmt_pct(v),
             tooltip={
-                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · {status}"
+                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · "
+                f"{track_status}"
                 for g, r in track.iterrows()
             },
             colours={g: STATUS_COLOURS[s] for g, s in track.status.items()},
             view=zoom,
-            height=420,
+            height=400,
             key="national-status",
         )
         counts = track.status.value_counts()
@@ -139,16 +152,61 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
         maps.choropleth(
             geo_s,
             dict(zip(needs.geo_id, needs.places, strict=True)),
-            f"Places needed for {theme.fmt_pct(target)}",
+            t("Places needed for {target}", target=theme.fmt_pct(target)),
             theme.fmt_int,
             tooltip={
                 r.geo_id: f"{r.district} · {theme.fmt_pct(r.attendance_rate)} attending · {status}"
                 for r in needs.itertuples()
             },
             view=zoom,
-            height=420,
+            height=400,
             key="national-sectors",
         )
+    elif view == "Distance to school":
+        school_points, school_report = data.schools()
+        listed = [
+            {
+                "lon": p["lon"],
+                "lat": p["lat"],
+                "name": p["name"],
+                "value_text": f"school ({p['status']})",
+                "extra": " · ".join(
+                    x for x in (p.get("sector"), p.get("district"),
+                                f"{p['pupils']} pre-primary pupils" if p.get("pupils") else "")
+                    if x
+                ),
+            }
+            for p in school_points
+        ]  # fmt: skip
+        maps.choropleth(
+            geo_s,
+            dict(zip(needs.geo_id, needs.far_share, strict=True)),
+            "Children > 1 km from a listed school" if provisional else "Children > 1 km",
+            lambda v: theme.fmt_pct(v),
+            tooltip={
+                r.geo_id: f"{r.district} · {far_status}"
+                + (" · upper bound: the school list is partial" if provisional else "")
+                for r in needs.itertuples()
+            },
+            view=zoom,
+            height=400,
+            key="national-distance",
+            points=listed,
+            edges=[0, 0.25, 0.5, 0.75, 0.95, 1],  # fixed: most sectors sit near 100%
+        )
+        maps.legend([(maps.POINT, f"listed school ({len(listed)} shown)")], "Schools used")
+        if provisional:
+            st.markdown(
+                theme.badge(PROVISIONAL) + " "
+                + t(
+                    "Only {n} schools are in the provisional list (standalone pre-primary "
+                    "schools; most pre-primary classes are in primary schools, which it does "
+                    "not list). A sector far from a listed school may still have a school "
+                    "nearby: read these shares as an upper bound, not as areas without schools.",
+                    n=school_report.get("loaded", len(listed)),
+                ),
+                unsafe_allow_html=True,
+            )  # fmt: skip
     else:
         by_district = needs.groupby("district_id").agg(
             children=("children_3_5", "sum"), attending=("attending", "sum")
@@ -161,16 +219,21 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             lambda v: theme.fmt_pct(v),
             tooltip={k: status for k in rates.index},
             view=zoom,
-            height=420,
+            height=400,
             key="national-districts",
         )
 
-with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment, Rwanda", "trend"):
-    rows = data.table("forecast")
-    national = rows[rows.geo_id == forecast.NATIONAL]
+with (
+    right,
+    theme.panel(
+        t("{year} target outlook", year=TARGET_YEAR), "Pre-primary enrolment, Rwanda", "trend"
+    ),
+):
+    national = forecast_rows[forecast_rows.geo_id == forecast.NATIONAL]
     observed = national[national.kind == "observed"].set_index("year")
     projected = national[national.kind == "projected"].set_index("year")
-    st.altair_chart(charts.trend(observed, projected, target, height=330), width="stretch")
+    st.markdown(charts.trend_legend(), unsafe_allow_html=True)
+    st.altair_chart(charts.trend(observed, projected, target, height=320), width="stretch")
     nat = track_all.loc[forecast.NATIONAL]
     st.markdown(
         f"Projected **{theme.fmt_pct(nat.projected, 1)}** by {TARGET_YEAR} "
@@ -180,7 +243,7 @@ with right, theme.panel(f"{TARGET_YEAR} target outlook", "Pre-primary enrolment,
     )
     theme.note(
         "Gross rate: MINEDUC pre-primary pupils per child aged 3–5. Linear trend with an 80% "
-        f"prediction range. Status: {status}."
+        f"prediction range. Status: {track_status}."
     )
 
 # --- districts and actions ----------------------------------------------------------------
@@ -208,7 +271,7 @@ with (
         "chart",
     ),
 ):
-    show_all = st.toggle("Show all districts", value=False)
+    show_all = st.toggle(t("Show all districts"), value=False)
     rows_html = by if show_all else by.head(8)
     st.markdown(
         theme.table(
@@ -229,14 +292,19 @@ with (
                 ),
                 Col("places", "Places needed", fmt=lambda v, r: theme.fmt_int(v), num=True),
                 Col("rooms", "Rooms", fmt=lambda v, r: theme.fmt_int(v), num=True),
-                Col("track", f"{TARGET_YEAR} status", fmt=lambda v, r: theme.pill(v) if v else "–"),
+                Col(
+                    "track",
+                    t("{year} status", year=TARGET_YEAR),
+                    fmt=lambda v, r: theme.pill(v) if v else "–",
+                ),
             ],
+            pin=True,
         ),
         unsafe_allow_html=True,
     )
     theme.note(
-        f"Status of every number: {status}. Rooms and places: National ECD Standards (2024). "
-        "Hover a KPI for its source and year."
+        f"Children, places and rooms: {status}; {TARGET_YEAR} status: {track_status}. Rooms and "
+        "places: National ECD Standards (2024). Hover a KPI for its source and year."
     )
 
 with (
@@ -272,7 +340,7 @@ with (
                 theme.empty_state("No plan yet for your district. Start one from the ranking."),
                 unsafe_allow_html=True,
             )
-        st.page_link("views/plan.py", label="Open action plans", icon=":material/arrow_forward:")
+        st.page_link("views/plan.py", label=t("Open action plans"), icon=":material/arrow_forward:")
     else:
         st.markdown(
             theme.empty_state(
@@ -280,4 +348,4 @@ with (
             ),
             unsafe_allow_html=True,
         )
-        st.page_link("views/plan.py", label="Open action plans", icon=":material/arrow_forward:")
+        st.page_link("views/plan.py", label=t("Open action plans"), icon=":material/arrow_forward:")

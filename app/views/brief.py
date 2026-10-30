@@ -1,5 +1,7 @@
 """Screen 7. District brief: one printable page, every number cited; CSV and PDF exports."""
 
+from html import escape
+
 import pandas as pd
 import streamlit as st
 
@@ -14,9 +16,10 @@ from irerero.config import (
     TARGET_YEAR,
 )
 from irerero.learn import progress
-from irerero.plan.frame import ranked
+from irerero.plan.frame import distance_status, ranked, status_of
 from irerero.track import forecast, plans
 from irerero.ui import data, theme
+from irerero.ui.i18n import shown, t
 from irerero.ui.roles import ANALYST, current
 
 user = current()
@@ -31,28 +34,41 @@ name = districts[district_id]
 target = data.target()
 sectors = data.sectors()
 frame = sectors[sectors.district_id == district_id]
-simulated = (frame.status == SIMULATED).any()
-status = SIMULATED if simulated else "model estimate"
+forecast_rows = data.table("forecast")
+diagnosed = data.diagnosis_now(target)
+# each part has its own status: the estimate, the ranking (with the peer gap), the distance
+# layer, the trend and the bottleneck rules become real at different times
+status = status_of(frame)
+rank_status = SIMULATED if SIMULATED in (status, *frame.peer_status.dropna().unique()) else status
+far_status = distance_status(frame)
+track_status = status_of(forecast_rows[forecast_rows.geo_id == district_id])
+diag_status = status_of(diagnosed[diagnosed.district_id == district_id])
+simulated = SIMULATED in (status, rank_status, far_status, track_status, diag_status)
 
 theme.header(
     "District brief",
     "One page for the district council. Use your browser's print, or download the PDF or CSV.",
     simulated=simulated,
     crumbs=["Rwanda", frame.province.iat[0] if len(frame) else "", name, "District brief"],
+    assistant="brief",
 )
 
 with theme.panel(key="filters"):
     f1, f2 = st.columns([1, 2])
     if user.role == ANALYST:
-        f1.selectbox("District", list(districts), format_func=districts.get, key="brief-d")
+        f1.selectbox(t("District"), list(districts), format_func=districts.get, key="brief-d")
     else:
-        f1.selectbox("District", [district_id], format_func=districts.get, disabled=True)
-    preset = f2.radio("Priority preset", list(PRESETS), index=2, horizontal=True)
+        f1.selectbox(t("District"), [district_id], format_func=districts.get, disabled=True)
+    preset = f2.radio(
+        t("Priority preset"), list(PRESETS), index=2, horizontal=True, format_func=shown(PRESETS)
+    )
 weights = dict(zip(COMPONENTS, PRESETS[preset], strict=True))
 result, used = ranked(frame, target, weights)
-diag = data.diagnosis_now(target).set_index("geo_id")
+diag = diagnosed.set_index("geo_id")
 result["bottleneck"] = result.geo_id.map(diag.bottleneck)
-track = forecast.summary(data.table("forecast"), target).loc[district_id]
+result["rank_status"], result["far_status"] = rank_status, far_status
+result["bottleneck_status"] = result.geo_id.map(diag.status)
+track = forecast.summary(forecast_rows, target).loc[district_id]
 
 # --- page ---------------------------------------------------------------------------------
 refs = {
@@ -64,8 +80,8 @@ refs = {
     6: f"Target: {TARGET_2029.citation}",
 }
 with theme.panel(
-    f"{name} district · pre-primary brief",
-    f"Target {theme.fmt_pct(target)} by {TARGET_YEAR} · status of every number: {status}",
+    t("{name} district · pre-primary brief", name=name),
+    f"Target {theme.fmt_pct(target)} by {TARGET_YEAR} · each figure shows its status",
     "book",
 ):
     st.markdown(
@@ -85,18 +101,26 @@ with theme.panel(
         f"{theme.fmt_pct(track.projected, 1)} in {TARGET_YEAR} (80% range "
         f"{theme.fmt_pct(track.low)}-{theme.fmt_pct(track.high)}): {track.status} [4]",
     ]
-    for line in lines:
-        st.markdown(f"- {line}  ·  {theme.badge(status)}", unsafe_allow_html=True)
+    line_status = [status, status, status, track_status]
+    st.markdown(
+        '<ul class="ir-list">'
+        + "".join(
+            f"<li>{escape(line)} {theme.badge(s)}</li>"
+            for line, s in zip(lines, line_status, strict=True)
+        )
+        + "</ul>",
+        unsafe_allow_html=True,
+    )
 
     st.markdown(f"**Top 5 sectors ({preset})** [1] [2] [3] [5]")
     top = result.head(5)
-    table = pd.DataFrame(
+    table = pd.DataFrame(  # the PDF table: counts of children suppressed as in the CSV
         {
             "Rank": top["rank"],
             "Sector": top.name,
-            "Children 3-5": top.children_3_5.round().astype(int),
+            "Children 3-5": brief.suppress_counts(top.children_3_5.round().astype(int)),
             "Attending": (top.attendance_rate * 100).round().astype(int).astype(str) + "%",
-            "Places": top.places,
+            "Places": brief.suppress_counts(top.places),
             "Rooms": top.rooms,
             "> 1 km": (top.far_share * 100).round().astype(int).astype(str) + "%",
             "Bottleneck": top.bottleneck,
@@ -119,6 +143,7 @@ with theme.panel(
                 theme.Col("far_share", "> 1 km", fmt=lambda v, r: theme.fmt_pct(v), num=True),
                 theme.Col("bottleneck", "Bottleneck", fmt=lambda v, r: theme.pill(v)),
             ],
+            pin=True,
         ),
         unsafe_allow_html=True,
     )
@@ -153,12 +178,17 @@ with theme.panel(
         )
         st.markdown(f"**Training.** {training_line}")
 
-    st.markdown("**Sources**")
-    for n, text in refs.items():
-        st.markdown(f"[{n}] {text}")
+    st.markdown(
+        '<div class="ir-sub">Sources</div><ol class="ir-sources">'
+        + "".join(f"<li>[{n}] {escape(text)}</li>" for n, text in refs.items())
+        + "</ol>",
+        unsafe_allow_html=True,
+    )
     theme.note(
-        f"{DEFINITION} Status of every number: {status}. Priority is relative to other sectors "
-        "in the district. Associations, not causes. Decisions are made by people."
+        f"{DEFINITION} Children, places and rooms: {status}; ranking: {rank_status}; > 1 km: "
+        f"{far_status}; trend: {track_status}; bottlenecks: {diag_status}. Priority is relative "
+        "to other sectors in the district. Associations, not causes. Decisions are made by "
+        "people."
     )
 
 
@@ -167,12 +197,12 @@ with theme.panel(
     "Export", "Simulated values are left out unless you include them, then labelled.", "database"
 ):
     include = st.toggle(
-        "Include simulated values (labelled SIMULATED)",
+        t("Include simulated values (labelled SIMULATED)"),
         value=False,
         help="Simulated values are left out of exports unless you include them here.",
     )
     long = pd.concat(
-        [brief.district_rows(district_id, name, track, status), brief.sector_rows(result)],
+        [brief.district_rows(district_id, name, track, track_status), brief.sector_rows(result)],
         ignore_index=True,
     )
     exported = brief.export(long, include)
@@ -183,20 +213,30 @@ with theme.panel(
         )
     c1, c2 = st.columns(2)
     c1.download_button(
-        "Download CSV",
+        t("Download CSV"),
         brief.to_csv(long, include),
         file_name=f"irerero-brief-{name.lower()}.csv",
         mime="text/csv",
         disabled=exported.empty,
         icon=":material/table:",
     )
-    pdf_table = table if (include or not simulated) else table.head(0)
-    pdf_lines = lines if (include or not simulated) else ["Values withheld: simulated."]
+    # without simulated values, the PDF keeps the real lines and columns only
+    pdf_lines = [
+        line for line, s in zip(lines, line_status, strict=True) if include or s != SIMULATED
+    ]
+    hidden = [] if include else [
+        column for column, s in (("Rank", rank_status), ("> 1 km", far_status),
+                                 ("Bottleneck", diag_status)) if s == SIMULATED
+    ]  # fmt: skip
+    pdf_table = table.drop(columns=hidden) if status != SIMULATED or include else table.head(0)
+    if hidden:
+        pdf_lines.append(f"Withheld as simulated: {', '.join(hidden)}.")
     c2.download_button(
-        "Download PDF",
+        t("Download PDF"),
         brief.pdf(
             f"District brief: {name}",
-            [*pdf_lines, decisions, training_line],
+            # LEARN figures are simulated pilot data: only with simulated values included.
+            [*pdf_lines, decisions, *([training_line] if include else [])],
             pdf_table,
             [f"[{n}] {t}" for n, t in refs.items()] + [DEFINITION],
             simulated=simulated and include,

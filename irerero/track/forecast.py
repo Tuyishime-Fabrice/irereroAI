@@ -161,13 +161,21 @@ def places_per_year(
 
 
 def whatif(
-    projected: pd.Series, children: pd.Series, rooms_per_year: float, first_year: str
+    projected: pd.Series,
+    children: pd.Series,
+    rooms_per_year: float,
+    first_year: str,
+    max_places: float | None = None,
 ) -> pd.Series:
     """Projected rate per school year with `rooms_per_year` extra rooms added each year from
-    `first_year`, every place filled. `projected` and `children` are indexed by school year."""
+    `first_year`, every place filled. `projected` and `children` are indexed by school year.
+    With `max_places` (what the chosen sectors need), places beyond it stay empty and add
+    nothing."""
     years = list(projected.index)
     added = pd.Series(
         [max(0, years.index(sy) - years.index(first_year) + 1) for sy in years], index=years
     )
     extra = added * rooms_per_year * CHILDREN_PER_ROOM.value
+    if max_places is not None:
+        extra = extra.clip(upper=max(max_places, 0))
     return (projected + extra / children).clip(upper=1.0)

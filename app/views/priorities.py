@@ -6,12 +6,14 @@ from irerero.config import (
     COMPONENT_LABELS,
     COMPONENTS,
     PRESETS,
+    SIMULATED,
     STABILITY_DRAWS,
     TARGET_2029,
 )
-from irerero.plan.frame import any_simulated, ranked
+from irerero.plan.frame import distance_status, ranked, status_of
 from irerero.plan.priority import stability_label
-from irerero.ui import data, maps, theme
+from irerero.ui import data, i18n, maps, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import ANALYST, current
 from irerero.ui.theme import Col
 
@@ -25,33 +27,43 @@ else:
     district_id = user.district_id
 frame = all_sectors[all_sectors.district_id == district_id]
 province = frame.province.iat[0] if len(frame) else ""
-simulated = any_simulated(frame)
-status = "simulated" if simulated else "model estimate"
+# the ranking reads the estimate, the peer gap and poverty; the table also shows distance
+# (school points) and the main bottleneck (every DIAGNOSE factor), each with its own status
+status = (
+    SIMULATED
+    if SIMULATED in (status_of(frame), *frame.peer_status.dropna().unique())
+    else status_of(frame)
+)
+far_status = distance_status(frame)
+diag_status = status_of(data.diagnosis_now(data.target()))
+simulated = SIMULATED in (status, far_status, diag_status)
 
 theme.header(
     "District priorities",
     "Find where new pre-primary places are needed first, and how sure we can be of the order.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], "District priorities"],
+    assistant="priorities",
 )
 
 # --- filters ------------------------------------------------------------------------------
 with theme.panel(key="filters"):
     f1, f2, f3 = st.columns([1, 1, 1.2])
     if user.role == ANALYST:
-        f1.selectbox("District", ids, format_func=districts.get, key="prio-district")
+        f1.selectbox(t("District"), ids, format_func=districts.get, key="prio-district")
     else:
-        f1.selectbox("District", [district_id], format_func=districts.get, disabled=True,
+        f1.selectbox(t("District"), [district_id], format_func=districts.get, disabled=True,
                      help="Planners see their own district.")  # fmt: skip
-    preset = f2.selectbox(
-        "Priority preset",
+    preset = i18n.select(
+        f2,
+        t("Priority preset"),
         [*PRESETS, "Custom"],
-        index=2,
         key="preset",
+        index=2,
         help="Reach most children, Equity first and Balanced set the weights; Custom unlocks them.",
     )
     target_pct = f3.slider(
-        "Target attendance (%)",
+        t("Target attendance (%)"),
         30,
         90,
         round(data.target() * 100),
@@ -61,11 +73,12 @@ with theme.panel(key="filters"):
 target = target_pct / 100
 
 kpi_row = st.container()  # filled once the ranking is known
-main, side = st.columns([2.2, 1])
+main, side = st.columns([5, 3])
+weights_col, why_col = st.columns([1, 1])
 
-# --- weights (right) are read before the ranking (left) is drawn --------------------------
+# --- weights are read before the ranking above them is drawn ------------------------------
 with (
-    side,
+    weights_col,
     theme.panel(
         "How ranking works", "Each component is a percentile among the district's sectors.", "scale"
     ),
@@ -74,7 +87,7 @@ with (
     weights = {}
     for component, default in zip(COMPONENTS, base, strict=True):
         weights[component] = st.slider(
-            COMPONENT_LABELS[component],
+            t(COMPONENT_LABELS[component]),
             0.0,
             1.0,
             float(default),
@@ -116,7 +129,6 @@ with kpi_row:
             "rooms",
             "gold",
         )
-    st.write("")
 
 # --- ranking table ------------------------------------------------------------------------
 with (
@@ -154,35 +166,58 @@ with (
                     fmt=lambda v, r: theme.pill(stability_label(v), f"{v:.0%}"),
                 ),
             ],
+            pin=True,
         ),
         unsafe_allow_html=True,
     )
     theme.note(
         f"Top-3 stability: share of {STABILITY_DRAWS} random weightings around the chosen "
         "weights in which the sector stays in the top 3 (green ≥ 80%, amber 40–80%, grey "
-        f"below). Distance: {result.distance_method.iloc[0] if len(result) else ''}."
+        f"below). Ranking and places: {status}; > 1 km: {far_status} "
+        f"({result.distance_method.iloc[0] if len(result) else ''}); main bottleneck: "
+        f"{diag_status}."
     )
     if user.can_decide:
         names = dict(zip(result.geo_id, result.name, strict=True))
         a1, a2 = st.columns([3, 1], vertical_alignment="bottom")
         pick = a1.multiselect(
-            "Add sectors to your action plan",
+            t("Add sectors to your action plan"),
             list(names),
             default=[g for g in st.session_state.get("plan_basket", []) if g in names],
             format_func=names.get,
-            placeholder="Choose sectors",
+            placeholder=t("Choose sectors"),
         )
-        if a2.button("Add to plan", type="primary", icon=":material/add:", width="stretch"):
-            st.session_state["plan_basket"] = pick
-            st.success(
-                f"{len(pick)} sector(s) ready. Open Action plans to create or review the plan."
-            )
-        st.page_link("views/plan.py", label="Go to action plans", icon=":material/arrow_forward:")
+        # A sector already at the target needs no places, so it does not become a plan item.
+        places = dict(zip(result.geo_id, result.places, strict=True))
+        ready = [g for g in pick if places[g] > 0]
+        at_target = [g for g in pick if places[g] == 0]
+        if a2.button(
+            t("Add to plan"),
+            type="primary",
+            icon=":material/add:",
+            width="stretch",
+            disabled=not pick,
+        ):
+            st.session_state["plan_basket"] = ready
+            if ready:
+                st.success(
+                    f"{len(ready)} sector(s) ready. Open Action plans to create or review the plan."
+                )
+            if at_target:
+                st.warning(
+                    "Already at the target, so not added (no places needed): "
+                    + ", ".join(names[g] for g in at_target)
+                )
+        st.page_link(
+            "views/plan.py", label=t("Go to action plans"), icon=":material/arrow_forward:"
+        )
 
-# --- map and explanation (right) ----------------------------------------------------------
+# --- map (right of the ranking) and explanation (below) ----------------------------------
 with (
     side,
-    theme.panel(f"{districts[district_id]} map", "Priority score (higher = act first)", "pin"),
+    theme.panel(
+        t("{name} map", name=districts[district_id]), "Priority score (higher = act first)", "pin"
+    ),
 ):
     geo = data.geojson("sector")
     maps.choropleth(
@@ -195,11 +230,11 @@ with (
             for r in result.itertuples()
         },
         view=maps.view_for(geo, set(result.geo_id)),
-        height=360,
+        height=500,
         key="priority-map",
     )
 
-with side, theme.panel("Why this order", "Top three sectors, component by component", "info"):
+with why_col, theme.panel("Why this order", "Top three sectors, component by component", "info"):
     st.markdown(
         "<span class='ir-note'><b>Weights used:</b> "
         + " · ".join(f"{COMPONENT_LABELS[c]} {w:.0%}" for c, w in used.items())

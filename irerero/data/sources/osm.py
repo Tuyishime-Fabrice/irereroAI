@@ -51,12 +51,16 @@ class Network:
     edges: list[tuple[int, int]] = field(default_factory=list)
     status: str = OBSERVED
     real: bool = True
+    source: str = "osm"
+    """osm, mineduc_provisional (a partial school list) or demo"""
+    report: dict | None = None
+    """The school loader's report (records, invalid coordinates, missing properties)."""
 
 
 def load(raw: Path = RAW) -> Network:
     if not DATASET.present(raw):
         schools = read_csv(DEMO / "osm" / "schools.csv", SCHOOL_COLUMNS)
-        return Network(schools=schools, status=SIMULATED, real=False)
+        return Network(schools=schools, status=SIMULATED, real=False, source="demo")
     import osmium
 
     network = Network(schools=pd.DataFrame())

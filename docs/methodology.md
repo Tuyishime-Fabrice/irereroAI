@@ -182,8 +182,9 @@ The rules run live at the planner's target and with the latest LEARN completion.
 - **Back-test:** fit 2020/21 to 2023/24, predict 2024/25; we report the error and whether the
   observed value fell inside the interval.
 - **Places per year needed:** (t × children in 2028/29 − pupils in 2024/25) / 4.
-- **What-if:** N rooms a year from 2026/27, each place filled, added to the trend. A warning
-  shows when the places exceed what the chosen sectors need.
+- **What-if:** N rooms a year from 2026/27, each place filled, added to the trend. Places
+  beyond what the chosen sectors (or the whole district) need to reach the target stay empty
+  and add nothing; a warning shows when that happens.
 - **Plans** (`irerero/track/plans.py`): recommendations become plan items. The district
   planner approves, edits or rejects each one; edits and rejections need a reason. Items move
   through planned → funded → done.

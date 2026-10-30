@@ -27,6 +27,7 @@ theme.header(
     "Data & methods",
     "Where every number comes from, and how far to trust it.",
     crumbs=["Rwanda", "Data & methods"],
+    assistant="methods",
 )
 
 STATUS_MEANING = {
@@ -34,6 +35,8 @@ STATUS_MEANING = {
     "published estimate": "An estimate published by its producer (projections, survey rates).",
     "model estimate": "Computed by IrereroAI from observed and published inputs.",
     "user input": "Entered by a person in the app (targets, weights, decisions, check-ins).",
+    "provisional": "Built on real but partial records (a school list that is not the full "
+    "register). Shown and labelled; never read as complete coverage.",
     "simulated": "Invented stand-in while the real file is missing. Never a real value; left "
     "out of exports by default.",
 }
@@ -52,8 +55,18 @@ with k1:
     theme.kpi("Datasets with real files", f"{real_n} of {len(file_sets)}", "Data layer", None, None,
               "the rest use labelled stand-ins", "database", "teal")  # fmt: skip
 with k2:
-    theme.kpi("Sectors with real boundaries", "416", "geoBoundaries (CC BY 4.0)", "2023", "published estimate",
-              "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
+    units = data.table("geo_unit")
+    sector_units = units[units.level == "sector"]
+    coded = int(sector_units.nisr_code.notna().sum())
+    if bool(loaded.loaded.get("boundaries", False)):
+        theme.kpi("Sectors with real boundaries", str(len(sector_units)),
+                  "COD-AB boundaries (NISR via HDX)", "2022", "observed",
+                  f"{coded} with official NISR codes", "pin", "navy")  # fmt: skip
+    else:
+        theme.kpi("Sectors with real boundaries", str(len(sector_units)),
+                  "geoBoundaries (CC BY 4.0)", "2023", "published estimate",
+                  f"{coded} with NISR codes from the COD-AB gazetteer, to review" if coded
+                  else "real shapes, NISR codes to add", "pin", "navy")  # fmt: skip
 with k3:
     if len(run):
         best = run[run.chosen].iloc[0]
@@ -63,10 +76,10 @@ with k3:
 with k4:
     theme.kpi("Statuses in use", str(len(STATUSES)), "Provenance", None, None,
               "every number carries one", "shield", "gold")  # fmt: skip
-st.write("")
-tabs = st.tabs(
-    ["Sources", "Definitions", "Model card", "Validation", "Limitations", "NCDA connector"]
-)
+with theme.panel(key="methods"):
+    tabs = st.tabs(
+        ["Sources", "Definitions", "Model card", "Validation", "Limitations", "NCDA connector"]
+    )
 
 with tabs[0]:
     st.markdown("#### Status legend")
@@ -127,18 +140,48 @@ with tabs[0]:
         "File names, formats and required columns for each dataset are in DATA_SOURCES.md. "
         "Put a real file in data/raw/<dataset>/ and rebuild; nothing else changes."
     )
+    _, school_report = data.schools()
+    if school_report.get("features") is not None:
+        missing = {k: v for k, v in school_report.get("missing_properties", {}).items() if v}
+        st.markdown(
+            f"**School locations** {theme.badge(school_report.get('status'))}  \n"
+            f"{school_report.get('loaded', 0)} of {school_report['features']} records loaded "
+            f"and used by the distance layer; {school_report.get('invalid_coordinates', 0)} with "
+            f"coordinates outside Rwanda or not numbers and {school_report.get('missing_geometry', 0)}"
+            f" without a point (left out, never guessed); {school_report.get('duplicate_points', 0)}"
+            f" sharing another school's coordinates; missing properties: "
+            f"{', '.join(f'{k} ({v})' for k, v in missing.items()) or 'none'}."
+            + (f" Errors: {'; '.join(school_report['errors'])}." if school_report.get("errors")
+               else ""),
+            unsafe_allow_html=True,
+        )  # fmt: skip
+        if school_report.get("status") == "provisional":
+            theme.note(
+                "A provisional list: only standalone pre-primary schools. The share of children "
+                "more than 1 km from a listed school is an upper bound, and it is not used as "
+                "evidence in the bottleneck rules; a missing school is not proof of no school."
+            )
 
 with tabs[1]:
+    estimates = data.table("estimate_2026")
+    method = estimates.method.iat[0] if len(estimates) else "not built"
     st.markdown(f"**Scope.** {DEFINITION}")
     st.markdown(
         f"""
-- **Children aged 3 to 5 (2026):** NISR district projection × the district's census 3-5
-  share, split across sectors by WorldPop under-5 (× census age ratio) or, while WorldPop is
-  missing, by census sector shares. Range from the projection range and the disagreement
-  between the two splits.
-- **Attending (2026):** the sector's census 2022 attendance rate moved by the district's
-  change in MINEDUC pupils per child since 2021/22. Counts from different sources are never
-  added together.
+- **Children aged 3 to 5 (2026):** NISR's projected children aged 3 to 5 per district (from
+  the single-age tables; otherwise the projected population × the census 3-5 share), split
+  across sectors by WorldPop under-5 (× census age ratio) or, while WorldPop is missing, by
+  census sector shares. Range from the projection range and the disagreement between the two
+  splits. Method in use: *{method}*.
+- **Attending (2026):** the sector's census 2022 attendance rate. The app can move it by the
+  district's change in MINEDUC pupils per child since 2021/22 (`MINEDUC_TREND_ON_CENSUS`),
+  but this is off: the census rate (53.7% in 2022) and MINEDUC's gross rate barely agree by
+  district (correlation 0.3 to 0.4), and pupils grew 52% in 2022/23 alone. TRACK shows
+  MINEDUC's own rate. Counts from different sources are never added together.
+- **Census counts from sample records:** when the census arrives as sample records of
+  children aged 3 to 5 with population weights (not printed Table 2.5), each sector's count is
+  the sum of the weights, so it is a model estimate. Sectors resting on fewer than 100
+  sampled children carry about ±10 points of uncertainty on their attendance rate.
 - **Places** = max(0, ceil(t × P) − A); **rooms** = ceil(places / {CHILDREN_PER_ROOM.value:g});
   **caregivers** between places / {CAREGIVER_RATIO_HIGH.value:g} and places /
   {CAREGIVER_RATIO_LOW.value:g}. {CHILDREN_PER_ROOM.citation}.
@@ -232,10 +275,15 @@ with tabs[3]:
         f"30 districts; observed value inside the 80% range for "
         f"**{summary.backtest_inside.mean():.0%}** of districts."
     )
+    if (data.table("model_output").status == "simulated").any():
+        st.warning(
+            "The peer model's validation above is computed on simulated inputs: it tests the "
+            "method, not the real-world accuracy."
+        )
     if (data.table("forecast").status == "simulated").any():
         st.warning(
-            "Validation numbers above are computed on simulated data: they test the "
-            "method, not the real-world accuracy."
+            "The trend back-test runs on the simulated yearbook series: it tests the method, "
+            "not the real-world accuracy."
         )
 
 with tabs[4]:
@@ -244,8 +292,15 @@ with tabs[4]:
 - **Census attendance may leave out home-based ECD.** The gap is the formal pre-primary gap.
 - **Five yearbook points make a short trend.** The 2029 range assumes the trend continues;
   policy changes, fee changes or a new data series can break it.
-- **The 3-5 share of the population is held at its 2022 value** to 2029; falling fertility
-  would lower it, so 2029 children (and places needed) may be overstated.
+- **Children aged 3 to 5 to 2029** come from NISR's single-age projections when they are
+  loaded; otherwise the 3-5 share is held at its 2022 value, and falling fertility would make
+  2029 children (and places needed) overstated.
+- **Attendance in 2026 is the 2022 census rate.** Enrolment has grown since (MINEDUC's gross
+  rate rose from 35% in 2021/22 to 65% in 2024/25), so places needed may be overstated where it
+  grew. The two rates measure different things: the gross rate counts over-age pupils.
+- **The 2029 trend runs through a jump:** pupils rose 52% in 2022/23, so the straight-line
+  trend is steep and reaches the 100% cap in many districts; read "on track" with the latest
+  observed rate beside it.
 - **OSM does not say which schools have pre-primary.** Distance uses all schools and
   kindergartens; where roads are thin, straight-line distance understates the walk.
 - **District context.** Capacity and stunting are district values applied to every sector.
@@ -256,6 +311,9 @@ with tabs[4]:
 - **Kinyarwanda labels and course titles are drafts** awaiting review by a native speaker.
 - **Every value in this demo build that comes from a missing file is simulated**, labelled, and
   excluded from exports by default.
+- **The IrereroAI assistant is a language model.** It answers from this dashboard's figures and
+  labels their status, but it can still misread or misstate them: check an answer against the
+  screen before using it. It reads aggregates only and cannot change plans or data.
 """
     )
 

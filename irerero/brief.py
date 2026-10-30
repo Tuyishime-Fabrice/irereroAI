@@ -11,7 +11,9 @@ from irerero.config import SIMULATED, SUPPRESS_BELOW
 
 COUNT_INDICATORS = {"children_3_5", "attending", "places"}
 COLUMNS = ["geo_id", "area", "indicator", "value", "unit", "source", "period", "status"]
-SOURCE_ESTIMATE = "IrereroAI 2026 estimate (census 2022, NISR projections, MINEDUC)"
+SOURCE_ESTIMATE = (
+    "IrereroAI 2026 estimate (census 2022, NISR projections; MINEDUC trend once loaded)"
+)
 SOURCE_STANDARDS = "IrereroAI from the National ECD Standards (2024)"
 SOURCE_DISTANCE = "IrereroAI distance layer (OSM schools and roads)"
 SOURCE_DIAGNOSIS = "IrereroAI bottleneck rules"
@@ -20,10 +22,13 @@ SOURCE_TREND = "IrereroAI trend of MINEDUC yearbooks 2020/21-2024/25"
 
 def sector_rows(ranked: pd.DataFrame) -> pd.DataFrame:
     """Long rows for each sector of a ranked planning table (from plan.frame.ranked) joined
-    with its diagnosis (bottleneck)."""
+    with its diagnosis (bottleneck). Optional columns rank_status, far_status and
+    bottleneck_status give those values their own status; otherwise the estimate's applies."""
     rows = []
     for r in ranked.itertuples():
         status = r.status
+        rank_status = getattr(r, "rank_status", status)
+        far_status = getattr(r, "far_status", status)
         rows += [
             (
                 r.geo_id,
@@ -33,7 +38,7 @@ def sector_rows(ranked: pd.DataFrame) -> pd.DataFrame:
                 "rank",
                 "IrereroAI priority index",
                 "2026",
-                "model estimate" if status != SIMULATED else SIMULATED,
+                "model estimate" if rank_status != SIMULATED else SIMULATED,
             ),
             (
                 r.geo_id,
@@ -97,7 +102,16 @@ def sector_rows(ranked: pd.DataFrame) -> pd.DataFrame:
                 "2026",
                 status,
             ),
-            (r.geo_id, r.name, "far_share", r.far_share, "share", SOURCE_DISTANCE, "2026", status),
+            (
+                r.geo_id,
+                r.name,
+                "far_share",
+                r.far_share,
+                "share",
+                SOURCE_DISTANCE,
+                "2026",
+                far_status,
+            ),
         ]
         if hasattr(r, "bottleneck"):
             rows.append(
@@ -109,7 +123,7 @@ def sector_rows(ranked: pd.DataFrame) -> pd.DataFrame:
                     "category",
                     SOURCE_DIAGNOSIS,
                     "2026",
-                    status,
+                    getattr(r, "bottleneck_status", status),
                 )
             )
     return pd.DataFrame(rows, columns=COLUMNS)
@@ -171,13 +185,18 @@ def district_rows(geo_id: str, name: str, summary: pd.Series, status: str) -> pd
     return pd.DataFrame(rows, columns=COLUMNS)
 
 
+def suppress_counts(values: pd.Series) -> pd.Series:
+    """One column of counts of children: values below SUPPRESS_BELOW become "fewer than 10".
+    The same rule for the long CSV rows and the PDF table."""
+    small = pd.to_numeric(values, errors="coerce") < SUPPRESS_BELOW
+    return values.astype(object).where(~small, f"fewer than {SUPPRESS_BELOW}")
+
+
 def suppress(frame: pd.DataFrame) -> pd.DataFrame:
     """Counts of children below SUPPRESS_BELOW become "fewer than 10"."""
     out = frame.copy().astype({"value": object})
-    small = out.indicator.str.replace(r"_(low|high)$", "", regex=True).isin(COUNT_INDICATORS) & (
-        pd.to_numeric(out.value, errors="coerce") < SUPPRESS_BELOW
-    )
-    out.loc[small, "value"] = f"fewer than {SUPPRESS_BELOW}"
+    counts = out.indicator.str.replace(r"_(low|high)$", "", regex=True).isin(COUNT_INDICATORS)
+    out.loc[counts, "value"] = suppress_counts(out.loc[counts, "value"])
     return out
 
 

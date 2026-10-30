@@ -1,13 +1,16 @@
 """Fixed parameters, each with where it comes from. Change them here, nowhere else."""
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-RAW = DATA / "raw"
+# The tests point these elsewhere, so they never read the files a machine holds or overwrite
+# its build.
+RAW = Path(os.environ.get("IRERERO_RAW", DATA / "raw"))
 INTERIM = DATA / "interim"
-PROCESSED = DATA / "processed"
+PROCESSED = Path(os.environ.get("IRERERO_PROCESSED", DATA / "processed"))
 REFERENCE = DATA / "reference"
 DEMO = DATA / "demo"
 CONTENT = ROOT / "content"
@@ -63,6 +66,12 @@ COMPONENT_LABELS = {
 PROJECTION_REL_ERROR = 0.03
 SHARE_DRIFT_REL = 0.05
 MAX_ATTENDANCE = 0.98  # cap for the projected attendance rate
+# Move the census 2022 attendance rate by the district's MINEDUC growth (pupils per child since
+# 2021/22)? Off: with the real yearbooks, census attendance (53.7%) and the MINEDUC gross rate
+# barely agree by district (correlation 0.3 to 0.4), pupils grew 52% in 2022/23 alone, and the
+# product put 250 of 416 sectors at the 98% cap. 2026 attendance stays the census 2022 rate,
+# and TRACK shows MINEDUC's own rate. Turn on only with a reviewed, comparable series.
+MINEDUC_TREND_ON_CENSUS = False
 
 # Distance layer.
 GRID_SPACING_M = 250  # spacing of evenly spread points while WorldPop is missing
@@ -99,11 +108,14 @@ PUBLISHED = "published estimate"
 MODEL = "model estimate"
 USER = "user input"
 SIMULATED = "simulated"
-STATUSES = (OBSERVED, PUBLISHED, MODEL, USER, SIMULATED)
+# Real records, but a partial list (e.g. 139 of the schools with pre-primary): shown, labelled,
+# never read as complete coverage.
+PROVISIONAL = "provisional"
+STATUSES = (OBSERVED, PUBLISHED, MODEL, USER, PROVISIONAL, SIMULATED)
 
 # Brand colours from the IrereroAI logo, plus a colour-blind-safe status set (Okabe-Ito).
-NAVY = "#033665"
-GREEN = "#18977A"
+NAVY = "#0B2E50"
+GREEN = "#169B83"
 GOLD = "#ECA837"
 INK = "#0F1B2A"
 MUTED = "#5B6B7C"

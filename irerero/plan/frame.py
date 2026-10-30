@@ -6,7 +6,7 @@ from collections.abc import Mapping
 import pandas as pd
 from sqlalchemy import Engine
 
-from irerero.config import SIMULATED
+from irerero.config import MODEL, PROVISIONAL, SIMULATED
 from irerero.db.store import read
 from irerero.plan import gap, priority
 
@@ -41,8 +41,10 @@ def sectors(eng: Engine) -> pd.DataFrame:
         out["expected"] = out.geo_id.map(model.expected)
         out["expected_low"] = out.geo_id.map(model.low)
         out["expected_high"] = out.geo_id.map(model.high)
+        out["peer_status"] = out.geo_id.map(model.status)
     else:
         out["expected"] = out["expected_low"] = out["expected_high"] = float("nan")
+        out["peer_status"] = None
     return out
 
 
@@ -81,5 +83,19 @@ def ranked(
     return out.sort_values("rank").reset_index(), used
 
 
-def any_simulated(frame: pd.DataFrame) -> bool:
-    return bool((frame.status == SIMULATED).any())
+def status_of(frame: pd.DataFrame) -> str:
+    """One status for a table on screen: simulated when any of its rows is."""
+    if frame.empty or "status" not in frame:
+        return MODEL
+    return SIMULATED if (frame.status == SIMULATED).any() else str(frame.status.mode().iat[0])
+
+
+def distance_status(frame: pd.DataFrame) -> str:
+    """The distance layer is simulated while the school points are, even on a real estimate,
+    and provisional while they are a partial list."""
+    method = frame.distance_method.astype(str)
+    if method.str.contains("simulated").any():
+        return SIMULATED
+    if method.str.contains("provisional").any():
+        return PROVISIONAL
+    return status_of(frame)

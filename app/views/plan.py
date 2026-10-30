@@ -12,6 +12,7 @@ from irerero.config import (
     PROJECTION_YEARS,
     SIMULATED,
     TARGET_2027,
+    TARGET_2029,
     TARGET_YEAR,
     YEARBOOK_YEARS,
 )
@@ -19,7 +20,8 @@ from irerero.learn import progress
 from irerero.plan import gap
 from irerero.plan.frame import ranked
 from irerero.track import forecast, plans
-from irerero.ui import charts, data, theme
+from irerero.ui import charts, data, i18n, theme
+from irerero.ui.i18n import t
 from irerero.ui.roles import ANALYST, OFFICER, current
 from irerero.ui.theme import Col
 
@@ -50,41 +52,46 @@ plan_items = plans.items(eng, plan_id) if plan_id else pd.DataFrame()
 
 theme.header(
     "Action plans & progress",
-    f"Track decisions, delivery and progress toward {theme.fmt_pct(target)} by {TARGET_YEAR}.",
+    t(
+        "Track decisions, delivery and progress toward {target} by {year}.",
+        target=theme.fmt_pct(target),
+        year=TARGET_YEAR,
+    ),
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], "Action plans & progress"],
+    assistant="plan",
 )
 if user.role == ANALYST:
     with theme.panel(key="filters"):
-        st.selectbox("District", ids_d, format_func=districts.get, key="plan-d")
+        st.selectbox(t("District"), ids_d, format_func=districts.get, key="plan-d")
 
 # --- NST2 banner --------------------------------------------------------------------------
 first = observed.value.iloc[0]
 delta = (summary.latest - first) * 100
 m = projected.loc[MILESTONE_YEAR]
-st.markdown(
-    f"""<div class="ir-callout" style="background:#EAF6F2;border-color:#CFE7E0;display:flex;
-    flex-wrap:wrap;gap:1.2rem;align-items:center;justify-content:space-between">
-    <div style="display:flex;gap:.8rem;align-items:center;min-width:260px;flex:2">
-      <span style="color:{theme.TEAL_700}">{theme.icon("target", 40, 1.8)}</span>
-      <div><div style="font-weight:800;color:{theme.NAVY};font-size:1.1rem">NST2 target:
-      65% pre-primary enrolment by 2028/29</div><div class="ir-note">Gross rate (MINEDUC pupils
-      per child aged 3–5) · {districts[district_id]} · status: {status_label}</div></div></div>
-    <div style="flex:1;min-width:150px;border-left:1px solid #CFE7E0;padding-left:1rem">
-      <div class="ir-note">Current ({latest_year})</div>
-      <div style="font-weight:800;color:{theme.NAVY};font-size:1.6rem">{theme.fmt_pct(summary.latest, 1)}</div>
-      <div class="ir-note">{delta:+.1f} pts since {observed.index[0]}</div></div>
-    <div style="flex:1;min-width:150px;border-left:1px solid #CFE7E0;padding-left:1rem">
-      <div class="ir-note">{MILESTONE_YEAR} milestone</div>
-      <div style="font-weight:800;color:{theme.NAVY};font-size:1.6rem">{TARGET_2027.value:.1%}</div>
-      <div class="ir-note">projected {theme.fmt_pct(m.value, 1)}</div></div>
-    <div style="flex:1;min-width:150px;border-left:1px solid #CFE7E0;padding-left:1rem">
-      <div class="ir-note">{TARGET_YEAR} target</div>
-      <div style="font-weight:800;color:{theme.NAVY};font-size:1.6rem">{theme.fmt_pct(target)}</div>
-      <div>{theme.pill(summary.status)}</div></div></div>""",
-    unsafe_allow_html=True,
+nst2 = TARGET_2029.value
+# The strip names the NST2 target; the last column is the target set on the screens, which can
+# differ from it.
+target_label = (
+    t("{year} target", year=TARGET_YEAR)
+    if round(target, 3) == round(nst2, 3)
+    else t("Your {year} target (NST2: {target})", year=TARGET_YEAR, target=theme.fmt_pct(nst2))
 )
-st.write("")
+theme.stat_strip(
+    t("NST2 target: {target} pre-primary enrolment by {year}", target=f"{nst2:.0%}", year=TARGET_YEAR),
+    f"Gross rate (MINEDUC pupils per child aged 3–5) · {districts[district_id]} · "
+    f"status: {status_label}",
+    [
+        (
+            t("Current ({year})", year=latest_year),
+            theme.fmt_pct(summary.latest, 1),
+            f"{delta:+.1f} pts since {observed.index[0]}",
+        ),
+        (t("{year} milestone", year=MILESTONE_YEAR), f"{TARGET_2027.value:.1%}",
+         f"projected {theme.fmt_pct(m.value, 1)}"),
+        (target_label, theme.fmt_pct(target), theme.pill(summary.status)),
+    ],
+)  # fmt: skip
 
 # --- KPIs ---------------------------------------------------------------------------------
 need = forecast.places_per_year(
@@ -100,7 +107,7 @@ if user.role == OFFICER:
     training = training[training.sector_id == user.sector_id]
 k1, k2, k3, k4 = st.columns(4)
 with k1:
-    theme.kpi(f"Projected {TARGET_YEAR}", theme.fmt_pct(summary.projected, 1), "IrereroAI linear trend",
+    theme.kpi(t("Projected {year}", year=TARGET_YEAR), theme.fmt_pct(summary.projected, 1), "IrereroAI linear trend",
               TARGET_YEAR, status_label, f"80% range {theme.fmt_pct(summary.low)}–{theme.fmt_pct(summary.high)}",
               "trend", "blue")  # fmt: skip
 with k2:
@@ -134,7 +141,6 @@ with k4:
     else:
         theme.kpi("Required training completed", "–", "LEARN pilot", None, None,
                   "pilot runs in Muhanga only", "cap", "purple")  # fmt: skip
-st.write("")
 
 # --- trend with what-if, and recent decisions ---------------------------------------------
 left, right = st.columns([3, 2])
@@ -148,20 +154,26 @@ with (
 ):
     w1, w2 = st.columns([2, 1])
     chosen = w1.multiselect(
-        "Sectors to add rooms in",
+        t("Sectors to add rooms in"),
         list(names),
         default=[g for g in plan_items.get("geo_id", []) if g in names][:5],
         format_func=names.get,
     )
     total_rooms = w2.number_input(
-        f"Rooms a year (from {MILESTONE_YEAR})",
+        t("Rooms a year (from {year})", year=MILESTONE_YEAR),
         min_value=0,
         max_value=2000,
         value=max(approved_rooms // len(PROJECTION_YEARS[1:]), 1) if approved_rooms else 10,
         step=1,
         help="Approved plan rooms spread over the three school years to 2028/29 by default.",
     )
-    with_plan = forecast.whatif(projected.value, kids, total_rooms, MILESTONE_YEAR)
+    # Places beyond what the chosen sectors (or the district) need stay empty and add nothing.
+    scope = district_rows[district_rows.geo_id.isin(chosen)] if chosen else district_rows
+    room_gap = int(gap.needs(scope, target).places.sum())
+    with_plan = forecast.whatif(
+        projected.value, kids, total_rooms, MILESTONE_YEAR, max_places=room_gap
+    )
+    st.markdown(charts.trend_legend(with_plan=True), unsafe_allow_html=True)
     st.altair_chart(
         charts.trend(observed, projected, target, with_plan, height=300), width="stretch"
     )
@@ -169,22 +181,19 @@ with (
     lands_status = forecast.status_for(lands, lands, target)
     where = ", ".join(names[g] for g in chosen) if chosen else "the district"
     st.markdown(
-        f"Adding **{total_rooms} rooms a year** in {where} from {MILESTONE_YEAR}, every place "
-        f"filled, the district reaches **{theme.fmt_pct(lands, 1)}** by {TARGET_YEAR} "
+        f"Adding **{total_rooms} rooms a year** in {where} from {MILESTONE_YEAR}, every needed "
+        f"place filled, the district reaches **{theme.fmt_pct(lands, 1)}** by {TARGET_YEAR} "
         f"{theme.pill(lands_status)}",
         unsafe_allow_html=True,
     )
-    if chosen:
-        added = total_rooms * len(PROJECTION_YEARS[1:]) * CHILDREN_PER_ROOM.value
-        room_gap = int(
-            gap.needs(district_rows[district_rows.geo_id.isin(chosen)], target).places.sum()
+    added = total_rooms * len(PROJECTION_YEARS[1:]) * CHILDREN_PER_ROOM.value
+    if added > room_gap:
+        st.warning(
+            f"{added:,} places is more than {'the chosen sectors' if chosen else 'the district'} "
+            f"need to reach {theme.fmt_pct(target)} ({room_gap:,}). Extra places may stay empty, "
+            f"so the projection counts at most {room_gap:,}"
+            + (": spread the rooms to other sectors." if chosen else ".")
         )
-        if added > room_gap:
-            st.warning(
-                f"{added:,} places is more than the chosen sectors need to reach "
-                f"{theme.fmt_pct(target)} ({room_gap:,}). Extra places may stay empty: spread the "
-                "rooms to other sectors."
-            )
     back = summary.backtest_error_pp
     theme.note(
         f"Back-test: fitted on 2020/21–2023/24, the trend predicted {latest_year} within "
@@ -194,6 +203,7 @@ with (
 
 ACTION_TEXT = {
     "plan.create": ("Plan created", "navy"),
+    "plan_item.add": ("Added to plan", "navy"),
     "plan_item.approve": ("Approved", "teal"),
     "plan_item.edit": ("Edited", "blue"),
     "plan_item.reject": ("Rejected", "rose"),
@@ -219,12 +229,30 @@ with right, theme.panel("Recent decisions & updates", "From the append-only audi
         what = f"{label}{': ' + sector if sector else ''}{extra}"
         why = theme.text(r.reason) + f" · {r.role.replace('_', ' ')}"
         entries.append((f"{r.at:%d %b %Y, %H:%M} UTC", what, why.strip(" ·"), tone))
-    st.markdown(theme.timeline(entries), unsafe_allow_html=True)
+    # The newest entry glows once when it was written moments ago, i.e. a decision just recorded.
+    just_now = len(log) and (audit.now() - log["at"].iloc[0]).total_seconds() < 30
+    fresh = ("a" if len(log) % 2 else "b") if just_now else ""
+    st.markdown(theme.timeline(entries, fresh), unsafe_allow_html=True)
     if len(log) > 7:
         theme.note(f"{len(log) - 7} older entries in the full audit log below.")
 
 # --- plan ---------------------------------------------------------------------------------
 diag = data.diagnosis_now(target).set_index("geo_id")
+
+
+def as_items(rows: pd.DataFrame) -> list[dict]:
+    """Ranked sector rows as plan items, with their bottleneck and suggested action."""
+    columns = ["geo_id", "rank", "places", "rooms", "caregivers_low", "caregivers_high"]
+    return [
+        {
+            **r,
+            "bottleneck": diag.at[r["geo_id"], "bottleneck"],
+            "intervention": diag.at[r["geo_id"], "intervention"],
+        }
+        for r in rows[columns].to_dict(orient="records")
+    ]
+
+
 with theme.panel(
     "Action plan",
     "Recommendations become plan items; the district planner decides each one.",
@@ -238,12 +266,14 @@ with theme.panel(
                     "you to approve, edit or reject."
                 )
                 f1, f2, f3 = st.columns(3)
-                preset = f1.selectbox("Priority preset", list(PRESETS), index=2)
+                preset = f1.selectbox(
+                    t("Priority preset"), list(PRESETS), index=2, format_func=i18n.shown(PRESETS)
+                )
                 top_n = f2.number_input(
-                    "Top sectors", 1, len(district_rows), min(5, len(district_rows))
+                    t("Top sectors"), 1, len(district_rows), min(5, len(district_rows))
                 )
                 name = f3.text_input(
-                    "Plan name", f"{districts[district_id]} pre-primary plan 2026-29"
+                    t("Plan name"), f"{districts[district_id]} pre-primary plan 2026-29"
                 )
                 basket = [g for g in st.session_state.get("plan_basket", []) if g in names]
                 if basket:
@@ -251,37 +281,14 @@ with theme.panel(
                         "Also added from the ranking or Sector diagnosis: "
                         + ", ".join(names[g] for g in basket)
                     )
-                if st.form_submit_button("Create plan", type="primary", icon=":material/add:"):
+                if st.form_submit_button(t("Create plan"), type="primary", icon=":material/add:"):
                     weights = dict(zip(COMPONENTS, PRESETS[preset], strict=True))
                     result, _ = ranked(district_rows, target, weights, stability=False)
                     pick = result.head(int(top_n))
                     extra = result[result.geo_id.isin(basket) & ~result.geo_id.isin(pick.geo_id)]
                     pick = pd.concat([pick, extra])
                     plans.create_plan(
-                        eng,
-                        user,
-                        district_id,
-                        name,
-                        target,
-                        preset,
-                        weights,
-                        [
-                            {
-                                **r,
-                                "bottleneck": diag.at[r["geo_id"], "bottleneck"],
-                                "intervention": diag.at[r["geo_id"], "intervention"],
-                            }
-                            for r in pick[
-                                [
-                                    "geo_id",
-                                    "rank",
-                                    "places",
-                                    "rooms",
-                                    "caregivers_low",
-                                    "caregivers_high",
-                                ]
-                            ].to_dict(orient="records")
-                        ],
+                        eng, user, district_id, name, target, preset, weights, as_items(pick)
                     )
                     st.session_state["plan_basket"] = []
                     st.rerun()
@@ -296,6 +303,34 @@ with theme.panel(
             f"**{plan_row['name']}** · target {theme.fmt_pct(plan_row.target)} · preset "
             f"{plan_row.preset} · created {plan_row.created_at:%d %b %Y} by {plan_row.created_by}"
         )
+        in_plan = set(plan_items.geo_id) if len(plan_items) else set()
+        basket = [
+            g for g in st.session_state.get("plan_basket", []) if g in names and g not in in_plan
+        ]
+        if user.can_decide and basket:
+            b1, b2 = st.columns([3, 1], vertical_alignment="center")
+            b1.markdown(
+                "Added from the ranking or Sector diagnosis, not yet in this plan: "
+                + ", ".join(names[g] for g in basket)
+            )
+            if b2.button(
+                t("Add {n} to this plan", n=len(basket)),
+                type="primary",
+                icon=":material/add:",
+                width="stretch",
+            ):
+                # The plan's own preset and target, so new items match the ones already in it.
+                weights = dict(
+                    zip(
+                        COMPONENTS,
+                        PRESETS.get(plan_row.preset, PRESETS["Balanced"]),
+                        strict=True,
+                    )
+                )
+                result, _ = ranked(district_rows, float(plan_row.target), weights, stability=False)
+                plans.add_items(eng, user, plan_id, as_items(result[result.geo_id.isin(basket)]))
+                st.session_state["plan_basket"] = []
+                st.rerun()
         shown = plan_items
         if user.role == OFFICER:
             shown = plan_items[plan_items.geo_id == user.sector_id]
@@ -323,6 +358,7 @@ with theme.panel(
                         ),
                     ),
                 ],
+                pin=True,
                 empty="No items for your sector in this plan.",
             ),
             unsafe_allow_html=True,
@@ -345,19 +381,24 @@ with theme.panel(
                     with st.form(f"decide-{item.id}", border=False):
                         d1, d2 = st.columns([1, 2])
                         decision = d1.radio(
-                            "Decision", ["approve", "edit", "reject"], key=f"dec-{item.id}"
+                            t("Decision"),
+                            ["approve", "edit", "reject"],
+                            key=f"dec-{item.id}",
+                            format_func=i18n.shown(plans.DECISIONS),
                         )
                         places = d1.number_input(
-                            "Places (for an edit)",
+                            t("Places (for an edit)"),
                             0,
                             100_000,
                             int(item.places),
                             key=f"pl-{item.id}",
                         )
                         reason = d2.text_area(
-                            "Reason (required to edit or reject)", key=f"re-{item.id}", height=110
+                            t("Reason (required to edit or reject)"),
+                            key=f"re-{item.id}",
+                            height=110,
                         )
-                        if st.form_submit_button("Record decision", type="primary"):
+                        if st.form_submit_button(t("Record decision"), type="primary"):
                             try:
                                 plans.decide(eng, user, item.id, decision, reason, places)
                                 st.rerun()
@@ -366,13 +407,16 @@ with theme.panel(
                     if item.decision in ("approved", "edited"):
                         c1, c2 = st.columns([2, 1], vertical_alignment="bottom")
                         new = c1.selectbox(
-                            "Delivery status",
+                            t("Delivery status"),
                             plans.STATUSES,
+                            format_func=i18n.shown(plans.STATUSES),
                             index=plans.STATUSES.index(item.status),
-                            key=f"st-{item.id}",
+                            key=f"st-{item.id}-{i18n.lang()}",  # shown text follows the language
                         )
                         if c2.button(
-                            "Update status", key=f"stb-{item.id}", disabled=new == item.status
+                            t("Update status"),
+                            key=f"stb-{item.id}",
+                            disabled=new == item.status,
                         ):
                             plans.set_status(eng, user, item.id, new)
                             st.rerun()
@@ -381,7 +425,7 @@ with theme.panel(
                 "Read-only: only the district planner approves, edits or rejects plan items."
             )
 
-        with st.expander("Full audit log for this plan"):
+        with st.expander(t("Full audit log for this plan")):
             st.dataframe(
                 log[["at", "user_id", "role", "action", "entity_id", "reason"]].rename(
                     columns={

@@ -14,6 +14,7 @@ from irerero.ui.theme import RAMP
 
 VIRIDIS = list(RAMP)  # low -> high
 NO_DATA = "#D0D5DB"
+POINT = "#B54708"  # school points: orange, apart from the green-blue ramp
 VIEW = pdk.ViewState(latitude=-1.95, longitude=29.9, zoom=7.2, min_zoom=6, max_zoom=13)
 
 
@@ -46,10 +47,14 @@ def choropleth(
     view: pdk.ViewState | None = None,
     height: int = 460,
     key: str | None = None,
+    points: list[dict] | None = None,
+    edges: list[float] | None = None,
 ) -> None:
-    """Colour features by value (quantile bins), or by a given colour per geo_id."""
+    """Colour features by value (quantile bins unless fixed `edges` are given), or by a given
+    colour per geo_id. `points` (dicts with lon, lat, name and extra) are drawn on top, e.g.
+    school locations."""
     data = copy.deepcopy(geojson)
-    edges = bins(values)
+    edges = edges or bins(values)
     palette = VIRIDIS[: max(1, len(edges) - 1)]
     keep = []
     for feature in data["features"]:
@@ -79,13 +84,33 @@ def choropleth(
         line_width_min_pixels=0.6,
         auto_highlight=True,
     )
+    layers = [layer]
+    if points:
+        layers.append(
+            pdk.Layer(
+                "ScatterplotLayer",
+                [
+                    {**p, "value_text": p.get("value_text", ""), "position": [p["lon"], p["lat"]]}
+                    for p in points
+                ],
+                pickable=True,
+                get_position="position",
+                get_fill_color=_rgb(POINT, 235),
+                get_line_color=[255, 255, 255, 255],
+                stroked=True,
+                line_width_min_pixels=1,
+                radius_min_pixels=3,
+                radius_max_pixels=7,
+                get_radius=250,
+            )
+        )
     deck = pdk.Deck(
-        layers=[layer],
+        layers=layers,
         initial_view_state=view or VIEW,
         map_style="light",
         tooltip={
             "html": f"<b>{{name}}</b><br/>{label}: {{value_text}}<br/>{{extra}}",
-            "style": {"fontSize": "12px"},
+            "style": {"fontSize": "12px", "fontFamily": "Inter, sans-serif"},
         },
     )
     st.pydeck_chart(deck, height=height, key=key)
@@ -99,14 +124,15 @@ def choropleth(
 def legend(items: list[tuple[str, str]], title: str) -> None:
     """Swatches with dark text beside each colour, so no reading depends on colour alone."""
     swatches = "".join(
-        f'<span style="display:inline-flex;align-items:center;gap:.35rem;margin:.15rem .8rem .15rem 0;'
-        f'font-size:.78rem;color:#0F1B2A"><span style="width:12px;height:12px;border-radius:3px;'
-        f'background:{colour};border:1px solid rgba(15,27,42,.15)"></span>{escape(text)}</span>'
+        f'<span style="display:inline-flex;align-items:center;gap:6px;margin:4px 16px 4px 0;'
+        f'font-size:12px;color:#0F1B2A"><span class="ir-swatch" style="width:12px;height:12px;'
+        "border-radius:3px;"
+        f'background:{colour};border:1px solid rgba(15,27,42,.2)"></span>{escape(text)}</span>'
         for colour, text in items
     )
     st.markdown(
-        f'<div style="margin-top:.3rem"><div class="ir-note" style="margin-bottom:.1rem">'
-        f"{escape(title)}</div>{swatches}</div>",
+        f'<div role="group" aria-label="{escape(title, quote=True)}"><div class="ir-note" '
+        f'style="margin-bottom:2px">{escape(title)}</div>{swatches}</div>',
         unsafe_allow_html=True,
     )
 

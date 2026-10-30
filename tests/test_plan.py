@@ -132,3 +132,49 @@ def test_estimate_calibrates_to_district_totals(inputs):
     assert (est.children_3_5 <= est.high).all()
     assert est.attendance_rate.between(0, 1).all()
     assert set(est.status) == {SIMULATED}  # built from simulated inputs
+
+
+def test_a_real_census_is_never_moved_by_a_simulated_yearbook(inputs):
+    """Census and projections real, yearbook still simulated: the 2022 rates stay as they are
+    (no simulated trend on real figures), and the estimate is not labelled simulated."""
+    from dataclasses import replace
+
+    from irerero.config import MODEL
+
+    real = replace(
+        inputs,
+        census_sectors=replace(inputs.census_sectors, real=True),
+        projections=replace(inputs.projections, real=True),
+    )
+    est = estimate(real).set_index("geo_id")
+    assert set(est.status) == {MODEL}
+    assert np.allclose(est.attendance_rate, est.attendance_rate_2022.clip(upper=0.98), atol=1e-4)
+    assert "not moved by MINEDUC" in est.method.iloc[0]
+
+
+def test_the_mineduc_trend_moves_attendance_only_when_switched_on(inputs, monkeypatch):
+    from irerero.plan import estimate as module
+
+    off = estimate(inputs).set_index("geo_id")
+    assert np.allclose(off.attendance_rate, off.attendance_rate_2022.clip(upper=0.98), atol=1e-4)
+    assert "not comparable by district" in off.method.iloc[0]
+    monkeypatch.setattr(module, "MINEDUC_TREND_ON_CENSUS", True)
+    on = module.estimate(inputs).set_index("geo_id")  # all simulated: the demo trend applies
+    assert "moved by the MINEDUC trend" in on.method.iloc[0]
+    assert not np.allclose(on.attendance_rate, off.attendance_rate)
+
+
+def test_projected_children_3_5_are_used_when_the_projections_carry_them(inputs):
+    from dataclasses import replace
+
+    from irerero.plan.estimate import children_by_district
+
+    frame = inputs.projections.frame.assign(children_3_5=lambda f: (f.population * 0.08).round())
+    direct = replace(inputs, projections=replace(inputs.projections, frame=frame))
+    totals = children_by_district(direct, 2026).children_3_5
+    expected = frame[frame.year == 2026].set_index("geo_id").children_3_5
+    assert np.allclose(totals, expected.loc[totals.index])
+    est = estimate(direct)
+    sums = est.groupby("district_id").children_3_5.sum()
+    assert np.allclose(sums, totals.loc[sums.index], rtol=0.001)
+    assert "NISR projected children aged 3-5" in est.method.iloc[0]

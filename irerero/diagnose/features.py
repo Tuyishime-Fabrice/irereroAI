@@ -43,6 +43,41 @@ LABELS = {
 }
 
 
+# where each indicator comes from; "estimate" and "distance" are IrereroAI's own layers
+SOURCES = {
+    "attendance_2022": "census_2022",
+    "nonattendance": "estimate",
+    "far_share": "distance",
+    "urban_share": "census_2022",
+    "women_secondary_share": "census_2022",
+    "water_share": "census_2022",
+    "sanitation_share": "census_2022",
+    "electricity_share": "census_2022",
+    "log_density": "census_2022",
+    "poverty": "eicv7",
+    "pupils_per_teacher": "yearbook",
+    "pupils_per_classroom": "yearbook",
+    "qualified_share": "yearbook",
+    "stunting": "rdhs_2025",
+}
+
+
+def simulated_features(obs: pd.DataFrame, estimates: pd.DataFrame) -> set[str]:
+    """The indicators that rest on a simulated stand-in."""
+    sources = set(obs[obs.status == SIMULATED].source_id)
+    if (estimates.status == SIMULATED).any():
+        sources |= {"estimate", "distance"}
+    if estimates.distance_method.astype(str).str.contains("simulated").any():
+        sources.add("distance")
+    return {feature for feature, source in SOURCES.items() if source in sources}
+
+
+def provisional_features(estimates: pd.DataFrame) -> set[str]:
+    """The indicators that rest on a partial list (shown, but not evidence in the rules)."""
+    method = estimates.distance_method.astype(str)
+    return {"far_share"} if method.str.contains("provisional").any() else set()
+
+
 def _wide(obs: pd.DataFrame, period: str | None = None) -> pd.DataFrame:
     rows = obs if period is None else obs[obs.reference_period == period]
     rows = rows.sort_values("reference_period").groupby(["geo_id", "indicator_id"]).tail(1)
@@ -67,7 +102,11 @@ def sector_features(
     out["attendance_2022"] = census.attending_3_5 / census.children_3_5
     out["children_3_5_census"] = census.children_3_5
     out["nonattendance"] = 1 - est.attendance_rate
-    out["far_share"] = est.far_share
+    # from a partial school list, the share beyond 1 km is an upper bound: kept for display,
+    # left out of the factor scores and the bottleneck rules (unknown, not "far")
+    out["far_share_listed"] = est.far_share
+    provisional = est.distance_method.astype(str).str.contains("provisional")
+    out["far_share"] = est.far_share.where(~provisional)
     out["urban_share"] = _col(census, "urban_share")
     out["women_secondary_share"] = _col(census, "women_secondary_share")
     households = _col(census, "households")
@@ -84,12 +123,14 @@ def sector_features(
 
     latest = YEARBOOK_YEARS[-1]
     book = _wide(obs[obs.source_id == "yearbook"], latest)
-    out["pupils_per_teacher"] = district.map(book.pp_pupils / book.pp_teachers)
-    out["pupils_per_classroom"] = district.map(book.pp_pupils / book.pp_classrooms)
-    out["qualified_share"] = district.map(book.pp_teachers_qualified / book.pp_teachers)
+    # a yearbook without qualified teachers by district leaves that indicator empty
+    pupils, teachers = _col(book, "pp_pupils"), _col(book, "pp_teachers")
+    out["pupils_per_teacher"] = district.map(pupils / teachers)
+    out["pupils_per_classroom"] = district.map(pupils / _col(book, "pp_classrooms"))
+    out["qualified_share"] = district.map(_col(book, "pp_teachers_qualified") / teachers)
     stunting = _wide(obs[obs.indicator_id == "stunting_u5"])
     out["stunting"] = district.map(_col(stunting, "stunting_u5")).astype(float)
 
-    simulated = obs[obs.status == SIMULATED].source_id.unique()
-    out["inputs_simulated"] = len(simulated) > 0 or (est.status == SIMULATED).any()
+    # the rules read every indicator above, so any simulated one makes the diagnosis simulated
+    out["inputs_simulated"] = bool(simulated_features(obs, estimates))
     return out

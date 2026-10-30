@@ -1,13 +1,16 @@
 """2026 estimate of children aged 3 to 5 per sector, and of those attending pre-primary.
 
-1. District total for 2026: NISR projected population x the district's census 3-5 share.
+1. District total for 2026: NISR projected children aged 3 to 5 when the single-age tables
+   are loaded; otherwise projected population x the district's census 3-5 share.
 2. Split across sectors: WorldPop under-5 per sector x the district's census ratio of 3-5 to
    0-4 children; while WorldPop is missing, each sector's share of the district's census 3-5
    count.
 3. Range: projection range (or PROJECTION_REL_ERROR) combined with the disagreement between
    WorldPop and census sector shares (or SHARE_DRIFT_REL).
-4. Attending: the sector's 2022 census attendance rate, moved by the district's change in
-   MINEDUC pupils per child from 2021/22 (census year) to the latest yearbook.
+4. Attending: the sector's 2022 census attendance rate. Optionally (MINEDUC_TREND_ON_CENSUS,
+   off by default) moved by the district's change in MINEDUC pupils per child from 2021/22 to
+   the latest yearbook; it is off because the two rates do not track each other by district.
+   A real census is never moved by a simulated yearbook. The method column says which applies.
 
 Census, MINEDUC and NCDA counts are never added together: MINEDUC only moves the census rate.
 """
@@ -18,6 +21,7 @@ import pandas as pd
 from irerero.config import (
     ESTIMATE_YEAR,
     MAX_ATTENDANCE,
+    MINEDUC_TREND_ON_CENSUS,
     MODEL,
     PROJECTION_REL_ERROR,
     SHARE_DRIFT_REL,
@@ -30,11 +34,12 @@ CENSUS_YEAR = 2022
 CENSUS_SCHOOL_YEAR = "2021/22"
 
 
-def projected(inputs: Inputs, year: int) -> pd.DataFrame:
-    """District population in `year` (with low/high). Years before the series starts are
-    extrapolated back at the growth rate of its first two years."""
+def projected(inputs: Inputs, year: int, column: str = "population") -> pd.DataFrame:
+    """A projected district `column` in `year`, with low/high from the population variants.
+    Years before the series starts are extrapolated back at the growth rate of its first two
+    years."""
     proj = inputs.projections.frame
-    wide = proj.pivot_table(index="geo_id", columns="year", values="population", aggfunc="sum")
+    wide = proj.pivot_table(index="geo_id", columns="year", values=column, aggfunc="sum")
     if year not in wide.columns:
         first, second = sorted(wide.columns)[:2]
         if year > first:
@@ -42,9 +47,18 @@ def projected(inputs: Inputs, year: int) -> pd.DataFrame:
         values = wide[first] * (wide[first] / wide[second]) ** (first - year)
         return pd.DataFrame({"population": values, "low": values, "high": values})
     rows = proj[proj.year == year].set_index("geo_id")
-    low = rows.population_low.astype(float).fillna(rows.population.astype(float))
-    high = rows.population_high.astype(float).fillna(rows.population.astype(float))
-    return pd.DataFrame({"population": rows.population.astype(float), "low": low, "high": high})
+    value = rows[column].astype(float)
+    population = rows.population.astype(float)
+    # an empty variant column (no low/high published) is all NA
+    low = (pd.to_numeric(rows.population_low, errors="coerce") / population * value).fillna(value)
+    high = (pd.to_numeric(rows.population_high, errors="coerce") / population * value).fillna(value)
+    return pd.DataFrame({"population": value, "low": low, "high": high})
+
+
+def projects_children(inputs: Inputs) -> bool:
+    """The projections carry children aged 3 to 5 directly (the single-age tables)."""
+    frame = inputs.projections.frame
+    return "children_3_5" in frame and bool(frame.children_3_5.notna().all())
 
 
 def school_year_to_year(school_year: str) -> int:
@@ -54,7 +68,12 @@ def school_year_to_year(school_year: str) -> int:
 
 
 def children_by_district(inputs: Inputs, year: int) -> pd.DataFrame:
-    """Children aged 3 to 5 per district in `year`: projected population x census 3-5 share."""
+    """Children aged 3 to 5 per district in `year`: projected directly when the projections
+    carry them, otherwise projected population x census 3-5 share."""
+    if projects_children(inputs):
+        return projected(inputs, year, "children_3_5").rename(
+            columns={"population": "children_3_5"}
+        )
     census = inputs.census_districts.frame.set_index("geo_id")
     pop = projected(inputs, year)
     if census.population.notna().all():
@@ -92,11 +111,16 @@ def estimate(inputs: Inputs) -> pd.DataFrame:
         raw = inputs.under5.reindex(sectors.index).astype(float) * parent.map(ratio)
         share = raw / parent.map(raw.groupby(parent).sum())
         drift = ((share - census_share).abs() / census_share).clip(upper=1.0)
-        method = "WorldPop under-5 x census age ratio, calibrated to NISR projections"
+        method = "WorldPop under-5 x census age ratio"
     else:
         share = census_share
         drift = pd.Series(SHARE_DRIFT_REL, index=sectors.index)
-        method = "census 2022 sector share, calibrated to NISR projections"
+        method = "census 2022 sector share"
+    method += (
+        " of NISR projected children aged 3-5"
+        if projects_children(inputs)
+        else ", calibrated to NISR projections"
+    )
 
     total = parent.map(totals.children_3_5)
     projection_rel = parent.map((totals.high - totals.low) / 2 / totals.children_3_5).replace(
@@ -106,10 +130,27 @@ def estimate(inputs: Inputs) -> pd.DataFrame:
     children = share * total
 
     rate_2022 = sectors.children_3_5_attending.astype(float) / sectors.children_3_5.astype(float)
-    rate = (rate_2022 * parent.map(attendance_trend(inputs))).clip(upper=MAX_ATTENDANCE)
+    # The MINEDUC trend applies only when it is switched on (config) and the yearbook is as real
+    # as the census: a real census is never moved by a simulated trend.
+    with_trend = MINEDUC_TREND_ON_CENSUS and (
+        inputs.yearbook.real or not inputs.census_sectors.real
+    )
+    if with_trend:
+        rate = (rate_2022 * parent.map(attendance_trend(inputs))).clip(upper=MAX_ATTENDANCE)
+        method += "; attendance: census 2022 rate moved by the MINEDUC trend"
+    else:
+        rate = rate_2022.clip(upper=MAX_ATTENDANCE)
+        why = (
+            "the census and MINEDUC gross rates are not comparable by district"
+            if not MINEDUC_TREND_ON_CENSUS
+            else "yearbook series incomplete"
+        )
+        method += f"; attendance: census 2022 rate, not moved by MINEDUC ({why})"
 
-    inputs_real = all(
-        loaded.real for loaded in (inputs.census_sectors, inputs.projections, inputs.yearbook)
+    inputs_real = (
+        inputs.census_sectors.real
+        and inputs.projections.real
+        and (inputs.yearbook.real or not with_trend)
     )
     out = pd.DataFrame(
         {

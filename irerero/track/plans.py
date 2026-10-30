@@ -101,6 +101,49 @@ def create_plan(
         return plan.plan_id
 
 
+def add_items(
+    eng: Engine, user: User, plan_id: int, items: Iterable[Mapping[str, Any]]
+) -> list[int]:
+    """Add sectors to an existing plan as pending items (same fields as create_plan). Sectors
+    already in the plan are skipped. Returns the new item ids."""
+    with Session(eng) as s:
+        plan = s.get(Plan, plan_id)
+        if plan is None:
+            raise KeyError(f"no plan {plan_id}")
+        _check_planner(user, plan.district_id)
+        existing = set(s.scalars(select(PlanItem.geo_id).where(PlanItem.plan_id == plan_id)))
+        rows = [
+            PlanItem(
+                plan_id=plan_id,
+                geo_id=i["geo_id"],
+                rank=int(i["rank"]),
+                places=int(i["places"]),
+                rooms=int(i["rooms"]),
+                caregivers_low=int(i["caregivers_low"]),
+                caregivers_high=int(i["caregivers_high"]),
+                bottleneck=i["bottleneck"],
+                intervention=i["intervention"],
+                decision="pending",
+                status="planned",
+            )
+            for i in items
+            if i["geo_id"] not in existing
+        ]
+        s.add_all(rows)
+        s.flush()
+        for row in rows:
+            audit.write(
+                s,
+                user,
+                "plan_item.add",
+                "plan_item",
+                row.id,
+                after={**_item_dict(row), "geo_id": row.geo_id},
+            )
+        s.commit()
+        return [row.id for row in rows]
+
+
 def _load(s: Session, item_id: int) -> tuple[PlanItem, Plan]:
     item = s.get(PlanItem, item_id)
     if item is None:
@@ -126,6 +169,11 @@ def decide(
     with Session(eng) as s:
         item, plan = _load(s, item_id)
         _check_planner(user, plan.district_id)
+        if decision != "edit" and places is not None and int(places) != item.places:
+            raise ValueError(
+                f"places changed from {item.places:,} to {int(places):,}: choose edit, with a "
+                "reason, to change the number of places"
+            )
         before = _item_dict(item)
         if decision == "edit":
             if places is None or places < 0:

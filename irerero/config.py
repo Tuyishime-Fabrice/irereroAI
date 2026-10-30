@@ -102,6 +102,14 @@ PEER_FEATURES = (
 
 SUPPRESS_BELOW = 10  # exports show cells under 10 children as "fewer than 10"
 
+# NCDA ECD Mapping extract. Its services are not added to the distance layer: that layer
+# measures distance to formal pre-primary schools, and most mapped services are home-based ECD
+# (25,595 of 37,431 in the October 2026 extract). Turn on only with a reviewed definition.
+NCDA_IN_DISTANCE = False
+# The extract's rows are shown on screen only when this setting (Streamlit secret or
+# environment variable) is "on": the NCDA data-sharing agreement has to allow public display.
+NCDA_DISPLAY_SETTING = "IRERERO_NCDA_DISPLAY"
+
 # Status of every number, shown on hover and in exports.
 OBSERVED = "observed"
 PUBLISHED = "published estimate"

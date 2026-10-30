@@ -2,6 +2,7 @@
 real files), so a fresh deployment needs no manual step."""
 
 import json
+import os
 
 import pandas as pd
 import streamlit as st
@@ -35,6 +36,12 @@ def _secrets() -> dict:
         return dict(st.secrets)
     except Exception:  # no secrets file in this deployment
         return {}
+
+
+def setting_on(name: str) -> bool:
+    """A yes/no deployment setting, from Streamlit secrets or the environment; off by default."""
+    value = _secrets().get(name) or os.environ.get(name) or ""
+    return str(value).strip().strip("\"'").lower() in ("1", "on", "true", "yes")
 
 
 @st.cache_resource(show_spinner="Loading the private data bundle...")

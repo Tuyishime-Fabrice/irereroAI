@@ -416,3 +416,4 @@ S-RWAMAGANA-NYAKALIRO,RW5112,*,Rwamagana,Nyakaliro,no,geoBoundaries spelling; co
 S-RWAMAGANA-NZIGE,RW5113,*,Rwamagana,Nzige,no,geoBoundaries spelling; code from the COD-AB gazetteer by exact name match
 S-RWAMAGANA-RUBONA,RW5114,*,Rwamagana,Rubona,no,geoBoundaries spelling; code from the COD-AB gazetteer by exact name match
 S-RULINDO-SHYRONGI,RW4116,census_2022,Rulindo,Shyorongi,no,census 2022 spelling (Table D1 and the sample records)
+S-RULINDO-SHYRONGI,RW4116,ncda,Rulindo,Shyorongi,no,NCDA ECD Mapping extract spelling (Oct 2026); same code as the NISR 2022 sector layer

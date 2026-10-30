@@ -1,1 +1,1 @@
-centre_id,name,centre_type,sector_name,district_name,lon,lat,capacity,enrolled_3_5,caregivers,as_of
+centre_id,name,centre_type,sector_name,district_name,lon,lat,as_of,capacity,enrolled_3_5,enrolled_3_6,caregivers

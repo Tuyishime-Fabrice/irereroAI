@@ -8,6 +8,7 @@ import streamlit as st
 
 from irerero.learn import checkins, progress
 from irerero.learn.checkins import CHALLENGES
+from irerero.learn.simulate import LEARN_NOTE
 from irerero.ui import data, theme
 from irerero.ui.i18n import t
 from irerero.ui.roles import current
@@ -21,7 +22,11 @@ sector_name = units.name.get(user.sector_id, user.sector_id)
 summary = progress.summary(eng)
 mine = summary[summary.sector_id == user.sector_id]
 centres = data.table("supply_extract").set_index("centre_id")
-sector_centres = centres[centres.geo_id == user.sector_id].index.tolist()
+# LEARN centres are those with caregiver accounts; other mapped services are not in the pilot.
+pilot = set(progress.caregivers(eng).centre_id.dropna())
+sector_centres = centres[
+    (centres.geo_id == user.sector_id) & centres.index.isin(pilot)
+].index.tolist()
 latest = checkins.problems(checkins.frame(eng, sector_centres))
 
 theme.header(
@@ -191,4 +196,4 @@ with theme.panel("Latest check-ins", "One row per centre · counts only", "home"
             ),
             unsafe_allow_html=True,
         )
-        theme.note("Status: simulated pilot data for Muhanga.")
+        theme.note(LEARN_NOTE)

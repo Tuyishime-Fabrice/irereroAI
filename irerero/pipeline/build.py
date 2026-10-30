@@ -13,7 +13,7 @@ from pathlib import Path
 import pandas as pd
 from sqlalchemy import Engine
 
-from irerero.config import PROCESSED, RAW
+from irerero.config import NCDA_IN_DISTANCE, PROCESSED, RAW, SIMULATED
 from irerero.data.registry import FILE_DATASETS
 from irerero.data.sources import osm
 from irerero.data.sources import schools as schools_source
@@ -111,7 +111,10 @@ def sources(inputs: Inputs) -> pd.DataFrame:
 
 
 def estimate_2026(inputs: Inputs) -> pd.DataFrame:
-    distance = far_shares(inputs.sectors, inputs.schools, inputs.raw, inputs.supply.frame)
+    # Mapped ECD services join the schools only by a reviewed choice, and never simulated ones.
+    supply = inputs.supply.frame
+    extra = supply[supply.status != SIMULATED] if NCDA_IN_DISTANCE else None
+    distance = far_shares(inputs.sectors, inputs.schools, inputs.raw, extra)
     out = estimate(inputs).merge(distance, on="geo_id", how="left")
     # the layer inherits simulated status from simulated school points
     if not inputs.schools.real:
@@ -126,10 +129,9 @@ def estimate_2026(inputs: Inputs) -> pd.DataFrame:
 
 
 def supply_extract(inputs: Inputs) -> pd.DataFrame:
-    frame = inputs.supply.frame
-    return frame.assign(status=inputs.supply.status)[
+    return inputs.supply.frame[
         ["centre_id", "name", "centre_type", "geo_id", "lon", "lat", "capacity", "enrolled_3_5",
-         "caregivers", "as_of", "status"]
+         "enrolled_3_6", "caregivers", "as_of", "status"]
     ]  # fmt: skip
 
 

@@ -9,6 +9,7 @@ import streamlit as st
 from irerero.config import SIMULATED
 from irerero.learn import certificate, checkins, progress, triggers
 from irerero.learn.checkins import CHALLENGES, LABELS, Checkin
+from irerero.learn.simulate import LEARN_NOTE
 from irerero.ui import data, theme
 from irerero.ui.i18n import t
 from irerero.ui.roles import current, demo_mode
@@ -262,3 +263,5 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
     theme.note(
         "Kinyarwanda labels and course titles are drafts awaiting review by a native speaker."
     )
+    if centre.status == SIMULATED:
+        theme.note(LEARN_NOTE)

@@ -11,6 +11,8 @@ from irerero.config import (
     CONFORMAL_COVERAGE,
     DEFINITION,
     FAR_SHARE,
+    NCDA_DISPLAY_SETTING,
+    SIMULATED,
     STATUSES,
     TARGET_2027,
     TARGET_2029,
@@ -321,32 +323,49 @@ with tabs[5]:
     st.markdown(
         "IrereroAI complements NCDA's ECD Mapping System. It reads an extract in the "
         "`supply_extract` schema: one row per centre with its type, location, capacity, "
-        "enrolment of children aged 3 to 5 and caregivers. Centres are joined to sectors through "
-        "the reviewed crosswalk and added to the schools used by the distance layer."
+        "enrolment and caregivers. Centres are joined to sectors through the reviewed crosswalk. "
+        "They are not added to the distance layer, which measures distance to formal pre-primary "
+        "schools (most mapped services are home-based ECD)."
     )
-    on = st.toggle("Show the simulated NCDA connector (Muhanga extract, seed 2026)", value=False)
+    on = st.toggle("Show the NCDA connector", value=False)
     if on:
         extract = data.table("supply_extract")
         names = data.table("geo_unit").set_index("geo_id").name
-        st.markdown(
-            f"{theme.badge('simulated')} {len(extract)} centres · as of "
-            f"{extract.as_of.max()} · ids unique: {extract.centre_id.is_unique} · joined to "
-            f"sectors: {extract.geo_id.notna().mean():.0%}",
-            unsafe_allow_html=True,
-        )
-        by_sector = extract.groupby("geo_id").agg(
-            centres=("centre_id", "count"),
-            capacity=("capacity", "sum"),
-            enrolled=("enrolled_3_5", "sum"),
-            caregivers=("caregivers", "sum"),
-        )
-        by_sector["free places"] = (by_sector.capacity - by_sector.enrolled).clip(lower=0)
-        by_sector.index = [names.get(g, g) for g in by_sector.index]
-        st.dataframe(
-            by_sector.rename_axis("Sector").reset_index(), hide_index=True, width="stretch"
-        )
+        real = extract[extract.status != SIMULATED]
+        if len(real) and not data.setting_on(NCDA_DISPLAY_SETTING):
+            theme.note(
+                f"The NCDA extract is loaded ({len(real):,} active services) but not shown here: "
+                f"set {NCDA_DISPLAY_SETTING} to on once the NCDA data-sharing agreement allows "
+                "public display."
+            )
+            extract = extract[extract.status == SIMULATED]
+        for status, part in extract.groupby("status", sort=False):
+            label = (
+                "Muhanga demonstration centres (seed 2026)"
+                if status == SIMULATED
+                else (f"NCDA extract, as of {part.as_of.max()}")
+            )
+            st.markdown(
+                f"{theme.badge(status)} {label} · {len(part):,} centres · ids unique: "
+                f"{part.centre_id.is_unique} · joined to sectors: {part.geo_id.notna().mean():.0%}",
+                unsafe_allow_html=True,
+            )
+            by_sector = part.groupby("geo_id").agg(
+                centres=("centre_id", "count"),
+                capacity=("capacity", lambda s: s.sum(min_count=1)),
+                enrolled=("enrolled_3_5", lambda s: s.sum(min_count=1)),
+                enrolled_3_6=("enrolled_3_6", lambda s: s.sum(min_count=1)),
+                caregivers=("caregivers", lambda s: s.sum(min_count=1)),
+            )
+            by_sector["free places"] = (by_sector.capacity - by_sector.enrolled).clip(lower=0)
+            by_sector = by_sector.dropna(axis=1, how="all")  # a column the source does not have
+            by_sector.index = [names.get(g, g) for g in by_sector.index]
+            st.dataframe(
+                by_sector.rename_axis("Sector").reset_index(), hide_index=True, width="stretch"
+            )
         theme.note(
             "Free places in mapped centres show where existing supply could absorb children "
-            "before new rooms are built. NCDA enrolment is shown separately and never added to "
+            "before new rooms are built; the NCDA extract has no capacity, so it shows none. It "
+            "counts children aged 3 to 6. NCDA enrolment is shown separately and never added to "
             "census or MINEDUC counts."
         )

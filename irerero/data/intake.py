@@ -38,9 +38,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from irerero.config import DATA, INTERIM, RAW, REFERENCE, YEARBOOK_YEARS
+from irerero.config import DATA, INTERIM, NCDA_DISPLAY_SETTING, RAW, REFERENCE, YEARBOOK_YEARS
+from irerero.data import crosscheck
 from irerero.data.crosswalk import district_ids, sector_ids
-from irerero.data.sources import boundaries, census, eicv, projections, yearbook
+from irerero.data.sources import boundaries, census, eicv, ncda, projections, yearbook
 from irerero.data.sources import schools as school_source
 from irerero.data.validate import SchemaError, validate
 
@@ -95,8 +96,31 @@ MASTER_SOURCE = (
 MINEDUC_MASTER_COLUMNS = {"district", "academic_year", "male_pupils", "female_pupils",
                           "male_teachers", "female_teachers", "schools_count",
                           "classrooms_in_use"}  # fmt: skip
+NCDA_COLUMNS = {"ecd_code", "settings_types", "active_not_active", "name_ecd_sercive"}
+NCDA_SETTINGS = {
+    "home based ecd": "home_based",
+    "school based ecd centre": "school_based",
+    "school based ecd": "school_based",
+    "community based ecd centre": "community_based",
+    "community based ecd": "community_based",
+    "centre based": "centre_based",
+    "model ecd centre": "centre_based",
+    "model ecd": "centre_based",
+    "day care crèches": "centre_based",
+}
+NCDA_COUNTS = ("total_three_to_six", "total_children", "total_caregivers")
+NCDA_GROSS_RATIO = 10  # a 3-6 count over ten times the service's children is a typing error
+NCDA_MAX_CAREGIVERS = 500  # far above any service in the extract (next largest: 311)
 BOUNDARY_FILES = ("provinces.geojson", "districts.geojson", "sectors.geojson")
 BOUNDARY_COUNTS = {"provinces.geojson": 5, "districts.geojson": 30, "sectors.geojson": 416}
+NISR_BOUNDARY_COLUMNS = (
+    "province_id",
+    "district_id",
+    "sector_id",
+    "province",
+    "district",
+    "sector",
+)
 
 
 @dataclass(frozen=True)
@@ -830,7 +854,7 @@ def mineduc_long(paths: list[Path]) -> pd.DataFrame:
     return pd.concat(frames, axis=1).reset_index() if frames else pd.DataFrame()
 
 
-def school_points(path: Path) -> list[Check]:
+def school_points(path: Path, sectors: Path | None = None) -> list[Check]:
     """School locations for the distance layer, read by the same loader the app uses. A list
     of standalone pre-primary schools only is staged as provisional: shown and labelled, its
     distances an upper bound, never proof that an area has no school nearby."""
@@ -857,7 +881,52 @@ def school_points(path: Path) -> list[Check]:
               "with a pre-primary section. Distances from this list are an upper bound and are "
               "not used as evidence in the bottleneck rules. Still needed: the full register"),
     ]  # fmt: skip
+    if sectors is not None and sectors.exists():
+        checks.append(school_placement(frame, sectors))
     return checks
+
+
+def same_schools(path: Path, other: Path) -> Check:
+    """A second school GeoJSON: staged only if it differs, so no school is counted twice."""
+    key = school_source.DATASET.key
+    first, _ = school_source.read(path)
+    second, _ = school_source.read(other)
+    cols = ["school_code", "lon", "lat"]
+    a = first[cols].astype(str).sort_values(cols).reset_index(drop=True)
+    b = second[cols].astype(str).sort_values(cols).reset_index(drop=True)
+    same = a.equals(b)
+    return Check(key, "pass" if same else "fail",
+                 f"{other.name} holds {'the same' if same else 'different'} {len(second)} records "
+                 f"(codes and points) as {path.name}; "
+                 + ("only one copy is staged" if same else "stage one list at a time"))  # fmt: skip
+
+
+def school_placement(frame: pd.DataFrame, sectors: Path) -> Check:
+    """Points that fall outside the district or sector their record names. Kept as given: the
+    distance layer measures from the point, and which of point or label is wrong is unknown."""
+    import geopandas as gpd
+
+    key = school_source.DATASET.key
+    shapes = gpd.read_file(sectors)
+    names = pd.read_csv(REFERENCE / "district_name_crosswalk.csv", dtype=str)
+    names = names[names.source == "*"].set_index("nisr_district_code").source_district
+    shapes["district"] = shapes.parent_nisr_code.map(names).str.casefold()
+    shapes["sector"] = shapes.name.str.casefold()
+    points = gpd.GeoDataFrame(
+        frame[["school_code", "district", "sector"]].astype(str),
+        geometry=gpd.points_from_xy(frame.lon, frame.lat),
+        crs=4326,
+    )
+    joined = gpd.sjoin(points, shapes[["district", "sector", "geometry"]], how="left",
+                       predicate="within", lsuffix="listed", rsuffix="shape")  # fmt: skip
+    joined = joined[~joined.index.duplicated()]
+    district = joined.district_listed.str.casefold() != joined.district_shape
+    sector = joined.sector_listed.str.casefold() != joined.sector_shape
+    codes = ", ".join(joined.loc[district, "school_code"])
+    return Check(key, "warn" if district.any() else "pass",
+                 f"{int(district.sum())} of {len(frame)} points lie outside the district their "
+                 f"record names ({codes or 'none'}) and {int(sector.sum())} outside the named "
+                 "sector: kept as given, to confirm with MINEDUC")  # fmt: skip
 
 
 # --- NISR projections -----------------------------------------------------------------------
@@ -955,6 +1024,128 @@ def projections_from_sheets(sheets: dict[str, pd.DataFrame]) -> tuple[pd.DataFra
     return out.sort_values(["district_name", "year"]).reset_index(drop=True), checks
 
 
+# --- NCDA ECD Mapping extract ----------------------------------------------------------------
+def ncda_extract(path: Path) -> tuple[pd.DataFrame, list[Check]]:
+    """NCDA ECD Mapping extract to the supply_extract schema. Active services only; capacity
+    and children aged 3 to 5 are not in the extract and stay empty; values are kept as given
+    except the gross entry errors named in the checks."""
+    key = ncda.DATASET.key
+    src = pd.read_csv(path, dtype=str, encoding="utf-8-sig")
+    checks: list[Check] = []
+    total = len(src)
+    activity = src.active_not_active.str.strip().str.lower()
+    no_place = src.district_name.isna() | src.sector_name.isna()
+    keep = (activity == "active") & ~no_place
+    checks.append(
+        Check(key, "pass", f"{total:,} records; kept {int(keep.sum()):,} active services. Left out "
+              f"and counted: {int((activity == 'not_active').sum()):,} marked not active, "
+              f"{int(activity.isna().sum())} with no activity status, {int(no_place.sum())} with "
+              "no district or sector")
+    )  # fmt: skip
+    src = src[keep].copy()
+    settings = src.settings_types.str.strip().str.casefold().map(NCDA_SETTINGS)
+    unmapped = src.settings_types[settings.isna() & src.settings_types.notna()]
+    centre_type = settings.fillna("other").where(src.settings_types.notna(), "not_stated")
+    counts = centre_type.value_counts().to_dict()
+    checks.append(
+        Check(key, "warn" if unmapped.size or counts.get("not_stated") else "pass",
+              f"settings_types to centre_type: {counts}. 'other' holds settings with no match in "
+              f"the schema ({', '.join(sorted(set(unmapped))) or 'none'}); 'not_stated' has no "
+              "setting in the extract")
+    )  # fmt: skip
+    code = src.ecd_code.str.strip()
+    centre_id = code.where(code.notna() & (code != ""), "NCDA-OBJ-" + src.objectid.str.strip())
+    checks.append(
+        Check(key, "pass" if not centre_id.duplicated().any() else "fail",
+              f"centre_id: the NCDA ecd_code; {int(code.isna().sum())} services without one take "
+              f"NCDA-OBJ-<objectid>; {int(centre_id.duplicated().sum())} repeated")
+    )  # fmt: skip
+    number = {c: pd.to_numeric(src[c], errors="coerce") for c in NCDA_COUNTS}
+    enrolled, children, carers = (number[c] for c in NCDA_COUNTS)
+    gross_enrolled = (children > 0) & (enrolled > NCDA_GROSS_RATIO * children)
+    gross_carers = carers > NCDA_MAX_CAREGIVERS
+    soft = (enrolled > children) & ~gross_enrolled
+    checks.append(
+        Check(key, "warn", f"entry errors set to empty (listed, not guessed): "
+              f"{int(gross_enrolled.sum())} enrolment(s) aged 3 to 6 above {NCDA_GROSS_RATIO}x "
+              f"the service's total children ({_listed(enrolled[gross_enrolled])}); "
+              f"{int(gross_carers.sum())} caregiver count(s) above {NCDA_MAX_CAREGIVERS} "
+              f"({_listed(carers[gross_carers])}). Kept as given: "
+              f"{int(soft.sum())} services whose 3-6 count exceeds their total children by less")
+    )  # fmt: skip
+    enrolled = enrolled.mask(gross_enrolled)
+    carers = carers.mask(gross_carers)
+    checks.append(
+        Check(key, "warn", f"missing, left empty: enrolment aged 3 to 6 for "
+              f"{int(enrolled.isna().sum()):,} services, caregivers for "
+              f"{int(carers.isna().sum()):,}. Not in the extract at all: capacity and children "
+              "aged 3 to 5 (the extract counts 3 to 6), so free places cannot be computed")
+    )  # fmt: skip
+    dates = src.extract_date.dropna().unique()
+    out = pd.DataFrame(
+        {
+            "centre_id": centre_id,
+            "name": src.name_ecd_sercive.str.strip().fillna("name not stated"),
+            "centre_type": centre_type,
+            "sector_name": src.sector_name.str.strip(),
+            "district_name": src.district_name.str.strip(),
+            "lon": src.longitude,
+            "lat": src.latitude,
+            "capacity": pd.NA,
+            "enrolled_3_5": pd.NA,
+            "enrolled_3_6": enrolled.round().astype("Int64"),
+            "caregivers": carers.round().astype("Int64"),
+            "as_of": src.extract_date.str.strip(),
+        }
+    ).reset_index(drop=True)
+    try:
+        geo = sector_ids(key, out.district_name, out.sector_name)
+        checks.append(Check(key, "pass", f"{geo.nunique()} sectors in {out.district_name.nunique()}"
+                            " districts, every service joined to the crosswalk"))  # fmt: skip
+        validate(out, ncda.DATASET.columns, ncda.FILE)
+    except SchemaError as error:
+        checks.append(Check(key, "fail", str(error)))
+    visited = pd.to_datetime(pd.to_numeric(src.visited_date, errors="coerce"), unit="ms")
+    muhanga = out[out.district_name == "Muhanga"]
+    checks.append(
+        Check(key, "pass", f"extract date {', '.join(dates)}; visits {visited.min():%Y-%m-%d} to "
+              f"{visited.max():%Y-%m-%d}. Muhanga: {len(muhanga):,} active services "
+              f"({muhanga.centre_type.value_counts().to_dict()})")
+    )  # fmt: skip
+    checks.append(
+        Check(key, "warn", "no names of caregivers or children and no contact details in the "
+              "extract; centre names and points stay in the private bundle and are shown only "
+              f"when {NCDA_DISPLAY_SETTING} is on. Not a live feed and not proven complete")
+    )  # fmt: skip
+    return out, checks
+
+
+def _listed(values: pd.Series) -> str:
+    return ", ".join(f"{v:,.0f}" for v in values) or "none"
+
+
+def ncda_placement(frame: pd.DataFrame, sectors: Path) -> Check:
+    """How many services' points fall outside the district they are listed in (kept)."""
+    import geopandas as gpd
+
+    key = ncda.DATASET.key
+    shapes = gpd.read_file(sectors)[["parent_nisr_code", "geometry"]]
+    points = gpd.GeoDataFrame(
+        {"district": district_ids(key, frame.district_name).to_numpy()},
+        geometry=gpd.points_from_xy(frame.lon.astype(float), frame.lat.astype(float)),
+        crs=4326,
+    )
+    codes = pd.read_csv(REFERENCE / "district_name_crosswalk.csv", dtype=str)
+    codes = codes[codes.source == "*"].set_index("geo_id").nisr_district_code
+    points["listed"] = points.district.map(codes)
+    joined = gpd.sjoin(points, shapes, how="left", predicate="within")
+    joined = joined[~joined.index.duplicated()]
+    outside = int((joined.parent_nisr_code != joined.listed).sum())
+    return Check(key, "warn" if outside else "pass", f"{outside:,} of {len(frame):,} service "
+                 "points lie outside the district they are listed in; each keeps its listed "
+                 "sector")  # fmt: skip
+
+
 # --- boundaries -----------------------------------------------------------------------------
 def boundary_files(paths: list[Path]) -> tuple[dict[str, object], list[Check]]:
     """COD-AB GeoJSON, checked and slimmed to nisr_code, name, parent_nisr_code and shape."""
@@ -967,7 +1158,6 @@ def boundary_files(paths: list[Path]) -> tuple[dict[str, object], list[Check]]:
     if missing:
         checks.append(Check(key, "fail", f"missing {', '.join(missing)}"))
         return {}, checks
-    sectors, districts = _official_names()
     frames = {}
     for name in BOUNDARY_FILES:
         frame = gpd.read_file(by_name[name])
@@ -1002,6 +1192,16 @@ def boundary_files(paths: list[Path]) -> tuple[dict[str, object], list[Check]]:
         frames[name] = frame
     if len(frames) != len(BOUNDARY_FILES):
         return {}, checks
+    return frames, checks + boundary_checks(frames)
+
+
+def boundary_checks(frames: dict[str, object]) -> list[Check]:
+    """Codes, nesting, names, area and placement, the same for every boundary source."""
+    import geopandas as gpd
+
+    key = boundaries.DATASET.key
+    checks: list[Check] = []
+    sectors, districts = _official_names()
     prov, dist, sect = (frames[n] for n in BOUNDARY_FILES)
     for label, codes, known in (("districts", dist.nisr_code, districts.index),
                                 ("sectors", sect.nisr_code, sectors.index)):  # fmt: skip
@@ -1048,7 +1248,110 @@ def boundary_files(paths: list[Path]) -> tuple[dict[str, object], list[Check]]:
         Check(key, "pass" if misplaced == 0 else "warn", f"{misplaced} sectors lie outside the "
               "district their code names")
     )  # fmt: skip
-    return frames, checks
+    return checks
+
+
+def nisr_sector_boundaries(path: Path) -> tuple[dict[str, object], list[Check]]:
+    """NISR 2022 sector layer (one file, numeric province, district and sector ids) to the three
+    boundary files. Districts and provinces are the union of their sectors, by official code."""
+    import geopandas as gpd
+
+    key = boundaries.DATASET.key
+    checks: list[Check] = []
+    frame = gpd.read_file(path)
+    need = set(NISR_BOUNDARY_COLUMNS)
+    if need - set(frame.columns):
+        missing = sorted(need - set(frame.columns))
+        return {}, [Check(key, "fail", f"{path.name}: missing {missing}")]
+    epsg = frame.crs.to_epsg() if frame.crs else None
+    if epsg != 4326:
+        checks.append(Check(key, "warn", f"{path.name}: CRS {frame.crs}, reprojected to EPSG:4326"))
+        frame = frame.to_crs(4326)
+    empty = frame.geometry.isna() | frame.geometry.is_empty
+    invalid = ~frame.geometry.is_valid & ~empty
+    if invalid.any():
+        names = ", ".join(sorted(frame.loc[invalid, "sector"].astype(str)))
+        frame.loc[invalid, "geometry"] = frame.loc[invalid].geometry.make_valid()
+        checks.append(Check(key, "warn", f"{path.name}: {int(invalid.sum())} invalid sector "
+                            f"shape(s) repaired with make_valid ({names})"))  # fmt: skip
+    if "last_edited_date" in frame:
+        edited = pd.to_datetime(frame.last_edited_date, unit="ms", errors="coerce").max()
+        checks.append(Check(key, "pass", f"{path.name}: {len(frame)} sectors, last edited by the "
+                            f"publisher on {edited:%Y-%m-%d}"))  # fmt: skip
+    ids = frame[list(NISR_BOUNDARY_COLUMNS)].astype(str).apply(lambda s: s.str.strip())
+    for level, parent in (("district", "province"), ("sector", "district")):
+        if not ids.groupby(f"{level}_id")[f"{parent}_id"].nunique().eq(1).all():
+            checks.append(Check(key, "fail", f"a {level} id sits in more than one {parent}"))
+        if not ids.groupby(f"{level}_id")[level].nunique().eq(1).all():
+            checks.append(Check(key, "fail", f"a {level} id carries more than one name"))
+    frame = frame.assign(
+        sector_code="RW" + ids.sector_id,
+        district_code="RW" + ids.district_id,
+        province_code="RW" + ids.province_id,
+        sector_name=ids.sector,
+        district_name=ids.district,
+        province_name=ids.province,
+    )
+    sectors = gpd.GeoDataFrame(
+        {
+            "nisr_code": frame.sector_code,
+            "name": frame.sector_name,
+            "parent_nisr_code": frame.district_code,
+        },
+        geometry=frame.geometry,
+        crs=4326,
+    )
+    out = {"sectors.geojson": sectors}
+    for level, parent in (("district", "province"), ("province", None)):
+        units = frame.dissolve(f"{level}_code", as_index=False, aggfunc="first")
+        units["geometry"] = units.geometry.make_valid()
+        out[f"{level}s.geojson"] = gpd.GeoDataFrame(
+            {
+                "nisr_code": units[f"{level}_code"],
+                "name": units[f"{level}_name"],
+                "parent_nisr_code": units[f"{parent}_code"] if parent else "RW",
+            },
+            geometry=units.geometry,
+            crs=4326,
+        )
+    metric = {name: f.to_crs(32735).area.sum() / 1e6 for name, f in out.items()}
+    gap = max(abs(metric[n] - metric["sectors.geojson"]) for n in metric)
+    checks.append(
+        Check(key, "pass" if gap < 1 else "warn", f"districts and provinces built as the union "
+              f"of their sectors; their area differs from the sectors' by at most {gap:.2f} km²")
+    )  # fmt: skip
+    frames = {name: out[name] for name in BOUNDARY_FILES}
+    for name, units in frames.items():
+        dupes = int(units.nisr_code.duplicated().sum())
+        level = "pass" if len(units) == BOUNDARY_COUNTS[name] and not dupes else "fail"
+        checks.append(Check(key, level, f"{name}: {len(units)} of {BOUNDARY_COUNTS[name]} "
+                            f"units, {dupes} duplicate codes, {int(empty.sum())} empty "
+                            "shapes"))  # fmt: skip
+    return frames, checks + boundary_checks(frames)
+
+
+def compare_shapes(new: object, old_path: Path) -> list[Check]:
+    """How far the incoming sector shapes move from the staged ones (intersection over union)."""
+    import geopandas as gpd
+
+    key = boundaries.DATASET.key
+    if not old_path.exists():
+        return []
+    old = gpd.read_file(old_path).to_crs(32735).set_index("nisr_code").geometry
+    fresh = new.to_crs(32735).set_index("nisr_code").geometry  # type: ignore[attr-defined]
+    shared = fresh.index.intersection(old.index)
+    iou = (
+        fresh[shared].intersection(old[shared], align=True).area
+        / fresh[shared].union(old[shared], align=True).area
+    )
+    moved = iou[iou < 0.9].sort_values()
+    return [
+        Check(key, "pass" if len(shared) == len(fresh) == len(old) else "warn",
+              f"against the staged shapes: {len(shared)} sector codes in both, median overlap "
+              f"{iou.median():.3f} (intersection over union); {int((iou < 0.98).sum())} sectors "
+              f"below 0.98, {len(moved)} below 0.9 ("
+              + ", ".join(f"{c} {v:.2f}" for c, v in moved.items()) + ")"),
+    ]  # fmt: skip
 
 
 # --- run ----------------------------------------------------------------------------------
@@ -1057,12 +1360,30 @@ def classify(files: list[Path]) -> dict[str, list[Path]]:
         "eicv7": [], "mineduc_district": [], "mineduc_national": [], "gazetteer": [],
         "census_sample": [], "projections": [], "boundaries": [], "census_master": [],
         "mineduc_master": [], "mineduc_long": [], "school_points": [],
+        "nisr_boundaries": [], "ncda_extract": [], "school_csv": [], "phc5_main": [],
+        "projection_tables": [], "mineduc_workbook": [], "worldpop": [], "reference_pages": [],
     }  # fmt: skip
     for path in files:
         if GAZETTEER in path.name and path.suffix == ".xlsx":
             groups["gazetteer"].append(path)
             continue
+        suffix = path.suffix.lower()
+        if suffix == ".tif":
+            groups["worldpop"].append(path)
+            continue
+        if suffix == ".pdf":
+            groups["reference_pages"].append(path)
+            continue
         sheets = _sheet_names(path) if path.suffix == ".xlsx" else []
+        if crosscheck.is_phc5(sheets):
+            groups["phc5_main"].append(path)
+            continue
+        if crosscheck.is_mineduc_workbook(sheets):
+            groups["mineduc_workbook"].append(path)
+            continue
+        if sheets and crosscheck.projection_title(path):
+            groups["projection_tables"].append(path)
+            continue
         if PROJECTION_SHEET in sheets:
             groups["projections"].append(path)
             continue
@@ -1075,8 +1396,17 @@ def classify(files: list[Path]) -> dict[str, list[Path]]:
         if path.suffix.lower() == ".geojson" and b"school_category" in path.read_bytes()[:4096]:
             groups["school_points"].append(path)
             continue
+        if path.suffix.lower() == ".geojson" and set(NISR_BOUNDARY_COLUMNS) <= _fields(path):
+            groups["nisr_boundaries"].append(path)
+            continue
         if path.suffix == ".csv":
             head = set(pd.read_csv(path, nrows=0, encoding="utf-8-sig").columns)
+            if head >= NCDA_COLUMNS:
+                groups["ncda_extract"].append(path)
+                continue
+            if crosscheck.is_school_csv(head):
+                groups["school_csv"].append(path)
+                continue
             if head >= CENSUS_SAMPLE_COLUMNS:
                 groups["census_sample"].append(path)
                 continue
@@ -1095,6 +1425,16 @@ def classify(files: list[Path]) -> dict[str, list[Path]]:
         elif path.name in MINEDUC_NATIONAL:
             groups["mineduc_national"].append(path)
     return groups
+
+
+def _fields(path: Path) -> set[str]:
+    """Attribute names of a vector file (they may come after long geometries in the text)."""
+    import pyogrio
+
+    try:
+        return set(pyogrio.read_info(path)["fields"])
+    except Exception:
+        return set()
 
 
 def _sheet_names(path: Path) -> list[str]:
@@ -1193,6 +1533,24 @@ def run(
             _mark_staged(manifest, paths, f"data/raw/{boundaries.DATASET.key}/ (codes, names "
                          "and shapes; other attributes dropped)")  # fmt: skip
         results.append(Result(boundaries.DATASET.key, checks, staged, None))
+    if groups["nisr_boundaries"]:
+        path = groups["nisr_boundaries"][0]
+        receive([path], "nisr_boundaries_2022", raw, manifest)
+        frames, checks = nisr_sector_boundaries(path)
+        staged = None
+        if frames:
+            checks += compare_shapes(frames["sectors.geojson"], raw / boundaries.DATASET.key /
+                                     "sectors.geojson")  # fmt: skip
+        if frames and not any(c.level == "fail" for c in checks):
+            folder = raw / boundaries.DATASET.key
+            folder.mkdir(parents=True, exist_ok=True)
+            for name, frame in frames.items():
+                frame.to_file(folder / name, driver="GeoJSON")
+            staged = folder
+            _mark_staged(manifest, [path], f"data/raw/{boundaries.DATASET.key}/ (sectors as "
+                         "published; districts and provinces as the union of their "
+                         "sectors)")  # fmt: skip
+        results.append(Result(f"{boundaries.DATASET.key} (NISR 2022)", checks, staged, None))
     if groups["gazetteer"]:
         # Codes only, written to data/reference/ by scripts/import_gazetteer.py (needs openpyxl).
         receive(groups["gazetteer"], "cod_ab_gazetteer", raw, manifest)
@@ -1209,9 +1567,11 @@ def run(
             _mark_staged(manifest, [path], f"data/raw/{eicv.DATASET.key}/{eicv.FILE}")
         results.append(Result(eicv.DATASET.key, checks, staged, None))
     if groups["school_points"]:
-        path = groups["school_points"][0]
-        receive([path], "mineduc_school_points", raw, manifest)
-        checks = school_points(path)
+        path, *copies = groups["school_points"]
+        receive(groups["school_points"], "mineduc_school_points", raw, manifest)
+        checks = school_points(path, raw / boundaries.DATASET.key / "sectors.geojson")
+        for copy in copies:
+            checks.append(same_schools(path, copy))
         staged = None
         if not any(c.level == "fail" for c in checks):
             folder = raw / school_source.DATASET.key
@@ -1244,6 +1604,71 @@ def run(
             _mark_staged(manifest, groups["mineduc_long"], "cross-check only (agrees with the "
                          "master table)")  # fmt: skip
         results.append(Result(yearbook.DATASET.key, checks, staged, None))
+    if groups["ncda_extract"]:
+        path = groups["ncda_extract"][0]
+        receive([path], "ncda_mapping_extract", raw, manifest)
+        frame, checks = ncda_extract(path)
+        sectors = raw / boundaries.DATASET.key / "sectors.geojson"
+        if len(frame) and sectors.exists():
+            checks.append(ncda_placement(frame, sectors))
+        staged = None
+        if len(frame) and not any(c.level == "fail" for c in checks):
+            staged = _stage(frame, raw / ncda.DATASET.key / ncda.FILE)
+            _mark_staged(manifest, [path], f"data/raw/{ncda.DATASET.key}/{ncda.FILE} (active "
+                         "services, supply_extract columns only)")  # fmt: skip
+        results.append(Result(ncda.DATASET.key, checks, staged, None))
+    if groups["school_csv"]:
+        receive(groups["school_csv"], "mineduc_school_points", raw, manifest)
+        staged_points = raw / school_source.DATASET.key / school_source.FILE
+        checks = []
+        for path in groups["school_csv"]:
+            if staged_points.exists():
+                checks += crosscheck.school_csv(path, staged_points)
+            else:
+                checks.append(
+                    Check("schools", "warn", f"{path.name}: no staged GeoJSON to compare")
+                )
+        _mark_staged(manifest, groups["school_csv"], "cross-check only (same records as the "
+                     "staged school GeoJSON)")  # fmt: skip
+        results.append(Result("schools (CSV export)", checks, None, None))
+    if groups["phc5_main"]:
+        receive(groups["phc5_main"], "census_2022_main_indicators", raw, manifest)
+        checks = crosscheck.phc5_main_indicators(groups["phc5_main"][0], raw)
+        _mark_staged(manifest, groups["phc5_main"], "cross-check only (agrees with the staged "
+                     "census tables; district-only tables not staged)")  # fmt: skip
+        results.append(Result(f"{census.DATASET.key} (PHC5 Main Indicators)", checks, None, None))
+    if groups["projection_tables"]:
+        receive(groups["projection_tables"], "nisr_projection_tables", raw, manifest)
+        checks = crosscheck.projection_workbooks(groups["projection_tables"], raw)
+        _mark_staged(manifest, groups["projection_tables"], "cross-check only (agrees with the "
+                     "staged district projections)")  # fmt: skip
+        results.append(Result(f"{projections.DATASET.key} (published tables)", checks, None, None))
+    if groups["mineduc_workbook"]:
+        path = groups["mineduc_workbook"][0]
+        receive([path], "mineduc_national_workbook", raw, manifest)
+        national, checks = crosscheck.mineduc_workbook(path)
+        staged_wide = raw / yearbook.DATASET.key / yearbook.FILE
+        if staged_wide.exists():
+            wide = pd.read_csv(staged_wide)
+            checks += cross_checks(wide, national) + crosscheck.mineduc_capacity_checks(
+                wide, national
+            )
+        folder = interim / "yearbook"
+        folder.mkdir(parents=True, exist_ok=True)
+        national.to_csv(folder / "mineduc_national_workbook.csv", index=False)
+        _mark_staged(manifest, [path], "cross-check only (national series; "
+                     "data/interim/yearbook/mineduc_national_workbook.csv)")  # fmt: skip
+        results.append(Result(f"{yearbook.DATASET.key} (national workbook)", checks, None, None))
+    if groups["worldpop"]:
+        receive(groups["worldpop"], "worldpop", raw, manifest)
+        checks = crosscheck.worldpop_layers(groups["worldpop"])
+        _mark_staged(manifest, groups["worldpop"], "not staged: the under-5 set is incomplete "
+                     "(male 1-4 layer missing)")  # fmt: skip
+        results.append(Result("worldpop", checks, None, None))
+    if groups["reference_pages"]:
+        receive(groups["reference_pages"], "nisr_web_pages", raw, manifest)
+        _mark_staged(manifest, groups["reference_pages"], "provenance only (NISR web page "
+                     "printouts, no tables)")  # fmt: skip
     if groups["mineduc_district"] or groups["mineduc_national"]:
         paths = groups["mineduc_district"] + groups["mineduc_national"]
         receive(paths, "mineduc_yearbook", raw, manifest)

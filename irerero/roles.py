@@ -1,6 +1,7 @@
 """Demo roles. Every user is invented; no real names or personal data. The selector is shown
 only in demo mode and says so."""
 
+import os
 from dataclasses import dataclass
 
 PLANNER = "district_planner"
@@ -8,6 +9,13 @@ ANALYST = "national_analyst"
 OFFICER = "sector_officer"
 CAREGIVER = "caregiver"
 ADMIN = "admin"
+
+
+def demo_mode() -> bool:
+    """Fictional users and the simulated LEARN records (check-ins, course progress) exist only
+    in demo mode. DEMO_MODE defaults to true, as the deployed demo has always run."""
+    return os.environ.get("DEMO_MODE", "true").lower() in ("1", "true", "yes")
+
 
 ROLE_LABELS = {
     PLANNER: "District planner",

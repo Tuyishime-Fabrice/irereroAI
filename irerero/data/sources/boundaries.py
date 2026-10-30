@@ -12,7 +12,7 @@ from irerero.data.validate import SchemaError
 LEVELS = ("province", "district", "sector")
 DATASET = Dataset(
     key="boundaries",
-    title="Administrative boundaries, province to sector (COD-AB)",
+    title="Administrative boundaries, province to sector (NISR 2022)",
     publisher="NISR via the Humanitarian Data Exchange",
     files=("provinces.geojson", "districts.geojson", "sectors.geojson"),
     format="GeoJSON, EPSG:4326",
@@ -23,7 +23,7 @@ DATASET = Dataset(
     ),
     level="province, district, sector",
     reference_period="2022",
-    licence="CC BY 4.0",
+    licence="CC BY 4.0 as declared for COD-AB on HDX; confirm the terms of the 2022 sector layer",
     url="https://data.humdata.org/dataset/cod-ab-rwa",
     used_by=("every map", "the join to NISR sector codes"),
     status=OBSERVED,
@@ -34,6 +34,9 @@ DATASET = Dataset(
     notes=(
         "Rename the COD-AB columns to nisr_code, name and parent_nisr_code. Each nisr_code "
         "must be in the reviewed crosswalks (nisr_sector_code, nisr_district_code).",
+        "Or put the NISR 2022 sector layer (Rwanda_Sector_Boundaries_2022.geojson, with "
+        "province_id, district_id and sector_id) through `make intake`: it writes the three "
+        "files, districts and provinces as the union of their sectors.",
     ),
 )
 GEOBOUNDARIES = "geoboundaries"

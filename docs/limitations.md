@@ -52,7 +52,12 @@
 ## LEARN
 
 - **Simulated pilot.** Caregivers, check-ins and progress for Muhanga are simulated (seed 2026),
-  with planted problems to show the triggers.
+  with planted problems to show the triggers, and exist only in demo mode. No real caregiver
+  check-ins or course progress are connected yet; the LEARN screens say so.
+- **NCDA extract.** The real extract (34,448 active services, October 2026) is loaded but shown
+  only when the data-sharing agreement allows (`IRERERO_NCDA_DISPLAY`). It has no capacity and
+  counts children aged 3 to 6, so free places are not computed from it, and it is not a live
+  feed or a proven-complete register.
 - **Draft content.** Lesson text is a placeholder citing its source until the team finalises
   it. Quiz questions and Kinyarwanda labels are drafts awaiting review.
 - **Quiz scores** measure course knowledge, not teaching quality. Caregivers are never ranked.

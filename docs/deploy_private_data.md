@@ -9,11 +9,12 @@ app runs on the labelled demo data, as it always has.
 
 | In the bundle (`make bundle`) | Never in the bundle |
 | --- | --- |
-| What `make intake` staged in `data/raw/<dataset>/`: census sector counts (weighted), district projections, COD-AB boundaries, EICV7 district rates, and any dataset staged later | `data/raw/_received/`: every original, including the census 2022 sample records (person-level) |
+| What `make intake` staged in `data/raw/<dataset>/`: census sector counts (weighted), district projections, NISR 2022 boundaries, EICV7 district rates, the MINEDUC district table, the school list, the NCDA extract in the `supply_extract` columns, and any dataset staged later | `data/raw/_received/`: every original, including the census 2022 sample records (person-level) and the full NCDA export |
 | `MANIFEST.json`: the SHA-256 of every file | Tokens, passwords or any secret |
 
-The census sample records stay on the machine that received them. The bundle holds only the
-same aggregates the app shows on screen.
+The census sample records stay on the machine that received them. The bundle holds aggregates,
+plus the NCDA services (centre id, name, type, sector, point, enrolment aged 3 to 6, caregivers),
+which the app shows only when `IRERERO_NCDA_DISPLAY` is on.
 
 ## Set it up (about 10 minutes, once)
 
@@ -102,8 +103,37 @@ update `IRERERO_SCHOOLS_SHA256` if you set it; the app rebuilds on the next star
 ## Updating the data
 
 When new files arrive: `make intake FILES="..."`, `make data`, check the screens, then
-`make bundle`. Upload the new zip over the old one, put the new SHA-256 in
-`IRERERO_DATA_SHA256`, and reboot the app. The app notices the new bundle and rebuilds.
+`make bundle`. Upload the new zip, put its address and SHA-256 in the secrets, and reboot the
+app. The app notices the new bundle and rebuilds.
+
+**Order matters when the code changes too.** Merge the code first, let the app redeploy (it
+keeps working on the old bundle), and only then point the secrets at the new bundle. A bundle
+built for newer code can fail on older code; the app then keeps the demo data and says why.
+
+### The 30 October 2026 update
+
+The new bundle is `bundles/irerero-data-2026-10-30.zip` in the data repository, beside the
+previous `irerero-data.zip` (left in place as the rollback).
+
+1. Merge the branch `claude/gallant-lamport-od0yq7` into `main` in **both** repositories: the
+   app (adds the NISR 2022 boundaries and the NCDA extract) and the data repository (adds the
+   new bundle and files the originals under `sources/`). The app redeploys and still runs on
+   the previous bundle.
+2. In the app's **Settings → Secrets**, change two values and keep the rest:
+
+   ```toml
+   IRERERO_DATA_URL = "https://api.github.com/repos/Tuyishime-Fabrice/irereroai-data/contents/bundles/irerero-data-2026-10-30.zip"
+   IRERERO_DATA_SHA256 = "6c9c8019e8ff8f1fd0a0e1c67aad9d36c8fa7796807d9c3df925b2ac10141e98"  # pragma: allowlist secret
+   ```
+
+   The token and `IRERERO_SCHOOLS_PATH` stay as they are (the school list did not change).
+   Saving the secrets restarts the app.
+3. Check: Overview map shows the 2022 boundaries ("Shyorongi" in Rulindo); Data & methods →
+   NCDA connector says the extract is loaded but not shown. Only if the NCDA data-sharing
+   agreement allows public display, add `IRERERO_NCDA_DISPLAY = "on"`.
+
+**Rollback:** put back the previous two values (`.../contents/irerero-data.zip` and its SHA-256
+`2dcb5360406aec7639574f14f726efbf819639db3ba9612b33c923cd42d716e3`) and save.
 
 ## Taking the data down
 

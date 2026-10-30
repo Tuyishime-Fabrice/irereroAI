@@ -8,7 +8,7 @@ NISR 2026 Big Data Hackathon, Track 3 (Open Innovation).
 > In my district, which sectors need action first, what is holding ECD back there, and are we on
 > track for the NST2 target of 65% pre-primary enrolment by 2028/29?
 
-**Live app:** [irereroai.streamlit.app](https://irereroai.streamlit.app/) (demo build, simulated data) · **Docs:**
+**Live app:** [irereroai.streamlit.app](https://irereroai.streamlit.app/) (demo build) · **Docs:**
 [methodology](docs/methodology.md) · [model card](docs/model_card.md) ·
 [limitations](docs/limitations.md) · [data dictionary](docs/data_dictionary.md) ·
 [data sources](DATA_SOURCES.md) · [data received](docs/data_inventory.md) ·
@@ -16,10 +16,9 @@ NISR 2026 Big Data Hackathon, Track 3 (Open Innovation).
 
 > **Everything in the demo build is simulated except the boundaries.** The real NISR, MINEDUC,
 > RDHS, EICV, WorldPop and OSM files are not in this repository: their licences forbid
-> redistribution, and the team adds them locally. While a file is missing, the app shows a
-> labelled stand-in with a red **SIMULATED** badge and leaves it out of exports. With the files
-> received so far (census 2022, NISR projections, MINEDUC yearbooks 2020/21 to 2024/25, COD-AB
-> boundaries, EICV7) a local build has a real 2026 estimate, priority ranking, peer benchmark
+> redistribution, and the team adds them locally. With the files
+> received so far (census 2022, NISR projections, MINEDUC yearbooks 2020/21 to 2024/25, NISR
+> 2022 sector boundaries, EICV7, the NCDA ECD Mapping extract) a local build has a real 2026 estimate, priority ranking, peer benchmark
 > and 2028/29 trend; the distance layer and the bottlenecks stay labelled simulated until a full
 > school list and stunting arrive. Each part of a screen carries its own status.
 
@@ -62,7 +61,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 199 tests
+make test      # 209 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
@@ -70,7 +69,8 @@ sidebar.
 
 **Add the real data.** Run `make sources` to create `data/raw/<dataset>/` and list what is
 missing. Files received in their own layout (the EICV7 chart, MINEDUC annexes, census sample
-records, NISR single-age projections, COD-AB GeoJSON) go through
+records, NISR single-age projections, the NISR 2022 sector boundaries, the NCDA mapping
+extract, and the published tables that only verify them) go through
 `make intake FILES="<file or folder>"`, which keeps the original read-only, records its
 checksum, converts and checks it, and stages it only when complete
 ([what has been received](docs/data_inventory.md), [what is still needed](docs/data_requests.md)). Put each file where [DATA_SOURCES.md](DATA_SOURCES.md) says, with the columns it
@@ -107,7 +107,7 @@ in [DATA_SOURCES.md](DATA_SOURCES.md), generated from the loaders' declarations.
 | 8 | EICV7 poverty | NISR | PLAN, DIAGNOSE | NISR publication, cited |
 | 9 | National ECD Standards (2024), as parameters | NCDA | PLAN, LEARN | Government publication, cited |
 | 10 | Course source materials | NCDA, UNICEF, WHO | LEARN | Adapted and cited |
-| 11 | NCDA ECD Mapping extract (`supply_extract`) | NCDA | PLAN, connector | Simulated for Muhanga |
+| 11 | NCDA ECD Mapping extract (`supply_extract`) | NCDA | LEARN, connector | NCDA data sharing agreement; shown only when `IRERERO_NCDA_DISPLAY` is on |
 | 12 | Check-ins and course progress, Muhanga | IrereroAI generator | LEARN | Simulated |
 
 ## Status legend
@@ -194,15 +194,19 @@ track. It is built to read an NCDA extract in the `supply_extract` schema:
 | --- | --- |
 | `centre_id` | NCDA centre identifier (unique) |
 | `name` | Centre name |
-| `centre_type` | school_based, community_based, home_based, centre_based |
+| `centre_type` | school_based, community_based, home_based, centre_based, other, not_stated |
 | `district_name`, `sector_name` | Joined to geo_id through the reviewed crosswalk |
 | `lon`, `lat` | WGS84 location |
-| `capacity`, `enrolled_3_5`, `caregivers` | Places, children aged 3 to 5 enrolled, caregivers |
+| `capacity`, `enrolled_3_5`, `enrolled_3_6`, `caregivers` | Places, children aged 3 to 5 enrolled, children aged 3 to 6 enrolled (the NCDA extract's band), caregivers; empty where the source has no such field |
 | `as_of` | Extract date (YYYY-MM-DD) |
 
-Mapped centres join the distance layer, and the Data and methods screen shows free places by
-sector. The demo uses a simulated Muhanga extract (seed 2026). NCDA enrolment is never added
-to census or MINEDUC counts.
+`make intake` converts NCDA's own export (`ncda_ecd_mapping_extract.csv`) to this schema:
+active services only, no value derived (the extract has no capacity and counts ages 3 to 6). The
+Data and methods screen shows mapped services by sector, real ones only when
+`IRERERO_NCDA_DISPLAY` is on. Mapped services do not join the distance layer, which measures
+distance to formal pre-primary schools. The LEARN demo keeps its 36 simulated Muhanga centres
+(seed 2026), labelled SIMULATED, in demo mode only. NCDA enrolment is never added to census or
+MINEDUC counts.
 
 ## Limitations
 

@@ -7,7 +7,8 @@ have something to show:
     SIM-MUH-002  meals on fewer than 3 days for two months      -> nutrition course flagged
     SIM-MUH-003  attendance falls from about 85% to about 50%   -> follow-up for the officer
 
-Runs once, into empty app tables; real submissions are never overwritten.
+Runs once, into empty app tables, and only in demo mode; real submissions are never
+overwritten. Course content, rules and triggers do not depend on these records.
 """
 
 from datetime import date, datetime, timedelta
@@ -20,8 +21,12 @@ from sqlalchemy.orm import Session
 from irerero.config import SEED, SIMULATED
 from irerero.db.models import AppUser, Assignment, CentreCheckin, SupplyExtract
 from irerero.learn.progress import JOINING
-from irerero.roles import CAREGIVER
+from irerero.roles import CAREGIVER, demo_mode
 
+LEARN_NOTE = (
+    "Status: simulated pilot data for Muhanga (demo mode). Real caregiver check-ins and course "
+    "progress are not connected yet; courses, lessons and triggers are the real content."
+)
 MONTHS = ("2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09")
 DEMO_CAREGIVER = "demo-caregiver"
 NO_WATER, FEW_MEALS, DROP = "SIM-MUH-001", "SIM-MUH-002", "SIM-MUH-003"
@@ -34,6 +39,8 @@ def caregiver_id(centre_id: str) -> str:
 
 
 def seed(eng: Engine) -> bool:
+    if not demo_mode():
+        return False
     with Session(eng) as s:
         if s.scalar(select(func.count()).select_from(CentreCheckin)):
             return False

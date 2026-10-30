@@ -138,9 +138,10 @@ NCDA ECD Mapping extract in the connector schema (simulated for Muhanga in the d
 | `geo_id` | VARCHAR(64) | no | → geo_unit.geo_id |
 | `lon` | FLOAT | no |  |
 | `lat` | FLOAT | no |  |
-| `capacity` | INTEGER | no |  |
-| `enrolled_3_5` | INTEGER | no |  |
-| `caregivers` | INTEGER | no |  |
+| `capacity` | INTEGER | yes |  |
+| `enrolled_3_5` | INTEGER | yes |  |
+| `enrolled_3_6` | INTEGER | yes |  |
+| `caregivers` | INTEGER | yes |  |
 | `as_of` | DATE | no |  |
 | `status` | VARCHAR(24) | no |  |
 

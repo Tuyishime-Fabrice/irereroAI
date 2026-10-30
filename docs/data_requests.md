@@ -15,13 +15,14 @@ layout) or straight into `data/raw/<dataset>/` (tables typed into the template),
 | # | Dataset | From | Access | Unlocks | Priority |
 | --- | --- | --- | --- | --- | --- |
 | 7 | [School list with coordinates](#7-openstreetmap-rwanda) (every school with pre-primary classes) | MINEDUC (EMIS), or OpenStreetMap | Ask; or open download | The 1 km distance, the access factor and most bottlenecks | **1, essential** |
-| 4 | [Stunting by district](#4-stunting-under-5-by-district) | NISR, MoH, DHS Program | Published report | The wellbeing factor; the nutrition course trigger; with schools, a real diagnosis | **1, essential** |
+| 4 | [Stunting by district](#4-stunting-under-5-by-district) (`Microdata (1).zip` expected, not yet uploaded) | NISR, MoH, DHS Program | Published report; microdata under DHS terms | The wellbeing factor; the nutrition course trigger; with schools, a real diagnosis | **1, essential** |
 | 3 | [Qualified teachers by district](#3-mineduc-yearbooks) | MINEDUC | Ask | The third part of the capacity factor | 2 |
 | 1 | [Census sanitation, women's education, children 0-4 by sector; Table 2.5 totals](#1-census-2022-phc5-sector-tables) | NISR | Thematic reports; ask | The rest of the home-environment factor; a check of the sample counts | 2 |
-| 6 | [WorldPop under-5 rasters](#6-worldpop-under-5-2020) | WorldPop | Open download | Where children live inside a sector; the distance layer | 2 |
+| 6 | [WorldPop: the male 1-4 layer](#6-worldpop-under-5-2020) (the rest arrived on 30 Oct) | WorldPop | Open download | Where children live inside a sector; the distance layer | 2 |
 | 2 | [Projection variants](#2-population-projections-2023-2032) | NISR | Published; ask | Low and high variants for the 2026 range | 3 |
-| 8 | [NCDA ECD Mapping extract](#8-ncda-ecd-mapping-system-extract) | NCDA | Data sharing agreement | Real centres for LEARN and the supply connector | 3 |
-| 9 | [EICV7 sector rates and two checks](#9-eicv7-follow-up) | NISR | Published; ask | Poverty that separates sectors inside a district | 3 |
+| 8 | [NCDA: confirm the data-sharing terms](#8-ncda-ecd-mapping-system-extract) (extract received 30 Oct) | NCDA | Data sharing agreement | Showing the services on screen (`IRERERO_NCDA_DISPLAY`) | 3 |
+| 9 | [EICV7 sector rates and two checks](#9-eicv7-follow-up) (`Microdata.zip` expected, not yet uploaded) | NISR | Published; microdata under NISR terms | Poverty that separates sectors inside a district | 3 |
+| 10 | National ECD Standards 2024 document | NCDA | Published | Page and wording for the 30 per room, 1:15-1:30 and 1 km parameters | 3 |
 
 Received and in use: the census 2022 children aged 3 to 5 (sample records) and sector tables,
 the NISR single-age projections, the MINEDUC yearbooks 2020/21 to 2024/25, the COD-AB boundaries
@@ -79,6 +80,10 @@ current.
 
 ## 6. WorldPop under 5, 2020
 
+**Received 30 October:** f_0, f_1, m_0 (2020) and f_00, f_01, m_00 (2026, R2025A), plus age 5-9
+and under-18 layers the app does not use. **Still missing:** `rwa_m_1_2020_constrained_UNadj.tif`
+(or, for the 2026 set, `rwa_m_01_2026_CN_100m_R2025A_v1.tif`). The two sets are never mixed.
+
 - **Download:** WorldPop age and sex structures, constrained, 100 m, 2020, UN adjusted, for
   Rwanda: the four files for females and males aged 0 and 1 to 4
   (`rwa_f_0_2020_constrained_UNadj.tif`, `rwa_f_1_…`, `rwa_m_0_…`, `rwa_m_1_…`).
@@ -98,7 +103,12 @@ current.
 
 ## 8. NCDA ECD Mapping System extract
 
-- **Ask for:** an extract in the `supply_extract` schema (one row per centre: id, name, type,
+**Received 30 October** (`ncda_ecd_mapping_extract.csv`, 37,431 records; 34,448 active
+services staged). Still to settle: whether the data-sharing agreement allows the services to be
+shown publicly, and, ideally, each centre's capacity and enrolment aged 3 to 5. The expected
+GeoJSON copy was not uploaded (the CSV carries the coordinates).
+
+- **Originally asked for:** an extract in the `supply_extract` schema (one row per centre: id, name, type,
   district, sector, longitude, latitude, capacity, children aged 3 to 5 enrolled, caregivers,
   date), starting with Muhanga for the LEARN pilot. Centre-level counts only, no child records.
 - **Template:** `supply_extract.csv`. Needs a data sharing agreement with NCDA.

@@ -20,7 +20,7 @@ data/
 | 1 | [Fifth Population and Housing Census (PHC5) 2022, district profiles](#census_2022) | sector, with district totals for checking | 2022 (census night 15 August 2022) | PLAN: 2026 estimate, gap, priority; DIAGNOSE: home environment, peer model |
 | 2 | [WorldPop age and sex structures, constrained, 100 m, 2020 (UN adjusted)](#worldpop) | 100 m grid | 2020 | PLAN: where children live inside each sector (2026 estimate, distance layer) |
 | 3 | [Rwanda Subnational Population Projections 2023-2032](#projections) | district | 2023 to 2032 | PLAN: calibrate the 2026 estimate; TRACK: population for enrolment rates |
-| 4 | [Administrative boundaries, province to sector (COD-AB)](#boundaries) | province, district, sector | 2022 | every map; the join to NISR sector codes |
+| 4 | [Administrative boundaries, province to sector (NISR 2022)](#boundaries) | province, district, sector | 2022 | every map; the join to NISR sector codes |
 | 5 | [OpenStreetMap Rwanda extract](#osm) | points and road network | extract date | PLAN: share of children more than 1 km from a school with pre-primary |
 | 6 | [MINEDUC school locations (provisional: standalone pre-primary schools only)](#schools) | school points | register export (date not stated) | PLAN: share of children more than 1 km from a listed school (provisional upper bound); Overview map: school locations |
 | 7 | [Education Statistical Yearbooks 2020/21 to 2024/25 (pre-primary)](#yearbook) | district | 2020/21 to 2024/25 | TRACK: enrolment trend to 2029; DIAGNOSE: capacity (ratios, qualifications) |
@@ -125,7 +125,7 @@ With children_3_5 (the single-age tables give it), the 2026 estimate takes each 
 
 <a id="boundaries"></a>
 
-## 4. Administrative boundaries, province to sector (COD-AB)
+## 4. Administrative boundaries, province to sector (NISR 2022)
 
 | | |
 | --- | --- |
@@ -135,7 +135,7 @@ With children_3_5 (the single-age tables give it), the 2026 estimate takes each 
 | Format | GeoJSON, EPSG:4326 |
 | Geographic level | province, district, sector |
 | Reference period | 2022 |
-| Licence | CC BY 4.0 |
+| Licence | CC BY 4.0 as declared for COD-AB on HDX; confirm the terms of the 2022 sector layer |
 | Where to get it | https://data.humdata.org/dataset/cod-ab-rwa |
 | Status when loaded | observed |
 | Used by | every map; the join to NISR sector codes |
@@ -148,6 +148,8 @@ With children_3_5 (the single-age tables give it), the 2026 estimate takes each 
 | `parent_nisr_code` | text | no | NISR code of the unit one level up |
 
 Rename the COD-AB columns to nisr_code, name and parent_nisr_code. Each nisr_code must be in the reviewed crosswalks (nisr_sector_code, nisr_district_code).
+
+Or put the NISR 2022 sector layer (Rwanda_Sector_Boundaries_2022.geojson, with province_id, district_id and sector_id) through `make intake`: it writes the three files, districts and provinces as the union of their sectors.
 
 <a id="osm"></a>
 
@@ -343,17 +345,20 @@ Write 38.8% as 0.388.
 | --- | --- | --- | --- |
 | `centre_id` | text | yes | NCDA centre id |
 | `name` | text | yes | Centre name |
-| `centre_type` | text | yes | home_based | community_based | school_based | centre_based |
+| `centre_type` | text | yes | home_based | community_based | school_based | centre_based | other | not_stated |
 | `sector_name` | text | yes | Sector name as printed in the source |
 | `district_name` | text | yes | District name as printed in the source |
 | `lon` | longitude, WGS84 (28.7 to 31.0) | yes | Longitude (WGS84) |
 | `lat` | latitude, WGS84 (-2.95 to -1.0) | yes | Latitude (WGS84) |
-| `capacity` | whole number ≥ 0 | yes | Places |
-| `enrolled_3_5` | whole number ≥ 0 | yes | Children aged 3 to 5 enrolled |
-| `caregivers` | whole number ≥ 0 | yes | Caregivers |
+| `capacity` | whole number ≥ 0 | no | Places (not in the NCDA extract) |
+| `enrolled_3_5` | whole number ≥ 0 | no | Children aged 3 to 5 enrolled |
+| `enrolled_3_6` | whole number ≥ 0 | no | Children aged 3 to 6 enrolled (NCDA) |
+| `caregivers` | whole number ≥ 0 | no | Caregivers |
 | `as_of` | YYYY-MM-DD | yes | Date of the record, YYYY-MM-DD |
 
 Never added to census or MINEDUC enrolment: NCDA counts include home-based ECD, the formal pre-primary measure does not.
+
+Put ncda_ecd_mapping_extract.csv through `make intake`: it keeps active services, maps settings_types to centre_type and writes this file. Rows are shown on screen only when IRERERO_NCDA_DISPLAY is on (the data-sharing agreement must allow it).
 
 <a id="learn_simulation"></a>
 

@@ -1,6 +1,5 @@
 """The demo role picker. Roles and demo users live in irerero.roles."""
 
-import os
 from html import escape
 
 import streamlit as st
@@ -14,12 +13,9 @@ from irerero.roles import (  # noqa: F401  (re-exported for the screens)
     PLANNER,
     ROLE_LABELS,
     User,
+    demo_mode,
 )
 from irerero.ui.i18n import role, t
-
-
-def demo_mode() -> bool:
-    return os.environ.get("DEMO_MODE", "true").lower() in ("1", "true", "yes")
 
 
 def current() -> User:

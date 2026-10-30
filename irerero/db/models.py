@@ -142,7 +142,8 @@ class Forecast(Base):
 
 
 class SupplyExtract(Base):
-    """NCDA ECD Mapping System extract. Simulated for Muhanga until NCDA shares data."""
+    """NCDA ECD Mapping System extract. Each row carries its status: observed for the NCDA
+    extract, simulated for the Muhanga LEARN demonstration centres."""
 
     __tablename__ = "supply_extract"
 
@@ -152,9 +153,10 @@ class SupplyExtract(Base):
     geo_id: Mapped[str] = mapped_column(ForeignKey("geo_unit.geo_id"), index=True)
     lon: Mapped[float] = mapped_column(Float)
     lat: Mapped[float] = mapped_column(Float)
-    capacity: Mapped[int] = mapped_column(Integer)
-    enrolled_3_5: Mapped[int] = mapped_column(Integer)
-    caregivers: Mapped[int] = mapped_column(Integer)
+    capacity: Mapped[int | None] = mapped_column(Integer)  # not in the NCDA extract
+    enrolled_3_5: Mapped[int | None] = mapped_column(Integer)
+    enrolled_3_6: Mapped[int | None] = mapped_column(Integer)  # the NCDA extract's age band
+    caregivers: Mapped[int | None] = mapped_column(Integer)
     as_of: Mapped[date] = mapped_column(Date)
     status: Mapped[str] = mapped_column(String(24))
 

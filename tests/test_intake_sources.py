@@ -238,3 +238,82 @@ def test_learn_simulation_runs_only_in_demo_mode(monkeypatch, tmp_path):
     Base.metadata.create_all(eng)
     monkeypatch.setenv("DEMO_MODE", "false")
     assert simulate.seed(eng) is False
+
+
+def _dhs_pr(path: Path) -> Path:
+    """A made-up household-member recode: 30 districts, 2 strata each, 4 clusters per stratum,
+    children whose height-for-age puts a known share below -2 SD."""
+    rng = np.random.default_rng(1)
+    rows = []
+    codes = DISTRICT_CODES.index.str[2:].astype(int)
+    for d in codes:
+        for stratum in (1, 2):
+            for cluster in range(4):
+                for child in range(10):
+                    rows.append({
+                        "hv000": "RW8", "hv005": 1_000_000, "hv007": 2025,
+                        "hv021": d * 100 + stratum * 10 + cluster, "hv022": d * 10 + stratum,
+                        "hv103": 1, "hc70": float(-250 if child < 3 else rng.integers(-150, 100)),
+                        "shdistrict": d,
+                    })  # fmt: skip
+    frame = pd.DataFrame(rows)
+    frame.loc[0, "hc70"] = 9998  # flagged: left out
+    frame.loc[1, "hv103"] = 0  # not de facto: left out
+    target = path / "RWPR91FL.dta"
+    frame.to_stata(target, write_index=False)
+    return target
+
+
+def test_dhs_microdata_becomes_district_stunting_with_intervals(dirs):
+    import zipfile
+
+    from irerero.config import MODEL
+    from irerero.data.sources import rdhs
+
+    pr = _dhs_pr(dirs["in"])
+    archive = dirs["in"] / "Microdata (1).zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.write(pr, "Microdata/Microdata/RWPR91FL.dta")
+        zf.writestr("Microdata/Microdata/RWIR91FL.dta", b"not needed")
+    files = intake._expand([str(archive)], dirs["interim"])
+    assert [f.name for f in files] == ["RWPR91FL.dta"]  # only the recode intake reads
+    (result,) = _run(dirs, files)
+    assert result.staged, [c.text for c in result.checks if c.level == "fail"]
+    loaded = rdhs.load(dirs["raw"])
+    frame = loaded.frame
+    assert loaded.status == MODEL and len(frame) == 30 and frame.geo_id.notna().all()
+    assert set(frame.columns) >= {"stunting_u5", "stunting_u5_low", "stunting_u5_high"}
+    assert (
+        (frame.stunting_u5_low <= frame.stunting_u5) & (frame.stunting_u5 <= frame.stunting_u5_high)
+    ).all()
+    assert abs(frame.stunting_u5.median() - 0.3) < 0.02  # 3 of every 10 children
+    assert "1 flagged" in " ".join(c.text for c in result.checks)
+
+
+def test_eicv_microdata_checks_the_published_rates_and_stages_nothing(dirs):
+    from irerero.data import crosscheck
+
+    names = DISTRICT_CODES.source_district
+    rates = {name: 0.1 + i / 100 for i, name in enumerate(names)}
+    (dirs["raw"] / "eicv7").mkdir()
+    pd.DataFrame(
+        {
+            "level": "district",
+            "district_name": list(rates),
+            "sector_name": "",
+            "poverty_rate": list(rates.values()),
+        }
+    ).to_csv(dirs["raw"] / "eicv7" / "eicv7_poverty.csv", index=False)
+    rows = []
+    for code, name in names.items():
+        poor = round(rates[name] * 100)
+        district = int(code[2:])
+        rows += [
+            {"district": district, "clust": district * 10 + i % 3,
+             "pov_jan": 100.0 if i < poor else 0.0, "pop_wt": 1.0}
+            for i in range(100)
+        ]  # fmt: skip
+    path = dirs["in"] / "CS_EICV7_poverty_file.dta"
+    pd.DataFrame(rows).to_stata(path, write_index=False)
+    checks = crosscheck.eicv_microdata(path, dirs["raw"])
+    assert any("30 of 30 districts" in c.text for c in checks)

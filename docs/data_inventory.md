@@ -1,6 +1,7 @@
 # Data inventory: what the team holds, its status, and what the checks found
 
-Last intake: **30 October 2026** (the files uploaded to the private data repository that day).
+Last intake: **30 October 2026** (the files uploaded to the private data repository that day,
+including the DHS 2025 and EICV7 microdata uploaded in the afternoon).
 Earlier deliveries (23 to 28 October) are kept below. Checksums for every file are in
 [`data/received_files.csv`](../data/received_files.csv); the full check list is written to
 `data/interim/intake_report.md` each time `make intake` runs.
@@ -45,12 +46,12 @@ from real values by a stated method; "provisional" means real but known to be pa
 | --- | --- | --- | --- | --- | --- |
 | PHC5 population indicators | NISR, census night 15 Aug 2022 | `PHC5-2022_Main_Indicators.xlsx` (101 sheets) | Verification only | Real. Confirms the staged census sector table: 416 of 416 sector populations, 30 district populations and households identical | Census 2022 counts are never shown as 2026 counts; the 2026 estimate takes district totals from the projections |
 | Census 3-5 attendance by sector | NISR, PHC5 2022 sample records (24 Oct) | `children_age_3_5_clean.csv` (kept on the receiving machine) | Integrated | Derived (weighted tabulation, *model estimate*): each sector's share of its district's children and its 2022 attendance rate | Sample-based; 10 sectors rest on fewer than 100 sampled children |
-| WorldPop population distribution | WorldPop, Univ. of Southampton; 2020 constrained UN-adjusted and 2026 R2025A, 100 m | 9 GeoTIFFs (see below) | **Blocked (incomplete)** | Not used. The app keeps its documented stand-in: sector shares of the census count, children spread evenly inside a sector | Each set lacks the male 1-4 layer: `rwa_m_1_2020_constrained_UNadj.tif`, `rwa_m_01_2026_CN_100m_R2025A_v1.tif` |
+| WorldPop population distribution | WorldPop, Univ. of Southampton; 2020 constrained UN-adjusted and 2026 R2025A, 100 m | 9 GeoTIFFs (see below); 6 re-uploaded on 30 Oct are byte-identical copies | **Blocked (incomplete)** | Not used. The app keeps its documented stand-in: sector shares of the census count, children spread evenly inside a sector | Each set lacks the male 1-4 layer: `rwa_m_1_2020_constrained_UNadj.tif`, `rwa_m_01_2026_CN_100m_R2025A_v1.tif` |
 | NISR population projections | NISR, Subnational Population Projections 2023-2032 | single-age district workbook (24 Oct); `2.7 Muhanga_single_age.xlsx`, five province workbooks (30 Oct) | Integrated (district single ages); new workbooks verification only | Real (*published estimate*). 2026 children aged 3-5 per district; denominators for TRACK | One variant only (read as medium). Province workbooks are in 5-year groups (0-4, 5-9) and cannot give ages 3-5 |
 | Administrative boundaries | NISR via HDX; 2022 sector layer (published 3 Sep 2024) | `Rwanda_Sector_Boundaries_2022.geojson` | **Replacement verified** | Real. Replaces the COD-AB 2006-structure shapes (published 2018). Every map and spatial join; districts and provinces are the union of their sectors | Licence of the 2022 layer to confirm on its HDX page (COD-AB is CC BY 4.0) |
 | MINEDUC school locations | MINEDUC school register; export date not stated | `rwanda_preprimary_schools.geojson`, `rwanda_preprimary_schools.csv` (same 139 records as `schools/Rwandapreprimarydata_locatios.GeoJSON`) | Integrated, **provisional** | Real, partial. School map and the share of children > 1 km from a *listed* school (an upper bound) | Standalone pre-primary schools only (139 of 4,221 schools with pre-primary); 8 points lie in another district than their record names |
 | OpenStreetMap Rwanda extract | OSM contributors via Geofabrik | none | **Awaiting upload** | Not used; OSM distance stays off. The school list above is used, labelled provisional | Straight-line distance only until roads are loaded |
-| EICV7 poverty | NISR, EICV7 2023/24 Main Indicators Report, Fig. 9.1 (23 Oct) | `eicv7_poverty.csv` | Integrated | Real (*published estimate*), district rates; poverty component of the priority index | District level only; microdata (`Microdata.zip`) **awaiting upload** |
+| EICV7 poverty | NISR, EICV7 2023/24 Main Indicators Report, Fig. 9.1 (23 Oct); microdata (30 Oct) | `eicv7_poverty.csv`; `Microdata.zip` (`CS_EICV7_poverty_file.dta` used) | Integrated; microdata verification only | Real (*published estimate*), district rates; poverty component of the priority index. The microdata reproduce all 30 rates within 0.05 points | District level only: EICV7 is not designed for sector estimates |
 | ECD standards and capacity parameters | NCDA, National ECD Standards 2024 | none (parameters in `irerero/config.py`) | Unchanged | Policy parameters, not observations: 30 children per room, 1 caregiver per 15-30 children, 1 km | The source pages of each parameter are still to be cited; no standards document was uploaded |
 
 ### DIAGNOSE
@@ -58,7 +59,7 @@ from real values by a stated method; "provisional" means real but known to be pa
 | Dataset | Source; reference | Received file(s) | Status | Nature; how the app uses it | Known limitations |
 | --- | --- | --- | --- | --- | --- |
 | PHC5 household indicators | NISR, PHC5 2022 thematic reports (28 Oct); Main Indicators (30 Oct) | `IrereroAI_Census_2022_Master_Dataset_v1.xlsx`; Main Indicators Tables 58, 68, 71, 74 | Integrated (sector water, grid electricity, households, urban share); Main Indicators verification only | Real by sector: home-environment factor and peer-model features | Sanitation (Table 71) and any-source electricity (Table 74) are district only: never copied to sectors, so sanitation stays empty |
-| DHS 2025 wellbeing indicators | NISR, MoH, The DHS Program | `Microdata (1).zip` expected | **Awaiting upload** | Stunting stays SIMULATED in the wellbeing factor and the nutrition trigger | Microdata need the DHS Program's terms; only weighted district aggregates may be staged |
+| DHS 2025 wellbeing indicators | NISR, MoH, The DHS Program; interviews in 2025 (phase RW8) | `Microdata (1).zip` (11 recode files; `RWPR91FL.dta` used) | **Replacement verified** | Derived (*model estimate*): stunting under 5 by district with 95% intervals, weighted IrereroAI tabulation following DHS definitions. Drives the wellbeing factor and the nutrition trigger | Districts rest on 178-362 children (intervals ±3.9 to ±9.8 points); compare with the DHS 2025 report before quoting; district context, never a child's status |
 | EICV7 poverty indicators | NISR | as in PLAN | Integrated | District context in the poverty factor | as in PLAN |
 | MINEDUC capacity and staffing | MINEDUC yearbooks 2020/21-2024/25 (28 Oct district master table); national workbook (30 Oct) | `IrereroAI_MINEDUC_Master_District_Year_2020-21_to_2024-25.csv`; `Rwanda_MINEDUC_PrePrimary_2020-21_to_2024-25.xlsx` | Integrated (district table); workbook verification only | Real (*observed*): pupil-teacher and pupil-classroom ratios by district | The workbook is national and a transcription (its own Read_Me says so); qualified teachers are national only (99.4% in 2024/25) |
 | ECD centres and services | NCDA ECD Mapping System | `ncda_ecd_mapping_extract.csv` | Integrated (display off) | Real: 34,448 active services in all 30 districts, staged in the `supply_extract` schema | Not used in DIAGNOSE scores; shown on screen only when `IRERERO_NCDA_DISPLAY` is on |
@@ -162,6 +163,31 @@ Numbers from `make intake`; nothing was filled in or guessed, and every exclusio
   halve the count and skew where children live, and the 2020 and 2026 sets are never mixed. The
   app keeps its census-share stand-in until one set is complete.
 
+### DHS 2025 microdata (stunting, staged as district rates)
+
+- **Pass.** `RWPR91FL.dta` (household-member recode): 57,046 people, survey phase RW8, all
+  interviews in 2025, 60 strata, 560 clusters; district code `shdistrict` is the NISR code, so
+  all 30 districts join by code.
+- **Method (DHS definitions).** De facto children under 5 (`hv103 = 1`) with a valid
+  height-for-age z-score (`hc70`); stunted below -2 SD; weighted by `hv005`; 95% intervals by
+  Taylor linearisation over strata and clusters. 7,261 children; 10 flagged measurements and 75
+  children who did not sleep in the household left out, as the DHS does.
+- **Result.** Rwanda 26.8% (95% interval 25.4% to 28.1%); districts from 8.7% (Nyarugenge) to
+  38.8% (Gicumbi). Each district rests on 178 to 362 children, so intervals are ±3.9 to ±9.8
+  points; the app shows them. Status *model estimate*: IrereroAI's tabulation, to compare with
+  the DHS 2025 report before quoting.
+- **Kept private.** Only the 30 district rates and intervals are staged and bundled. The other
+  10 recode files are not used, and no record is linked across them.
+
+### EICV7 microdata (verification)
+
+- **Pass.** `CS_EICV7_poverty_file.dta`: 15,054 households in 1,674 clusters, 30 districts;
+  Rwanda 27.4% below the poverty line (population-weighted `pov_jan`), the published figure.
+- **Pass.** All 30 district rates reproduce the staged published rates within 0.05 points.
+  Gisagara (45.6%) and Nyamasheke (42.8%), flagged for checking, are confirmed. Muhanga and
+  Ruhango (both 15.0% in the chart) are 14.95% and 14.99%; Kamonyi and Nyaruguru are truly equal.
+- **Not done, by design.** No sector poverty rate: EICV7 is designed for district estimates.
+
 ### Reference pages
 
 `Fifth Population and Housing Census  2022.pdf` and `District Profiles  Subnational
@@ -179,7 +205,8 @@ Built before and after on the same machine; every other table is identical row f
 | Sector RW4116 name | Shyrongi -> Shyorongi | Official 2022 spelling |
 | Share of children > 1 km from a listed school (provisional) | 85 of 416 sectors change; nationally 93.5% -> 93.9% | 73 sectors from the redrawn shapes; **12 Muhanga sectors** because simulated NCDA centres no longer count as schools (e.g. Cyeza 88.6% -> 100%, Nyamabuye 25.5% -> 46.1%). Before, invented centres lowered real-looking distances |
 | NCDA supply table | 36 simulated rows -> 34,448 real services + the 36 labelled demo centres | NCDA extract |
-| Stand-ins still used | worldpop, rdhs_2025, ncda -> worldpop, rdhs_2025 | NCDA is real |
+| Stand-ins still used | worldpop, rdhs_2025, ncda -> worldpop only | NCDA extract; DHS 2025 microdata |
+| Bottleneck diagnosis (DIAGNOSE) | simulated -> model estimate; 37 of 416 sectors change bottleneck (WELLBEING 70 -> 67, SUPPLY 106 -> 109); the 12 Muhanga sectors keep theirs | Real district stunting replaces the stand-in |
 
 ## Still missing
 
@@ -187,8 +214,6 @@ Built before and after on the same machine; every other table is identical row f
 | --- | --- | --- |
 | WorldPop | `rwa_m_1_2020_constrained_UNadj.tif` (or `rwa_m_01_2026_CN_100m_R2025A_v1.tif` with the other 2026 layers) | Children are spread evenly inside a sector (documented stand-in) |
 | OpenStreetMap | `rwanda-latest.osm.pbf` from Geofabrik | Distance stays straight-line from the 139 listed schools, provisional |
-| DHS 2025 | `Microdata (1).zip`, with the DHS Program's terms | Stunting and the nutrition trigger stay SIMULATED |
-| EICV7 microdata | `Microdata.zip`, with NISR's terms | Poverty stays at district level from the published report |
 | National ECD Standards 2024 | The document, to cite page and wording of each parameter | Parameters stay as configured, cited to the standard without page |
 | NCDA ECD Mapping GeoJSON | `ncda_ecd_mapping_extract.geojson` (expected, not uploaded) | None: the CSV carries the coordinates |
 | MINEDUC full register | Every school with a pre-primary section, with coordinates | Distance stays an upper bound |
@@ -366,8 +391,7 @@ coordinates and a flag for schools with pre-primary classes.
 
 ## Status after intake
 
-`make data` reports simulated stand-ins for **worldpop and rdhs_2025** only, the school list as
-provisional, and the NCDA extract as real (with the 36 Muhanga LEARN demonstration centres
+`make data` reports a simulated stand-in for **worldpop** only, the school list as provisional, and the NCDA extract as real (with the 36 Muhanga LEARN demonstration centres
 beside it in demo mode, labelled SIMULATED).
 
 | Part of the app | Status now | Why |
@@ -378,7 +402,7 @@ beside it in demo mode, labelled SIMULATED).
 | Peer benchmark (DIAGNOSE) | **model estimate** | Census attendance and household tables |
 | 2028/29 trend and status (TRACK) | **model estimate** on **observed** yearbooks | MINEDUC district table, checked against the national workbook |
 | Share of children more than 1 km from a school | **provisional** (upper bound) | 139 standalone pre-primary schools; no simulated centres |
-| Bottlenecks and factor scores (DIAGNOSE) | simulated | Wellbeing (stunting) is a stand-in until DHS 2025 arrives |
+| Bottlenecks and factor scores (DIAGNOSE) | **model estimate** | DHS 2025 district stunting (microdata), with the other factors |
 | NCDA connector (Data & methods) | **observed**, hidden by default | Shown only when `IRERERO_NCDA_DISPLAY` is on |
 | LEARN check-ins and course progress | simulated (demo mode) | No real operational records yet |
 

@@ -77,6 +77,7 @@ MINEDUC_TREND_ON_CENSUS = False
 GRID_SPACING_M = 250  # spacing of evenly spread points while WorldPop is missing
 SNAP_LIMIT_M = 500  # a point further than this from a road is not on the network
 MIN_ROAD_COVERAGE = 0.5  # below this share of points near a road, use straight-line distance
+SAME_SITE_M = 100  # a MINEDUC school this close to an OSM school is the same site, counted once
 METRIC_CRS = 32735  # WGS 84 / UTM zone 35S covers Rwanda
 
 STABILITY_DRAWS = 500

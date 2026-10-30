@@ -20,4 +20,7 @@ pdfplumber==0.11.10
 sqlalchemy==2.1.5
 psycopg[binary]==3.3.6
 fpdf2==2.8.9
+# The OSM road network (the `osm` extra): reads the OpenStreetMap extract in the bundle.
+osmium==4.3.1
+networkx==3.6.1
 anthropic==2.3.0

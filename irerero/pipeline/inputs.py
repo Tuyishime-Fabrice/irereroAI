@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 
-from irerero.config import PROVISIONAL, RAW
+from irerero.config import PROVISIONAL, RAW, SAME_SITE_M
 from irerero.data.sources import (
     boundaries,
     census,
@@ -20,6 +21,8 @@ from irerero.data.sources import (
 )
 from irerero.data.sources import yearbook as yearbook_source
 from irerero.data.sources.base import Loaded
+
+COMBINED = "openstreetmap+mineduc"  # the source of a network that holds both school lists
 
 
 @dataclass
@@ -48,13 +51,20 @@ class Inputs:
 
 
 def school_network(raw: Path = RAW) -> osm.Network:
-    """The schools for the distance layer: OpenStreetMap (with roads) when its extract is
-    loaded; otherwise the MINEDUC school list, labelled provisional while it is partial;
-    otherwise the simulated stand-in. A school file with no usable point falls back to the
-    stand-in, and its report says why."""
-    if osm.DATASET.present(raw):
-        return osm.load(raw)
+    """The schools for the distance layer: OpenStreetMap schools (with roads) and the MINEDUC
+    school list together when both are loaded, a MINEDUC school within SAME_SITE_M of an OSM
+    school counted once; otherwise whichever one is loaded; otherwise the simulated stand-in.
+    Both lists are partial (OSM does not say which schools have pre-primary, MINEDUC's lists
+    standalone pre-primary schools only), so any layer built on the MINEDUC list is labelled
+    provisional. A school file with no usable point falls back, and its report says why."""
     listed = schools.load(raw)
+    if osm.DATASET.present(raw):
+        network = osm.load(raw)
+        if listed is not None and listed[1].loaded:
+            return combine(network, *listed)
+        if listed is not None:
+            network.report = listed[1].as_dict()
+        return network
     if listed is None:
         return osm.load(raw)
     frame, report = listed
@@ -64,6 +74,31 @@ def school_network(raw: Path = RAW) -> osm.Network:
     fallback = osm.load(raw)
     fallback.report = report.as_dict()
     return fallback
+
+
+def combine(network: osm.Network, listed: pd.DataFrame, report: schools.Report) -> osm.Network:
+    """OSM schools plus the MINEDUC schools that are not at an OSM school's site."""
+    from scipy.spatial import cKDTree
+
+    from irerero.plan.distance import _metric
+
+    mapped = network.schools.assign(origin="openstreetmap")
+    listed = listed.assign(origin="mineduc")
+    if len(mapped):
+        osm_xy = _metric(mapped.lon.to_numpy(float), mapped.lat.to_numpy(float))
+        list_xy = _metric(listed.lon.to_numpy(float), listed.lat.to_numpy(float))
+        same = cKDTree(osm_xy).query(list_xy, distance_upper_bound=SAME_SITE_M)[0] <= SAME_SITE_M
+    else:
+        same = np.zeros(len(listed), dtype=bool)
+    network.schools = pd.concat([mapped, listed[~same]], ignore_index=True)
+    network.status, network.source = PROVISIONAL, COMBINED
+    network.report = {
+        **report.as_dict(),
+        "osm_points": len(mapped),
+        "mineduc_points": len(listed),
+        "mineduc_same_site": int(same.sum()),
+    }
+    return network
 
 
 def load_inputs(raw: Path = RAW) -> Inputs:

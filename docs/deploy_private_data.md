@@ -146,9 +146,26 @@ IRERERO_DATA_URL = "https://api.github.com/repos/Tuyishime-Fabrice/irereroai-dat
 IRERERO_DATA_SHA256 = "f3e003af7abccaa7a24dd0c2f4d39075b300cfb5c3f57fc2425d54dc7f9034f4"  # pragma: allowlist secret
 ```
 
-Check: Data & methods shows 8 of 10 datasets with real files (WorldPop is the one stand-in
-left; OpenStreetMap and the MINEDUC school list are alternatives, so 9 of 10 is the most).
-Rollback: the part 1 values above.
+Check: Data & methods shows 8 of 10 datasets with real files. Rollback: the part 1 values
+above.
+
+### The 30 October 2026 update, part 3 (OpenStreetMap)
+
+`bundles/irerero-data-2026-10-30-osm.zip` adds the OpenStreetMap extract (schools and walkable
+roads, 23 MB) to part 2. The app then measures walking distance along OSM roads, from the OSM
+schools and the MINEDUC list together. **Merge the app branch first**: it adds `osmium` and
+`networkx` to `requirements.txt`; older code cannot read the extract and would keep the demo
+data. Then change the same two secrets:
+
+```toml
+IRERERO_DATA_URL = "https://api.github.com/repos/Tuyishime-Fabrice/irereroai-data/contents/bundles/irerero-data-2026-10-30-osm.zip"
+IRERERO_DATA_SHA256 = "38e63e8a55c4f54122f7acc0899f9f9c9e6967a9c47cbe007b7c24f6d04666af"  # pragma: allowlist secret
+```
+
+The first start after the switch builds for about a minute (the road network) and needs about
+1 GB of memory. Check: Data & methods shows 9 of 10 datasets with real files (WorldPop is the
+one stand-in left); Overview → Distance to school shows 727 schools. Rollback: the part 2
+values above.
 
 ## Taking the data down
 

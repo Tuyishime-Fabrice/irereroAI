@@ -60,12 +60,17 @@ The share of children aged 3 to 5 who live more than 1 km from a school with pre
 
 - **Children** are the WorldPop pixels inside the sector. While WorldPop is missing, points on
   an even 250 m grid stand in.
-- **Schools** are OSM `amenity=school` and `amenity=kindergarten` or, while OSM is missing, the
-  MINEDUC school list (provisional). NCDA-mapped services are not added (`NCDA_IN_DISTANCE` in
+- **Schools** are OSM `amenity=school` and `amenity=kindergarten` together with the MINEDUC
+  school list (a MINEDUC school within 100 m of an OSM school is the same site, counted once),
+  or whichever of the two is loaded. Both are partial (592 mapped schools and 139 standalone
+  pre-primary schools, against 4,221 schools with pre-primary), so the share is provisional: an
+  upper bound, not used in the bottleneck rules. NCDA-mapped services are not added (`NCDA_IN_DISTANCE` in
   `irerero/config.py` is off): most are home-based ECD, not formal pre-primary schools, and the
   simulated demo centres must never shorten a real distance.
 - **Distance** is the walk along OSM walkable roads, using Dijkstra from a virtual source that
-  joins each school to its nearest road node, with a 1 km cutoff. A point counts as on the
+  joins each school to its nearest road node, with a 1 km cutoff. Only roads within 1 km of a
+  school enter the graph: every node of a walk of at most 1 km lies that close, so distances are
+  unchanged and memory stays near 1 GB for the whole country. A point counts as on the
   network if it lies within 500 m of a road. A sector uses road distance only when at least
   half its children are on the network. Otherwise it uses straight-line distance, labelled
   **indicative**.

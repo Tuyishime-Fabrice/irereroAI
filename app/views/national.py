@@ -195,7 +195,22 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             edges=[0, 0.25, 0.5, 0.75, 0.95, 1],  # fixed: most sectors sit near 100%
         )
         maps.legend([(maps.POINT, f"listed school ({len(listed)} shown)")], "Schools used")
-        if provisional:
+        if provisional and "osm_points" in school_report:
+            st.markdown(
+                theme.badge(PROVISIONAL) + " "
+                + t(
+                    "{n} schools: {osm} mapped in OpenStreetMap and {mineduc} standalone "
+                    "pre-primary schools from MINEDUC (a MINEDUC school at an OSM school's site "
+                    "is counted once). Both lists are partial: MINEDUC counts 4,221 schools with "
+                    "pre-primary. A sector far from a listed school may still have a school "
+                    "nearby: read these shares as an upper bound, not as areas without schools.",
+                    n=len(listed),
+                    osm=school_report["osm_points"],
+                    mineduc=school_report["mineduc_points"] - school_report["mineduc_same_site"],
+                ),
+                unsafe_allow_html=True,
+            )  # fmt: skip
+        elif provisional:
             st.markdown(
                 theme.badge(PROVISIONAL) + " "
                 + t(

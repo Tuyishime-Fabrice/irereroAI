@@ -14,7 +14,7 @@ layout) or straight into `data/raw/<dataset>/` (tables typed into the template),
 
 | # | Dataset | From | Access | Unlocks | Priority |
 | --- | --- | --- | --- | --- | --- |
-| 7 | [School list with coordinates](#7-openstreetmap-rwanda) (every school with pre-primary classes) | MINEDUC (EMIS), or OpenStreetMap | Ask; or open download | The 1 km distance, the access factor and most bottlenecks | **1, essential** |
+| 7 | [School list with coordinates](#7-openstreetmap-rwanda) (every school with pre-primary classes; OSM received 30 Oct, 592 schools) | MINEDUC (EMIS) | Ask | A non-provisional 1 km distance, the access factor and most bottlenecks | **1, essential** |
 | 4 | [Stunting by district](#4-stunting-under-5-by-district) (**received 30 Oct**, microdata; compare with the published report) | NISR, MoH, DHS Program | Published report; microdata under DHS terms | The wellbeing factor; the nutrition course trigger; with schools, a real diagnosis | **1, essential** |
 | 3 | [Qualified teachers by district](#3-mineduc-yearbooks) | MINEDUC | Ask | The third part of the capacity factor | 2 |
 | 1 | [Census sanitation, women's education, children 0-4 by sector; Table 2.5 totals](#1-census-2022-phc5-sector-tables) | NISR | Thematic reports; ask | The rest of the home-environment factor; a check of the sample counts | 2 |
@@ -91,6 +91,10 @@ and under-18 layers the app does not use. **Still missing:** `rwa_m_1_2020_const
 - **Where:** https://hub.worldpop.org/project/categories?id=8 (CC BY 4.0)
 
 ## 7. OpenStreetMap Rwanda
+
+**Received 30 October** (`rwanda-261029.osm.pbf`) and in use: walking distance along OSM roads,
+with the 592 OSM schools added to the MINEDUC list. Still partial, so the full MINEDUC register
+below remains the priority.
 
 - **Best:** the MINEDUC school list with coordinates for **every** school with pre-primary
   classes (most are primary schools with a pre-primary section), with a pre-primary flag. The

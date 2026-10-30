@@ -371,3 +371,21 @@ def test_osm_and_mineduc_schools_are_combined_and_counted_once(dirs):
     assert len(network.schools) == 2  # the OSM school and the MINEDUC school elsewhere
     assert network.report["mineduc_same_site"] == 1 and network.report["osm_points"] == 1
     assert sorted(network.schools.origin) == ["mineduc", "openstreetmap"]
+
+
+def test_a_staged_osm_extract_without_pyosmium_falls_back_and_says_why(dirs, monkeypatch):
+    """The live error of 30 October: the extract was in the bundle but osmium was not
+    installed. The app must keep running on the MINEDUC list and name the cause."""
+    import sys
+
+    from irerero.data.sources import schools as school_source
+    from irerero.pipeline.inputs import school_network
+
+    _run(dirs, [_osm(dirs["in"])])
+    geo, _ = _schools(dirs["in"])
+    (dirs["raw"] / "schools").mkdir()
+    (dirs["raw"] / "schools" / "schools.geojson").write_text(geo.read_text())
+    monkeypatch.setitem(sys.modules, "osmium", None)  # import osmium now raises ImportError
+    network = school_network(dirs["raw"])
+    assert network.source == school_source.SOURCE and len(network.schools) == 3
+    assert any("pyosmium is not installed" in e for e in network.report["errors"])

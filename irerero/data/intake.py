@@ -41,7 +41,7 @@ import pandas as pd
 from irerero.config import DATA, INTERIM, NCDA_DISPLAY_SETTING, RAW, REFERENCE, YEARBOOK_YEARS
 from irerero.data import crosscheck
 from irerero.data.crosswalk import district_ids, sector_ids
-from irerero.data.sources import boundaries, census, eicv, ncda, projections, yearbook
+from irerero.data.sources import boundaries, census, eicv, ncda, projections, rdhs, yearbook
 from irerero.data.sources import schools as school_source
 from irerero.data.validate import SchemaError, validate
 
@@ -96,6 +96,13 @@ MASTER_SOURCE = (
 MINEDUC_MASTER_COLUMNS = {"district", "academic_year", "male_pupils", "female_pupils",
                           "male_teachers", "female_teachers", "schools_count",
                           "classrooms_in_use"}  # fmt: skip
+DHS_PR = re.compile(r"^RWPR\w+FL\.dta$", re.IGNORECASE)  # DHS household-member recode
+DHS_FLAGGED = 9996  # hc70 codes 9996-9999: flagged, implausible or missing
+DHS_SOURCE = (
+    "Rwanda DHS 2025 microdata (household-member recode), weighted IrereroAI tabulation of "
+    "stunting by district following DHS definitions"
+)
+EICV_POVERTY = "CS_EICV7_poverty_file.dta"
 NCDA_COLUMNS = {"ecd_code", "settings_types", "active_not_active", "name_ecd_sercive"}
 NCDA_SETTINGS = {
     "home based ecd": "home_based",
@@ -1146,6 +1153,88 @@ def ncda_placement(frame: pd.DataFrame, sectors: Path) -> Check:
                  "sector")  # fmt: skip
 
 
+# --- DHS 2025 microdata --------------------------------------------------------------------
+def dhs_stunting(path: Path) -> tuple[pd.DataFrame, list[Check]]:
+    """Stunting among children under 5 by district from the DHS household-member recode, as the
+    DHS tabulates it: de facto children (hv103 = 1) with a valid height-for-age z-score (hc70
+    below 9996), stunted below -2 SD (hc70 < -200), weighted by hv005. 95% intervals by Taylor
+    linearisation over the strata (hv022) and clusters (hv021). Only district rates leave."""
+    import numpy as np
+
+    key = rdhs.DATASET.key
+    checks: list[Check] = []
+    columns = ["hv000", "hv005", "hv007", "hv021", "hv022", "hv103", "hc70", "shdistrict"]
+    try:
+        pr = pd.read_stata(path, columns=columns, convert_categoricals=False)
+    except (ValueError, KeyError) as error:
+        return pd.DataFrame(), [Check(key, "fail", f"{path.name}: {error}")]
+    years = sorted(int(y) for y in pr.hv007.dropna().unique())
+    checks.append(
+        Check(key, "pass" if years and min(years) >= 2024 else "fail",
+              f"{path.name}: {len(pr):,} household members, survey {', '.join(pr.hv000.unique())},"
+              f" interviews in {', '.join(map(str, years))}; {pr.hv022.nunique()} strata, "
+              f"{pr.hv021.nunique()} clusters")
+    )  # fmt: skip
+    flagged = pr.hc70 >= DHS_FLAGGED
+    kids = pr[(pr.hv103 == 1) & pr.hc70.notna() & ~flagged].copy()
+    checks.append(
+        Check(key, "pass", f"{len(kids):,} de facto children under 5 with a valid height-for-age "
+              f"z-score; {int(flagged.sum())} flagged or implausible measurements left out (as "
+              f"the DHS does), {int((pr.hc70.notna() & (pr.hv103 != 1)).sum())} measured "
+              "children who did not sleep there the night before left out (de facto)")
+    )  # fmt: skip
+    kids["w"] = kids.hv005 / 1e6
+    kids["y"] = (kids.hc70 < -200).astype(float)
+
+    def rate(d: pd.DataFrame) -> pd.Series:
+        total = d.w.sum()
+        p = (d.w * d.y).sum() / total
+        z = (d.w * (d.y - p) / total).groupby([d.hv022, d.hv021]).sum()
+        var = sum(len(g) / (len(g) - 1) * ((g - g.mean()) ** 2).sum()
+                  for _, g in z.groupby(level=0) if len(g) > 1)  # fmt: skip
+        return pd.Series({"p": p, "se": float(np.sqrt(var)), "n": len(d),
+                          "clusters": d.hv021.nunique()})  # fmt: skip
+
+    national = rate(kids)
+    by = kids.groupby(kids.shdistrict.astype(int)).apply(rate)
+    _, districts = _official_names()
+    by["district_name"] = ("RW" + by.index.astype(str)).map(districts.source_district)
+    unknown = by.index[by.district_name.isna()].tolist()
+    checks.append(
+        Check(key, "fail" if unknown or len(by) != 30 else "pass",
+              f"{len(by)} districts joined by NISR code (shdistrict)"
+              + (f"; unknown codes {unknown}" if unknown else ""))
+    )  # fmt: skip
+    out = pd.DataFrame(
+        {
+            "district_name": by.district_name,
+            "stunting_u5": by.p.round(4),
+            "stunting_u5_low": (by.p - 1.96 * by.se).clip(lower=0).round(4),
+            "stunting_u5_high": (by.p + 1.96 * by.se).clip(upper=1).round(4),
+            "basis": rdhs.MICRODATA,
+            "source_page": DHS_SOURCE,
+        }
+    ).reset_index(drop=True)
+    checks.append(
+        Check(key, "pass", f"Rwanda {national.p:.1%} (95% interval "
+              f"{national.p - 1.96 * national.se:.1%} to {national.p + 1.96 * national.se:.1%}); "
+              f"districts {by.p.min():.1%} to {by.p.max():.1%}. Compare with the DHS 2025 report "
+              "before quoting")
+    )  # fmt: skip
+    checks.append(
+        Check(key, "warn", f"each district rests on {int(by.n.min())} to {int(by.n.max())} "
+              f"children in {int(by.clusters.min())} to {int(by.clusters.max())} clusters: "
+              f"intervals are ±{1.96 * by.se.min():.1%} to ±{1.96 * by.se.max():.1%}. Stunting is "
+              "district context (every sector takes its district's rate), never a child's status;"
+              " status model estimate (IrereroAI tabulation, not a DHS-published figure)")
+    )  # fmt: skip
+    try:
+        validate(out, rdhs.DATASET.columns, rdhs.FILE)
+    except SchemaError as error:
+        checks.append(Check(key, "fail", str(error)))
+    return out, checks
+
+
 # --- boundaries -----------------------------------------------------------------------------
 def boundary_files(paths: list[Path]) -> tuple[dict[str, object], list[Check]]:
     """COD-AB GeoJSON, checked and slimmed to nisr_code, name, parent_nisr_code and shape."""
@@ -1362,6 +1451,7 @@ def classify(files: list[Path]) -> dict[str, list[Path]]:
         "mineduc_master": [], "mineduc_long": [], "school_points": [],
         "nisr_boundaries": [], "ncda_extract": [], "school_csv": [], "phc5_main": [],
         "projection_tables": [], "mineduc_workbook": [], "worldpop": [], "reference_pages": [],
+        "dhs_pr": [], "eicv_microdata": [],
     }  # fmt: skip
     for path in files:
         if GAZETTEER in path.name and path.suffix == ".xlsx":
@@ -1373,6 +1463,12 @@ def classify(files: list[Path]) -> dict[str, list[Path]]:
             continue
         if suffix == ".pdf":
             groups["reference_pages"].append(path)
+            continue
+        if DHS_PR.match(path.name):
+            groups["dhs_pr"].append(path)
+            continue
+        if path.name == EICV_POVERTY:
+            groups["eicv_microdata"].append(path)
             continue
         sheets = _sheet_names(path) if path.suffix == ".xlsx" else []
         if crosscheck.is_phc5(sheets):
@@ -1669,6 +1765,22 @@ def run(
         receive(groups["reference_pages"], "nisr_web_pages", raw, manifest)
         _mark_staged(manifest, groups["reference_pages"], "provenance only (NISR web page "
                      "printouts, no tables)")  # fmt: skip
+    if groups["dhs_pr"]:
+        path = groups["dhs_pr"][0]
+        receive([path], "dhs_2025_microdata", raw, manifest)
+        frame, checks = dhs_stunting(path)
+        staged = None
+        if len(frame) and not any(c.level == "fail" for c in checks):
+            staged = _stage(frame, raw / rdhs.DATASET.key / rdhs.FILE)
+            _mark_staged(manifest, [path], f"data/raw/{rdhs.DATASET.key}/{rdhs.FILE} (district "
+                         "rates only; the records stay in _received)")  # fmt: skip
+        results.append(Result(rdhs.DATASET.key, checks, staged, None))
+    if groups["eicv_microdata"]:
+        receive(groups["eicv_microdata"], "eicv7_microdata", raw, manifest)
+        checks = crosscheck.eicv_microdata(groups["eicv_microdata"][0], raw)
+        _mark_staged(manifest, groups["eicv_microdata"], "cross-check only (reproduces the "
+                     "staged district rates; the records stay in _received)")  # fmt: skip
+        results.append(Result(f"{eicv.DATASET.key} (microdata)", checks, None, None))
     if groups["mineduc_district"] or groups["mineduc_national"]:
         paths = groups["mineduc_district"] + groups["mineduc_national"]
         receive(paths, "mineduc_yearbook", raw, manifest)
@@ -1711,11 +1823,32 @@ def report(results: list[Result]) -> str:
     return "\n".join(lines)
 
 
-def _expand(paths: list[str]) -> list[Path]:
+def _expand(paths: list[str], interim: Path = INTERIM) -> list[Path]:
     out = []
     for p in map(Path, paths):
-        out += sorted(f for f in p.rglob("*") if f.is_file()) if p.is_dir() else [p]
+        files = sorted(f for f in p.rglob("*") if f.is_file()) if p.is_dir() else [p]
+        for f in files:
+            out += _unzip(f, interim) if f.suffix.lower() == ".zip" else [f]
     return out
+
+
+def _unzip(path: Path, interim: Path) -> list[Path]:
+    """The microdata files intake reads, taken out of a received archive by name (nothing else
+    is extracted, and no path inside the archive is trusted). Other archives are skipped."""
+    import zipfile
+
+    wanted = []
+    with zipfile.ZipFile(path) as archive:
+        for member in archive.infolist():
+            name = Path(member.filename).name
+            if member.is_dir() or not (DHS_PR.match(name) or name == EICV_POVERTY):
+                continue
+            target = interim / "unzipped" / path.stem / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with archive.open(member) as source:
+                target.write_bytes(source.read())
+            wanted.append(target)
+    return wanted
 
 
 def main() -> int:

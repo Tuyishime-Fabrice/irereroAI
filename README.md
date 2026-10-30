@@ -18,9 +18,11 @@ NISR 2026 Big Data Hackathon, Track 3 (Open Innovation).
 > RDHS, EICV, WorldPop and OSM files are not in this repository: their licences forbid
 > redistribution, and the team adds them locally. With the files
 > received so far (census 2022, NISR projections, MINEDUC yearbooks 2020/21 to 2024/25, NISR
-> 2022 sector boundaries, EICV7, the NCDA ECD Mapping extract) a local build has a real 2026 estimate, priority ranking, peer benchmark
-> and 2028/29 trend; the distance layer and the bottlenecks stay labelled simulated until a full
-> school list and stunting arrive. Each part of a screen carries its own status.
+> 2022 sector boundaries, EICV7, the NCDA ECD Mapping extract, DHS 2025 stunting from the
+> microdata) a local build has a real 2026 estimate, priority ranking, peer benchmark, bottleneck
+> diagnosis and 2028/29 trend. The distance layer stays provisional until a full school list
+> arrives, and children are spread evenly inside a sector until the WorldPop set is complete.
+> Each part of a screen carries its own status.
 
 ## Problem and users
 
@@ -61,7 +63,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 209 tests
+make test      # 211 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
@@ -103,7 +105,7 @@ in [DATA_SOURCES.md](DATA_SOURCES.md), generated from the loaders' declarations.
 | 4 | Administrative boundaries, province to sector | NISR / HDX (fallback geoBoundaries) | maps, joins | CC BY 4.0 |
 | 5 | OpenStreetMap Rwanda extract | OSM contributors / Geofabrik | PLAN distance | ODbL 1.0 |
 | 6 | MINEDUC statistical yearbooks 2020/21-2024/25 | MINEDUC | DIAGNOSE, TRACK | Government publication, cited |
-| 7 | RDHS 2025 stunting by district | NISR | DIAGNOSE | NISR publication, cited |
+| 7 | RDHS 2025 stunting by district | NISR, MoH, DHS Program | DIAGNOSE, LEARN trigger | DHS microdata terms; district rates only |
 | 8 | EICV7 poverty | NISR | PLAN, DIAGNOSE | NISR publication, cited |
 | 9 | National ECD Standards (2024), as parameters | NCDA | PLAN, LEARN | Government publication, cited |
 | 10 | Course source materials | NCDA, UNICEF, WHO | LEARN | Adapted and cited |

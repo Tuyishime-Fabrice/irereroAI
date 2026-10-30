@@ -397,3 +397,39 @@ def worldpop_layers(paths: list[Path]) -> list:
             checks.append(_check(key, "warn", f"{year}: {', '.join(other)} are not under-5 "
                                  "layers (ages 5 to 9, or all under 18): not used"))  # fmt: skip
     return checks
+
+
+# --- EICV7 microdata --------------------------------------------------------------------------
+def eicv_microdata(path: Path, raw: Path = RAW) -> list:
+    """District poverty from the EICV7 poverty file (pov_jan, population weights) against the
+    staged published rates. EICV7 is designed for district estimates: no sector rate is made."""
+    from irerero.data.sources import eicv
+
+    key = eicv.DATASET.key
+    frame = pd.read_stata(path, convert_categoricals=False)
+    codes = pd.read_csv(REFERENCE / "district_name_crosswalk.csv", dtype=str)
+    names = codes[codes.source == "*"].set_index("nisr_district_code").source_district
+    poor = frame.pov_jan / frame.pov_jan.max()  # coded 0 or 100
+    weighted = (frame.pop_wt * poor).groupby(frame.district).sum()
+    rates = weighted / frame.pop_wt.groupby(frame.district).sum()
+    rates.index = [names.get(f"RW{int(c)}", str(c)) for c in rates.index]  # by NISR code
+    national = (frame.pop_wt * poor).sum() / frame.pop_wt.sum()
+    checks = [
+        _check(key, "pass", f"{path.name}: {len(frame):,} households in {frame.clust.nunique():,} "
+               f"clusters, {len(rates)} districts; Rwanda {national:.1%} below the poverty line "
+               "(population-weighted)"),
+    ]  # fmt: skip
+    staged = _staged(raw, key, eicv.FILE)
+    if staged is None:
+        return [*checks, _check(key, "warn", "no staged EICV7 table to compare with")]
+    published = staged[staged.level == "district"].set_index("district_name").poverty_rate
+    gap = (rates - published.reindex(rates.index)).abs()
+    checks.append(
+        _check(key, "pass" if gap.max() < 0.0006 else "warn",
+               f"district rates from the microdata match the staged published rates in "
+               f"{int((gap < 0.0006).sum())} of {len(rates)} districts (largest difference "
+               f"{100 * gap.max():.2f} points), including Gisagara {rates.get('Gisagara', 0):.1%} "
+               f"and Nyamasheke {rates.get('Nyamasheke', 0):.1%}, which were to be confirmed. The "
+               "published rates stay staged; no sector rate is made (EICV7 is not designed for it)")
+    )  # fmt: skip
+    return checks

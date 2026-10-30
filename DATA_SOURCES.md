@@ -242,7 +242,7 @@ Partial list: the distance results are provisional and are not used as evidence 
 | Publisher | NISR, Ministry of Health, The DHS Program |
 | Folder | `data/raw/rdhs_2025/` |
 | Expected files | `rdhs_2025_stunting.csv` |
-| Format | CSV typed from the report table |
+| Format | CSV typed from the report table, or tabulated from the DHS microdata by intake |
 | Geographic level | district |
 | Reference period | 2025 |
 | Licence | Published report; cite NISR and The DHS Program |
@@ -257,9 +257,12 @@ Partial list: the distance results are provisional and are not used as evidence 
 | `stunting_u5` | share, 0 to 1 | yes | Children under 5 below -2 SD height-for-age |
 | `stunting_u5_low` | share, 0 to 1 | no | Lower 95% bound |
 | `stunting_u5_high` | share, 0 to 1 | no | Upper 95% bound |
+| `basis` | text | no | 'report' (typed from the report, the default) or 'microdata' (weighted from the DHS microdata by `make intake`) |
 | `source_page` | text | no | Page or table the value was read from |
 
 Write 38.8% as 0.388.
+
+Or put the DHS household-member recode (RWPR91FL.dta from the microdata zip) through `make intake`: de facto children under 5 with a valid height-for-age z-score, stunted below -2 SD, weighted by hv005, 95% intervals from the strata and clusters.
 
 <a id="eicv7"></a>
 

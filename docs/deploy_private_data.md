@@ -135,6 +135,21 @@ previous `irerero-data.zip` (left in place as the rollback).
 **Rollback:** put back the previous two values (`.../contents/irerero-data.zip` and its SHA-256
 `2dcb5360406aec7639574f14f726efbf819639db3ba9612b33c923cd42d716e3`) and save.
 
+### The 30 October 2026 update, part 2 (DHS 2025)
+
+`bundles/irerero-data-2026-10-30-dhs.zip` adds the DHS 2025 district stunting rates (30 rows,
+from the microdata) to the bundle above; everything else is identical. Merge the app branch
+first (it labels the rates *model estimate*), then change the same two secrets:
+
+```toml
+IRERERO_DATA_URL = "https://api.github.com/repos/Tuyishime-Fabrice/irereroai-data/contents/bundles/irerero-data-2026-10-30-dhs.zip"
+IRERERO_DATA_SHA256 = "f3e003af7abccaa7a24dd0c2f4d39075b300cfb5c3f57fc2425d54dc7f9034f4"  # pragma: allowlist secret
+```
+
+Check: Data & methods shows 8 of 10 datasets with real files (WorldPop is the one stand-in
+left; OpenStreetMap and the MINEDUC school list are alternatives, so 9 of 10 is the most).
+Rollback: the part 1 values above.
+
 ## Taking the data down
 
 Delete the zip from the private repository and revoke the token (GitHub → Settings →

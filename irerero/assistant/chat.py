@@ -482,6 +482,14 @@ def stream_turn(
                 yield "done", Turn("", [], final.stop_reason, "No answer came back. Try again.")
                 return
             added.append(reply)
+            if tool_uses:  # cut off inside a tool call: answer it, or the next question fails
+                added.append(
+                    {"role": "user", "content": [
+                        {"type": "tool_result", "tool_use_id": b.id, "is_error": True,
+                         "content": "Not run: the answer was cut short."}
+                        for b in tool_uses
+                    ]}
+                )  # fmt: skip
             yield "done", Turn("".join(text), added, final.stop_reason, notice, used)
             return
         rounds += 1

@@ -8,3 +8,6 @@ data/processed
 data/irerero.sqlite
 .git
 .env
+data/bundle
+.env.*
+.streamlit/secrets.toml

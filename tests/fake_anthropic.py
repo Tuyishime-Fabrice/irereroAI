@@ -5,12 +5,13 @@ with text, thinking signatures and tool_use input deltas, message_delta, message
 real SDK, its stream accumulator and the app's tool loop are all exercised. Its replies are
 scripted, not generated: a tool call for a question about the data, then a sentence quoting
 the tool result it is sent back. Markers in a question force failures: [500], [429], [401],
-[refuse], [long]; [slow] paces the answer. A model named missing-* gets a 404.
+[refuse], [long], [cut-tool] (cut off inside a tool call); [slow] paces the answer. A model
+named missing-* gets a 404.
 
 It also checks the request rules the assistant must follow and records any break in
 `violations`: the system prompt and tool list are identical on every request, each request
 repeats the previous one's messages unchanged (append-only), and thinking blocks come back with
-their signatures.
+their signatures, and every tool call is answered by a tool result in the next message.
 
     python tests/fake_anthropic.py 8765      # run it for a manual or browser test
 """
@@ -63,6 +64,15 @@ def _check(body: dict[str, Any], answered: bool) -> None:
             for b in m["content"]:
                 if b.get("type") == "thinking" and not b.get("signature"):
                     STATE.violations.append("thinking block sent back without its signature")
+    for i, m in enumerate(messages):  # the API rejects a tool call left unanswered
+        calls = [b["id"] for b in m["content"] if m["role"] == "assistant"
+                 and isinstance(b, dict) and b.get("type") == "tool_use"]  # fmt: skip
+        if not calls:
+            continue
+        after = messages[i + 1]["content"] if i + 1 < len(messages) else []
+        answered = {b.get("tool_use_id") for b in after if isinstance(b, dict)}
+        if i + 1 < len(messages) and not set(calls) <= answered:
+            STATE.violations.append("a tool call was not answered in the next message")
     if len(messages) == 1:
         return  # a new conversation
     if not earlier:
@@ -92,6 +102,10 @@ def _plan(body: dict[str, Any]) -> tuple[list[dict[str, Any]], str]:
     q = _question(messages).lower()
     if "[refuse]" in q:
         return [], "refusal"
+    if "[cut-tool]" in q:
+        tool = {"type": "tool_use", "id": f"toolu_{next(STATE.ids)}", "name": "get_overview",
+                "input": {}}  # fmt: skip
+        return [thinking, {"type": "text", "text": "Let me check."}, tool], "max_tokens"
     if "[long]" in q:
         return [thinking, {"type": "text", "text": "This answer is long and gets cut"}], (
             "max_tokens"

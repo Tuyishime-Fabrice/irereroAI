@@ -170,6 +170,14 @@ def test_refusal_and_truncation_are_reported(config, t):
     assert turn.stop_reason == "max_tokens" and "cut short" in turn.notice
 
 
+def test_a_reply_cut_off_inside_a_tool_call_leaves_a_valid_history(config, t):
+    """The API rejects a history with an unanswered tool call, so the next question failed."""
+    turn, _, _ = ask(config, t, "[cut-tool] overview?")
+    assert turn.stop_reason == "max_tokens" and "cut short" in turn.notice
+    ask(config, t, "Which data are real?", turn.messages)
+    assert not fake_anthropic.STATE.violations, fake_anthropic.STATE.violations
+
+
 @pytest.mark.parametrize(
     ("marker", "words", "retryable"),
     [("[500]", "temporarily unavailable", True), ("[429]", "20 seconds", True),

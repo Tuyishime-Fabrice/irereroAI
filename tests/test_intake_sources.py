@@ -92,10 +92,10 @@ def test_nisr_layer_with_a_sector_in_two_districts_is_not_staged(dirs):
 def _ncda(path: Path) -> Path:
     rows = [
         # ecd_code, name, setting, active, district, sector, 3-6, children, caregivers
-        ("C1", "Test centre A", "Home based ECD", "active", "Muhanga", "Cyeza", 12, 14, 1),
-        ("C2", "Test centre B", "School based ECD Centre", "active", "Muhanga", "Cyeza", 16611, 170, 3),
-        (None, "Test centre C", "Faith-based", "active", "Rulindo", "Shyorongi", 20, 22, 7777),
-        ("C4", "Test centre D", None, "active", "Muhanga", "Kibangu", 30, 25, 2),
+        ("C1", "Centre A", "Home based ECD", "active", "Muhanga", "Cyeza", 12, 14, 1),
+        ("C2", "Centre B", "School based ECD Centre", "active", "Muhanga", "Cyeza", 16611, 170, 3),
+        (None, "Centre C", "Faith-based", "active", "Rulindo", "Shyorongi", 20, 22, 7777),
+        ("C4", "Centre D", None, "active", "Muhanga", "Kibangu", 30, 25, 2),
         ("C5", "Closed", "Centre Based", "not_active", "Muhanga", "Cyeza", 10, 10, 1),
         ("C6", "Nowhere", "Centre Based", "active", None, None, 10, 10, 1),
     ]

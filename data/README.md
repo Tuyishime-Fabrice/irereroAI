@@ -25,3 +25,4 @@ For responsible data handling, I stored the project datasets in a **private GitH
 | Simulated caregiver check-ins and course progress | IrereroAI synthetic data generator, 2026 | Demonstration of caregiver engagement, learning progress, and platform alerts |
 
 **Data limitations and interpretation:** Some datasets are provisional or subject to access and sharing conditions. Household survey indicators should be interpreted in light of their sampling design and geographic coverage. Simulated records are used only for demonstration and should not be interpreted as actual caregiver activity or programme outcomes.
+

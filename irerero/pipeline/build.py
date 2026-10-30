@@ -23,7 +23,7 @@ from irerero.db.session import engine as default_engine
 from irerero.db.store import replace_analysis
 from irerero.learn import content
 from irerero.pipeline import diagnose_step
-from irerero.pipeline.inputs import Inputs, load_inputs
+from irerero.pipeline.inputs import COMBINED, Inputs, load_inputs
 from irerero.pipeline.observations import build_observations
 from irerero.plan.distance import far_shares
 from irerero.plan.estimate import estimate
@@ -75,8 +75,8 @@ def sources(inputs: Inputs) -> pd.DataFrame:
         "worldpop": inputs.under5 is not None,
         "projections": inputs.projections.real,
         "boundaries": inputs.boundaries_real,
-        "osm": inputs.schools.real and inputs.schools.source == "osm",
-        "schools": inputs.schools.source == schools_source.SOURCE,
+        "osm": inputs.schools.real and inputs.schools.source in ("osm", COMBINED),
+        "schools": inputs.schools.source in (schools_source.SOURCE, COMBINED),
         "yearbook": inputs.yearbook.real,
         "rdhs_2025": inputs.stunting.real,
         "eicv7": inputs.poverty.real,
@@ -125,6 +125,14 @@ def estimate_2026(inputs: Inputs) -> pd.DataFrame:
             f", provisional: {len(inputs.schools.schools)} listed schools (standalone "
             "pre-primary only), an upper bound"
         )
+    elif inputs.schools.source == COMBINED:
+        report = inputs.schools.report or {}
+        kept = report.get("mineduc_points", 0) - report.get("mineduc_same_site", 0)
+        out["distance_method"] = out.distance_method + (
+            f", provisional: {len(inputs.schools.schools)} schools ({report.get('osm_points', 0)}"
+            f" mapped in OpenStreetMap, {kept} standalone pre-primary from MINEDUC), partial "
+            "lists, an upper bound"
+        )
     return out
 
 
@@ -143,6 +151,10 @@ def write_geojson(inputs: Inputs, out: Path) -> None:
     write_schools(inputs.schools, out)
 
 
+def _text(value: object) -> str:
+    return "" if value is None or (isinstance(value, float) and pd.isna(value)) else str(value)
+
+
 def write_schools(network: osm.Network, out: Path) -> None:
     """The school points the distance layer used, for the map, and the loader's report."""
     frame = network.schools
@@ -151,9 +163,10 @@ def write_schools(network: osm.Network, out: Path) -> None:
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [float(r.lon), float(r.lat)]},
             "properties": {
-                "name": str(getattr(r, "school_name", None) or r.school_id),
-                "district": str(getattr(r, "district", None) or ""),
-                "sector": str(getattr(r, "sector", None) or ""),
+                "name": _text(getattr(r, "school_name", None)) or str(r.school_id),
+                "district": _text(getattr(r, "district", None)),
+                "sector": _text(getattr(r, "sector", None)),
+                "origin": _text(getattr(r, "origin", None)) or network.source,
                 "pupils": None
                 if pd.isna(getattr(r, "preprimary_students_total", None))
                 else int(r.preprimary_students_total),
@@ -212,7 +225,14 @@ def main() -> int:
         simulated = [s for s in simulated if s != "schools"]
     print(f"Simulated stand-ins used for: {', '.join(simulated) or 'nothing'}")
     report = json.loads((PROCESSED / "schools_report.json").read_text())
-    if report["source"] == schools_source.SOURCE:
+    if report["source"] == COMBINED:
+        print(
+            f"Schools: PROVISIONAL, {report['points']} points: {report['osm_points']} from "
+            f"OpenStreetMap and {report['mineduc_points'] - report['mineduc_same_site']} of "
+            f"{report['mineduc_points']} MINEDUC schools ({report['mineduc_same_site']} at an "
+            "OSM school's site, counted once)"
+        )
+    elif report["source"] == schools_source.SOURCE:
         print(
             f"Schools: PROVISIONAL list, {report['loaded']} of {report['features']} records "
             f"loaded; {report['invalid_coordinates']} invalid coordinates, "

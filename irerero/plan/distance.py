@@ -80,21 +80,28 @@ class RoadDistance:
 
     def __init__(self, network: Network, schools_xy: np.ndarray):
         import networkx as nx
+        from pyproj import Transformer
 
-        ids = np.array(list(network.nodes))
-        lonlat = np.array([network.nodes[i] for i in ids])
-        self.xy = _metric(lonlat[:, 0], lonlat[:, 1])
-        index = {node: i for i, node in enumerate(ids)}
+        ids, lon, lat, a, b = network.road_arrays()
+        x, y = Transformer.from_crs(4326, METRIC_CRS, always_xy=True).transform(lon, lat)
+        self.xy = np.column_stack([x, y])
         self.tree = cKDTree(self.xy)
+        # Only roads near a school can lie on a walk of at most 1 km from it: every node of such
+        # a walk is within 1 km of the school in a straight line. Leaving the others out of the
+        # graph gives the same distances with a fraction of the memory (snapping still uses
+        # every road node).
+        near = cKDTree(schools_xy).query(self.xy, distance_upper_bound=LIMIT_M + 1)[0] <= LIMIT_M
+        i, j = np.searchsorted(ids, a), np.searchsorted(ids, b)
+        keep = near[i] & near[j]
+        i, j = i[keep], j[keep]
+        length = np.hypot(*(self.xy[i] - self.xy[j]).T)
         graph = nx.Graph()
-        for a, b in network.edges:
-            i, j = index[a], index[b]
-            graph.add_edge(i, j, weight=float(np.hypot(*(self.xy[i] - self.xy[j]))))
+        graph.add_weighted_edges_from(zip(i.tolist(), j.tolist(), length.tolist(), strict=True))
         # a virtual source joined to each school's nearest road node by the walk to the road
         snap, node = self.tree.query(schools_xy)
         source = -1
         for d, n in zip(snap, node, strict=True):
-            if d <= SNAP_LIMIT_M and n in graph:
+            if d <= SNAP_LIMIT_M:  # n is then within 500 m of the school, so kept as near
                 old = graph.get_edge_data(source, n, {}).get("weight", np.inf)
                 graph.add_edge(source, int(n), weight=min(float(d), old))
         self.reach = (
@@ -123,7 +130,7 @@ def far_shares(
         schools = pd.concat([schools, extra_schools[["lon", "lat"]]], ignore_index=True)
     schools_xy = _metric(schools.lon.to_numpy(float), schools.lat.to_numpy(float))
     straight = cKDTree(schools_xy)
-    road = RoadDistance(network, schools_xy) if network.real and network.edges else None
+    road = RoadDistance(network, schools_xy) if network.real and network.has_roads else None
     rows = []
     for geo_id, kids in children(sectors, raw).items():
         line, _ = straight.query(kids.xy)

@@ -50,7 +50,7 @@ from real values by a stated method; "provisional" means real but known to be pa
 | NISR population projections | NISR, Subnational Population Projections 2023-2032 | single-age district workbook (24 Oct); `2.7 Muhanga_single_age.xlsx`, five province workbooks (30 Oct) | Integrated (district single ages); new workbooks verification only | Real (*published estimate*). 2026 children aged 3-5 per district; denominators for TRACK | One variant only (read as medium). Province workbooks are in 5-year groups (0-4, 5-9) and cannot give ages 3-5 |
 | Administrative boundaries | NISR via HDX; 2022 sector layer (published 3 Sep 2024) | `Rwanda_Sector_Boundaries_2022.geojson` | **Replacement verified** | Real. Replaces the COD-AB 2006-structure shapes (published 2018). Every map and spatial join; districts and provinces are the union of their sectors | Licence of the 2022 layer to confirm on its HDX page (COD-AB is CC BY 4.0) |
 | MINEDUC school locations | MINEDUC school register; export date not stated | `rwanda_preprimary_schools.geojson`, `rwanda_preprimary_schools.csv` (same 139 records as `schools/Rwandapreprimarydata_locatios.GeoJSON`) | Integrated, **provisional** | Real, partial. School map and the share of children > 1 km from a *listed* school (an upper bound) | Standalone pre-primary schools only (139 of 4,221 schools with pre-primary); 8 points lie in another district than their record names |
-| OpenStreetMap Rwanda extract | OSM contributors via Geofabrik | none | **Awaiting upload** | Not used; OSM distance stays off. The school list above is used, labelled provisional | Straight-line distance only until roads are loaded |
+| OpenStreetMap Rwanda extract | OSM contributors via Geofabrik; data as of 29 Oct 2026, 21:21 UTC | `rwanda-261029.osm.pbf` (68 MB; 23 MB staged: schools and walkable roads) | **Replacement verified** | Real (ODbL 1.0). Walking distance along 174,739 roads and paths in 407 of 416 sectors; 592 mapped schools join the MINEDUC list (4 at the same site counted once): 727 schools | Partial: 592 mapped schools, and OSM does not say which have pre-primary; the distance stays provisional, an upper bound |
 | EICV7 poverty | NISR, EICV7 2023/24 Main Indicators Report, Fig. 9.1 (23 Oct); microdata (30 Oct) | `eicv7_poverty.csv`; `Microdata.zip` (`CS_EICV7_poverty_file.dta` used) | Integrated; microdata verification only | Real (*published estimate*), district rates; poverty component of the priority index. The microdata reproduce all 30 rates within 0.05 points | District level only: EICV7 is not designed for sector estimates |
 | ECD standards and capacity parameters | NCDA, National ECD Standards 2024 | none (parameters in `irerero/config.py`) | Unchanged | Policy parameters, not observations: 30 children per room, 1 caregiver per 15-30 children, 1 km | The source pages of each parameter are still to be cited; no standards document was uploaded |
 
@@ -188,6 +188,26 @@ Numbers from `make intake`; nothing was filled in or guessed, and every exclusio
   Ruhango (both 15.0% in the chart) are 14.95% and 14.99%; Kamonyi and Nyaruguru are truly equal.
 - **Not done, by design.** No sector poverty rate: EICV7 is designed for district estimates.
 
+### OpenStreetMap extract (staged; with the MINEDUC list)
+
+- **Pass.** Geofabrik extract, data as of 29 October 2026 21:21 UTC, written by osmium 1.16.0,
+  bounding box inside Rwanda. 12.2 million nodes and 1.7 million ways in the original.
+- **Cut to what the app reads.** 174,739 walkable roads and paths (3,803,235 nodes), 577 schools
+  and 15 kindergartens: 23 MB of 68 MB. Tags and geometry are kept as mapped; buildings, land
+  use and relations are left out.
+- **Combined, never double-counted.** The distance layer uses the 592 OSM schools and the 139
+  MINEDUC schools; 4 MINEDUC schools lie within 100 m of an OSM school and count once: 727
+  schools. Each school on the map says which list it comes from.
+- **Walking distance.** Along roads in 407 sectors; 9 sectors where roads reach fewer than half
+  the children keep the straight line, labelled indicative. The road graph keeps only roads
+  within 1 km of a school, which gives the same distances (checked: 0 of 416 sectors differ from
+  the full graph) with peak memory about 1 GB instead of 4.6 GB.
+- **Effect.** Nationally 94.1% of children aged 3 to 5 live more than 1 km (walking) from a
+  listed school, against 93.9% straight-line from the MINEDUC list alone: more schools, but
+  walks are longer than straight lines (Muhanga/Nyamabuye 46% -> 70%). 14 sectors are under 50%.
+  Still provisional (OSM marks only 592 schools; MINEDUC counts 4,221 with pre-primary), so it
+  stays out of the bottleneck rules: 0 bottlenecks change.
+
 ### Reference pages
 
 `Fifth Population and Housing Census  2022.pdf` and `District Profiles  Subnational
@@ -206,6 +226,8 @@ Built before and after on the same machine; every other table is identical row f
 | Share of children > 1 km from a listed school (provisional) | 85 of 416 sectors change; nationally 93.5% -> 93.9% | 73 sectors from the redrawn shapes; **12 Muhanga sectors** because simulated NCDA centres no longer count as schools (e.g. Cyeza 88.6% -> 100%, Nyamabuye 25.5% -> 46.1%). Before, invented centres lowered real-looking distances |
 | NCDA supply table | 36 simulated rows -> 34,448 real services + the 36 labelled demo centres | NCDA extract |
 | Stand-ins still used | worldpop, rdhs_2025, ncda -> worldpop only | NCDA extract; DHS 2025 microdata |
+| Datasets with real files (Data & methods) | 6 of 10 -> 9 of 10 | Only WorldPop is missing (its male 1-4 layer has not arrived) |
+| Share of children > 1 km from a listed school | straight line from 139 MINEDUC schools -> walking distance from 727 OSM and MINEDUC schools; 93.9% -> 94.1% nationally | OpenStreetMap extract |
 | Bottleneck diagnosis (DIAGNOSE) | simulated -> model estimate; 37 of 416 sectors change bottleneck (WELLBEING 70 -> 67, SUPPLY 106 -> 109); the 12 Muhanga sectors keep theirs | Real district stunting replaces the stand-in |
 
 ## Still missing
@@ -213,7 +235,6 @@ Built before and after on the same machine; every other table is identical row f
 | Dataset | What is needed | Effect while missing |
 | --- | --- | --- |
 | WorldPop | `rwa_m_1_2020_constrained_UNadj.tif` (or `rwa_m_01_2026_CN_100m_R2025A_v1.tif` with the other 2026 layers) | Children are spread evenly inside a sector (documented stand-in) |
-| OpenStreetMap | `rwanda-latest.osm.pbf` from Geofabrik | Distance stays straight-line from the 139 listed schools, provisional |
 | National ECD Standards 2024 | The document, to cite page and wording of each parameter | Parameters stay as configured, cited to the standard without page |
 | NCDA ECD Mapping GeoJSON | `ncda_ecd_mapping_extract.geojson` (expected, not uploaded) | None: the CSV carries the coordinates |
 | MINEDUC full register | Every school with a pre-primary section, with coordinates | Distance stays an upper bound |

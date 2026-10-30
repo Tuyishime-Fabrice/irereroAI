@@ -317,3 +317,57 @@ def test_eicv_microdata_checks_the_published_rates_and_stages_nothing(dirs):
     pd.DataFrame(rows).to_stata(path, write_index=False)
     checks = crosscheck.eicv_microdata(path, dirs["raw"])
     assert any("30 of 30 districts" in c.text for c in checks)
+
+
+def _osm(path: Path) -> Path:
+    """A made-up extract: one school point, a footpath to it, a road, and a building the
+    intake must leave out."""
+    import osmium
+
+    target = path / "rwanda-261029.osm.pbf"
+    lon0, lat0, m = 29.74, -2.07, 1 / 111_320
+    with osmium.SimpleWriter(str(target)) as out:
+        school = {"amenity": "school", "name": "Test school"}
+        out.add_node(osmium.osm.mutable.Node(id=1, location=(lon0, lat0), tags=school))
+        for i in range(2, 6):
+            out.add_node(osmium.osm.mutable.Node(id=i, location=(lon0 + (i - 2) * 300 * m, lat0)))
+        out.add_node(osmium.osm.mutable.Node(id=9, location=(lon0, lat0 + 0.01)))
+        out.add_node(osmium.osm.mutable.Node(id=10, location=(lon0 + 0.001, lat0 + 0.01)))
+        out.add_way(osmium.osm.mutable.Way(id=100, nodes=[2, 3, 4, 5], tags={"highway": "footway"}))
+        out.add_way(osmium.osm.mutable.Way(id=200, nodes=[9, 10], tags={"building": "yes"}))
+    return target
+
+
+def test_osm_extract_keeps_schools_and_walkable_roads_only(dirs):
+    from irerero.data.sources import osm
+
+    (result,) = _run(dirs, [_osm(dirs["in"])])
+    assert result.staged and result.staged.name == osm.PBF
+    network = osm.load(dirs["raw"])
+    assert len(network.schools) == 1 and network.has_roads
+    ids, *_ = network.road_arrays()
+    assert set(ids.tolist()) == {2, 3, 4, 5}  # the building's nodes are not kept
+    assert "1 schools and 0 kindergartens" in " ".join(c.text for c in result.checks)
+
+
+def test_osm_and_mineduc_schools_are_combined_and_counted_once(dirs):
+    from irerero.config import PROVISIONAL
+    from irerero.pipeline.inputs import COMBINED, school_network
+
+    _run(dirs, [_osm(dirs["in"])])
+    m = 1 / 111_320
+    features = [
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [29.74 + 40 * m, -2.07]},
+         "properties": {"school_code": "1", "school_category": "PRE_PRIMARY"}},  # same site
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [29.80, -2.10]},
+         "properties": {"school_code": "2", "school_category": "PRE_PRIMARY"}},
+    ]  # fmt: skip
+    (dirs["raw"] / "schools").mkdir()
+    (dirs["raw"] / "schools" / "schools.geojson").write_text(
+        json.dumps({"type": "FeatureCollection", "features": features})
+    )
+    network = school_network(dirs["raw"])
+    assert network.source == COMBINED and network.status == PROVISIONAL
+    assert len(network.schools) == 2  # the OSM school and the MINEDUC school elsewhere
+    assert network.report["mineduc_same_site"] == 1 and network.report["osm_points"] == 1
+    assert sorted(network.schools.origin) == ["mineduc", "openstreetmap"]

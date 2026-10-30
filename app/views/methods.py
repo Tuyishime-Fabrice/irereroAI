@@ -158,10 +158,19 @@ with tabs[0]:
             unsafe_allow_html=True,
         )  # fmt: skip
         if school_report.get("status") == "provisional":
+            mapped = school_report.get("osm_points")
             theme.note(
-                "A provisional list: only standalone pre-primary schools. The share of children "
-                "more than 1 km from a listed school is an upper bound, and it is not used as "
-                "evidence in the bottleneck rules; a missing school is not proof of no school."
+                (
+                    f"A provisional list: {mapped} schools mapped in OpenStreetMap plus the "
+                    f"{school_report['mineduc_points'] - school_report['mineduc_same_site']} "
+                    "standalone pre-primary schools from MINEDUC that are not at an OSM school's "
+                    f"site ({school_report['mineduc_same_site']} are, counted once). "
+                    if mapped is not None
+                    else "A provisional list: only standalone pre-primary schools. "
+                )
+                + "The share of children more than 1 km from a listed school is an upper bound, "
+                "and it is not used as evidence in the bottleneck rules; a missing school is not "
+                "proof of no school."
             )
 
 with tabs[1]:

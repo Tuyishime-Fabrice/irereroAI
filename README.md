@@ -63,7 +63,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 211 tests
+make test      # 213 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
@@ -132,8 +132,9 @@ Summary below; formulas and code references are in [docs/methodology.md](docs/me
   sectors by WorldPop under-5 (× census age ratio) or by census shares, with a range.
 - **Places** = max(0, ⌈t·P⌉ − A); **rooms** = ⌈places/30⌉; **caregivers** between places/30 and
   places/15 (National ECD Standards 2024).
-- **Distance:** share of children more than 1 km from a school, along OSM roads where they
-  reach most children, otherwise straight-line and labelled *indicative*.
+- **Distance:** share of children more than 1 km from a school (OSM schools and the MINEDUC
+  list, a shared site counted once), along OSM roads where they reach most children, otherwise
+  straight-line and labelled *indicative*; provisional while the school lists are partial.
 - **Priority:** weighted percentile ranks of volume, equity, peer gap and poverty, with three
   presets or custom weights. Rank stability is the share of 500 Dirichlet weight draws in
   which a sector stays in the top 3.

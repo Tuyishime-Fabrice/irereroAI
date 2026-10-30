@@ -298,7 +298,7 @@ evidence = [
         "evidence": f"{pct('nonattendance')} of children aged 3–5 not attending; "
         + (
             f"at most {pct('far_share_listed')} live more than 1 km from a listed school "
-            "(provisional list of standalone pre-primary schools; not used in the bottleneck)."
+            "(provisional: the school list is partial; not used in the bottleneck)."
             if "far_share" in partial
             else f"{pct('far_share')} live more than 1 km from a school."
         ),

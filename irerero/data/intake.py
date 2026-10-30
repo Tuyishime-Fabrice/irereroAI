@@ -38,10 +38,18 @@ from pathlib import Path
 
 import pandas as pd
 
-from irerero.config import DATA, INTERIM, NCDA_DISPLAY_SETTING, RAW, REFERENCE, YEARBOOK_YEARS
+from irerero.config import (
+    DATA,
+    INTERIM,
+    NCDA_DISPLAY_SETTING,
+    RAW,
+    REFERENCE,
+    SAME_SITE_M,
+    YEARBOOK_YEARS,
+)
 from irerero.data import crosscheck
 from irerero.data.crosswalk import district_ids, sector_ids
-from irerero.data.sources import boundaries, census, eicv, ncda, projections, rdhs, yearbook
+from irerero.data.sources import boundaries, census, eicv, ncda, osm, projections, rdhs, yearbook
 from irerero.data.sources import schools as school_source
 from irerero.data.validate import SchemaError, validate
 
@@ -1153,6 +1161,71 @@ def ncda_placement(frame: pd.DataFrame, sectors: Path) -> Check:
                  "sector")  # fmt: skip
 
 
+# --- OpenStreetMap --------------------------------------------------------------------------
+def osm_extract(path: Path, target: Path) -> list[Check]:
+    """A Geofabrik Rwanda extract, checked and cut to what the distance layer reads: schools and
+    kindergartens (nodes and ways) and walkable roads with their nodes. Tags and geometry are
+    kept as mapped; everything else (buildings, land use, relations) is left out."""
+    key = osm.DATASET.key
+    try:
+        import osmium
+    except ImportError:
+        return [Check(key, "fail", "reading .osm.pbf needs pyosmium: `uv sync --extra osm`")]
+    header = osmium.io.Reader(str(path), osmium.osm.osm_entity_bits.NOTHING).header()
+    box = header.box()
+    stamp = header.get("osmosis_replication_timestamp") or "not stated"
+    if box.valid():
+        inside = (box.bottom_left.lon >= 28.7 and box.top_right.lon <= 31.0
+                  and box.bottom_left.lat >= -2.95 and box.top_right.lat <= -1.0)  # fmt: skip
+        where = f"bounding box {box}"
+    else:
+        inside, where = False, "no bounding box in the file header"
+    checks = [
+        Check(key, "pass" if inside else "warn", f"{path.name}: OpenStreetMap data as of {stamp} "
+              f"(written by {header.get('generator') or 'unknown'}), {where}; ODbL 1.0, cite "
+              "\"© OpenStreetMap contributors\"")
+    ]  # fmt: skip
+    school = {"school", "kindergarten"}
+    keep, refs = set(), set()
+    counts = {"school": 0, "kindergarten": 0, "roads": 0}
+    for way in osmium.FileProcessor(str(path), osmium.osm.WAY):
+        amenity, highway = way.tags.get("amenity"), way.tags.get("highway")
+        walkable = highway in osm.WALKABLE and way.tags.get("access") != "private"
+        if amenity in school or walkable:
+            keep.add(way.id)
+            refs.update(n.ref for n in way.nodes)
+            counts["roads" if walkable else amenity] += 1
+    target.parent.mkdir(parents=True, exist_ok=True)
+    partial = target.with_name(f"part-{target.name}")  # osmium reads the format from the name
+    nodes = 0
+    with osmium.SimpleWriter(str(partial), overwrite=True) as out:
+        for obj in osmium.FileProcessor(str(path), osmium.osm.NODE | osmium.osm.WAY):
+            if obj.is_node():
+                amenity = obj.tags.get("amenity")
+                if amenity in school:
+                    counts[amenity] += 1
+                if obj.id in refs or amenity in school:
+                    out.add_node(obj)
+                    nodes += 1
+            elif obj.id in keep:
+                out.add_way(obj)
+    partial.replace(target)
+    mapped = counts["school"] + counts["kindergarten"]
+    checks += [
+        Check(key, "pass" if counts["roads"] else "fail", f"{counts['roads']:,} walkable roads and "
+              f"paths with {nodes:,} nodes; {counts['school']} schools and "
+              f"{counts['kindergarten']} kindergartens (points and outlines); staged "
+              f"{target.stat().st_size / 1e6:.0f} MB of {path.stat().st_size / 1e6:.0f} MB "
+              "(schools and walkable roads only)"),
+        Check(key, "warn", f"partial: {mapped} schools and kindergartens are mapped, MINEDUC "
+              "counts 4,221 schools with pre-primary, and OSM does not say which schools have "
+              "pre-primary. The distance layer adds the MINEDUC list (a MINEDUC school within "
+              f"{SAME_SITE_M} m of an OSM school counted once) and stays provisional: an upper "
+              "bound, not used in the bottleneck rules"),
+    ]  # fmt: skip
+    return checks
+
+
 # --- DHS 2025 microdata --------------------------------------------------------------------
 def dhs_stunting(path: Path) -> tuple[pd.DataFrame, list[Check]]:
     """Stunting among children under 5 by district from the DHS household-member recode, as the
@@ -1451,7 +1524,7 @@ def classify(files: list[Path]) -> dict[str, list[Path]]:
         "mineduc_master": [], "mineduc_long": [], "school_points": [],
         "nisr_boundaries": [], "ncda_extract": [], "school_csv": [], "phc5_main": [],
         "projection_tables": [], "mineduc_workbook": [], "worldpop": [], "reference_pages": [],
-        "dhs_pr": [], "eicv_microdata": [],
+        "dhs_pr": [], "eicv_microdata": [], "osm": [],
     }  # fmt: skip
     for path in files:
         if GAZETTEER in path.name and path.suffix == ".xlsx":
@@ -1463,6 +1536,9 @@ def classify(files: list[Path]) -> dict[str, list[Path]]:
             continue
         if suffix == ".pdf":
             groups["reference_pages"].append(path)
+            continue
+        if path.name.lower().endswith(".osm.pbf"):
+            groups["osm"].append(path)
             continue
         if DHS_PR.match(path.name):
             groups["dhs_pr"].append(path)
@@ -1765,6 +1841,18 @@ def run(
         receive(groups["reference_pages"], "nisr_web_pages", raw, manifest)
         _mark_staged(manifest, groups["reference_pages"], "provenance only (NISR web page "
                      "printouts, no tables)")  # fmt: skip
+    if groups["osm"]:
+        path = groups["osm"][0]
+        receive([path], "openstreetmap", raw, manifest)
+        target = raw / osm.DATASET.key / osm.PBF
+        checks = osm_extract(path, target)
+        staged = target if not any(c.level == "fail" for c in checks) else None
+        if staged is None:
+            target.unlink(missing_ok=True)
+        else:
+            _mark_staged(manifest, [path], f"data/raw/{osm.DATASET.key}/{osm.PBF} (schools and "
+                         "walkable roads only)")  # fmt: skip
+        results.append(Result(osm.DATASET.key, checks, staged, None))
     if groups["dhs_pr"]:
         path = groups["dhs_pr"][0]
         receive([path], "dhs_2025_microdata", raw, manifest)

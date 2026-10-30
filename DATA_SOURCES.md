@@ -171,7 +171,9 @@ Or put the NISR 2022 sector layer (Rwanda_Sector_Boundaries_2022.geojson, with p
 
 Schools are amenity=school or amenity=kindergarten. Most Rwandan primary schools host pre-primary, but OSM does not say which: treat the layer as an approximation.
 
-Needs `uv sync --extra osm` (pyosmium and networkx). Without it, or where roads are thin, distance is straight-line and labelled indicative.
+Needs `uv sync --extra osm` (pyosmium and networkx; on Streamlit, requirements.txt). Where roads reach fewer than half a sector's children, distance is straight-line and labelled indicative.
+
+Put the Geofabrik extract (any name ending .osm.pbf) through `make intake`: it keeps schools and walkable roads and stages rwanda-latest.osm.pbf. With the MINEDUC school list also staged, both are used, a MINEDUC school within 100 m of an OSM school counted once, and the distance stays provisional while the lists are partial.
 
 <a id="schools"></a>
 

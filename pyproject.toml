@@ -24,11 +24,14 @@ dependencies = [
   "psycopg[binary]>=3.2",
   "fpdf2>=2.8",
   "anthropic>=1.0",
+  # Walking distance along roads from the OpenStreetMap extract in the data bundle. Required:
+  # Streamlit Community Cloud installs from uv.lock without extras.
+  "osmium>=4.0",
+  "networkx>=3.4",
 ]
 
 [project.optional-dependencies]
-# Walking distance along roads from the Geofabrik extract. Without it the distance layer is
-# straight-line and labelled "indicative".
+# Kept so `uv sync --extra osm` (make install, CI) still works; now part of the dependencies.
 osm = ["osmium>=4.0", "networkx>=3.4"]
 
 [dependency-groups]

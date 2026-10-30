@@ -63,7 +63,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 make install   # uv sync --extra osm
 make data      # build the analysis tables (demo stand-ins for missing files)
 make app       # streamlit run app/streamlit_app.py
-make test      # 213 tests
+make test      # 214 tests
 ```
 
 The app builds the tables itself on first start, so `make app` alone works. Pick a role in the
@@ -80,7 +80,9 @@ lists, review the spellings in `data/reference/sector_name_crosswalk.csv`, and r
 Nothing else changes.
 
 **Deploy (Streamlit Community Cloud).** Point the app at `app/streamlit_app.py` and choose
-Python 3.11 under Advanced settings; it installs from `requirements.txt`, plus `libgomp1` (needed
+Python 3.11 under Advanced settings; Streamlit Community Cloud installs from `uv.lock` when the repository has one (the main
+dependencies only, no extras), so everything the app needs, OSM included, is a main dependency
+in `pyproject.toml` (`requirements.txt` mirrors it). It also installs `libgomp1` (needed
 by LightGBM) from `packages.txt`. The first start builds the analysis tables (under a minute). Add `DATABASE_URL` (Supabase or Neon Postgres) in
 the app's Secrets, so plans, check-ins and the audit log survive restarts. Without it, the app
 uses SQLite, which resets when the container restarts.

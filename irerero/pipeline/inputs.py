@@ -7,7 +7,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from irerero.config import PROVISIONAL, RAW, SAME_SITE_M
+from irerero.config import DEMO, PROVISIONAL, RAW, SAME_SITE_M, SIMULATED
 from irerero.data.sources import (
     boundaries,
     census,
@@ -21,6 +21,7 @@ from irerero.data.sources import (
 )
 from irerero.data.sources import yearbook as yearbook_source
 from irerero.data.sources.base import Loaded
+from irerero.data.validate import read_csv
 
 COMBINED = "openstreetmap+mineduc"  # the source of a network that holds both school lists
 
@@ -58,22 +59,43 @@ def school_network(raw: Path = RAW) -> osm.Network:
     standalone pre-primary schools only), so any layer built on the MINEDUC list is labelled
     provisional. A school file with no usable point falls back, and its report says why."""
     listed = schools.load(raw)
+    unreadable = None
     if osm.DATASET.present(raw):
-        network = osm.load(raw)
-        if listed is not None and listed[1].loaded:
-            return combine(network, *listed)
-        if listed is not None:
-            network.report = listed[1].as_dict()
-        return network
+        try:
+            network = osm.load(raw)
+        except ImportError:  # the extract is staged but pyosmium is not installed
+            unreadable = (
+                "the OpenStreetMap extract is staged but pyosmium is not installed, so it was "
+                "not read (install osmium and networkx)"
+            )
+        else:
+            if listed is not None and listed[1].loaded:
+                return combine(network, *listed)
+            if listed is not None:
+                network.report = listed[1].as_dict()
+            return network
     if listed is None:
-        return osm.load(raw)
+        fallback = _stand_in(raw, unreadable)
+        if unreadable:
+            fallback.report = {"errors": [unreadable]}
+        return fallback
     frame, report = listed
+    if unreadable:
+        report.errors.append(unreadable)
     if report.loaded:
         return osm.Network(schools=frame, status=PROVISIONAL, real=True, source=schools.SOURCE,
                            report=report.as_dict())  # fmt: skip
-    fallback = osm.load(raw)
+    fallback = _stand_in(raw, unreadable)
     fallback.report = report.as_dict()
     return fallback
+
+
+def _stand_in(raw: Path, unreadable: str | None) -> osm.Network:
+    """The simulated school points (osm.load gives them while no extract is staged)."""
+    if unreadable is None:
+        return osm.load(raw)
+    schools_csv = read_csv(DEMO / "osm" / "schools.csv", osm.SCHOOL_COLUMNS)
+    return osm.Network(schools=schools_csv, status=SIMULATED, real=False, source="demo")
 
 
 def combine(network: osm.Network, listed: pd.DataFrame, report: schools.Report) -> osm.Network:

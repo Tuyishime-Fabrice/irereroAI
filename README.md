@@ -8,21 +8,32 @@ NISR 2026 Big Data Hackathon, Track 3 (Open Innovation).
 > In my district, which sectors need action first, what is holding ECD back there, and are we on
 > track for the NST2 target of 65% pre-primary enrolment by 2028/29?
 
-**Live app:** [irereroai.streamlit.app](https://irereroai.streamlit.app/) (demo build) · **Docs:**
+**Live app:** [irereroai.streamlit.app](https://irereroai.streamlit.app/) · **Docs:**
 [methodology](docs/methodology.md) · [model card](docs/model_card.md) ·
 [limitations](docs/limitations.md) · [data dictionary](docs/data_dictionary.md) ·
 [data sources](DATA_SOURCES.md) · [data received](docs/data_inventory.md) ·
 [data still needed](docs/data_requests.md)
 
-> **Everything in the demo build is simulated except the boundaries.** The real NISR, MINEDUC,
-> RDHS, EICV, WorldPop and OSM files are not in this repository: their licences forbid
-> redistribution, and the team adds them locally. With the files
-> received so far (census 2022, NISR projections, MINEDUC yearbooks 2020/21 to 2024/25, NISR
-> 2022 sector boundaries, EICV7, the NCDA ECD Mapping extract, DHS 2025 stunting from the
-> microdata) a local build has a real 2026 estimate, priority ranking, peer benchmark, bottleneck
-> diagnosis and 2028/29 trend. The distance layer stays provisional until a full school list
-> arrives, and children are spread evenly inside a sector until the WorldPop set is complete.
-> Each part of a screen carries its own status.
+> **The live app runs on real data.** Census 2022, NISR projections, MINEDUC yearbooks
+> 2020/21 to 2024/25, the NISR 2022 boundaries, the MINEDUC school list, OpenStreetMap, EICV7,
+> DHS 2025 stunting and the NCDA ECD Mapping extract are all real files. Two parts are not:
+> **WorldPop** (incomplete, so a labelled stand-in spreads children evenly inside each sector)
+> and the **Muhanga LEARN check-ins and course progress** (simulated by design, labelled
+> SIMULATED). The data files stay in a private repository, not here: their licences forbid
+> redistribution. Each part of a screen carries its own status.
+
+## Key findings
+
+From the real data (bundle of 30 October 2026), as the app computes them:
+
+- **138,798 more pre-primary places** are needed to reach 65% attendance: 1,055,271 children
+  aged 3 to 5 in 2026, 53.5% attending. *Overview, "Places needed" KPI (`irerero/plan/gap.py`).*
+- **2 of 30 districts are not on track** for 65% by 2028/29: Kicukiro is off track (projected
+  53.2%) and Gasabo at risk (62.7%). This uses MINEDUC's gross rate, already 65.3% nationally
+  in 2024/25. *Overview and TRACK, 2028/29 status (`irerero/track/forecast.py`).*
+- **In Muhanga, Cyeza, Nyarusange and Nyamabuye** rank first to third with the default "Reach
+  most children" weights, and stay in the top three in all 500 weight draws. *District
+  priorities (`irerero/plan/priority.py`).*
 
 ## Problem and users
 
@@ -148,23 +159,25 @@ Summary below; formulas and code references are in [docs/methodology.md](docs/me
 - **TRACK:** linear trend of MINEDUC gross enrolment with an 80% prediction interval;
   back-test on 2024/25; on track / at risk / off track.
 
-## Model card and evaluation as measured
+## Results
 
-See [docs/model_card.md](docs/model_card.md). On the **simulated** demo data, the method
-measures as follows. These numbers show the pipeline works, not real-world accuracy.
+Measured on the real data with `make data`; details in [docs/model_card.md](docs/model_card.md).
 
-| Peer model (leave-one-district-out) | MAE (points) | R² |
-| --- | --- | --- |
-| Province mean | 8.41 | 0.40 |
-| District mean | 8.52 | 0.35 |
-| **Weighted linear regression (chosen)** | **3.85** | **0.88** |
-| LightGBM | 4.11 | 0.87 |
+| Peer model (leave-one-district-out) | MAE (points) | Weighted MAE | R² |
+| --- | --- | --- | --- |
+| Province mean | 13.05 | 12.09 | -0.13 |
+| **District mean (kept)** | **9.21** | **8.61** | **0.40** |
+| Weighted linear regression | 12.79 | 11.97 | -0.04 |
+| LightGBM | 11.57 | 11.16 | 0.07 |
 
-- 80% conformal intervals: coverage 80.3% (rural 85%, urban 61%).
-- Residual Moran's I: 0.30 (p = 0.001).
-- 2029 trend back-test: MAE 0.95 points; 93% of districts inside the 80% range.
+- Neither model beats the district mean, so the district mean is kept: each sector is compared
+  with the other sectors of its district.
+- 80% conformal intervals: ±14.9 points; coverage 80.3% (rural 81.2%, urban 75.0%).
+- Residual Moran's I: 0.142 (p = 0.001).
+- 2029 trend back-test (fit 2020/21 to 2023/24, predict 2024/25): MAE 5.10 points; 100% of
+  districts inside the 80% range.
 
-The 199 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
+The 214 tests check data integrity (sums, joins, duplicates, sources and statuses), the formulas
 (hand-checked), the model and rules, the audit entries for each decision and confirmation,
 simulated-value labelling and exclusion from exports, the training triggers on the planted
 problems, that every screen renders for every role, and the assistant end to end (figures,
@@ -217,9 +230,10 @@ MINEDUC counts.
 
 See [docs/limitations.md](docs/limitations.md). In short:
 
-- The demo is simulated.
+- WorldPop is incomplete: children are spread evenly inside each sector.
+- LEARN check-ins and course progress are simulated.
 - Census attendance may miss home-based ECD.
-- The 3-5 share is held at 2022.
+- One projection variant only.
 - OSM does not mark pre-primary.
 - Five yearbook points make a short trend.
 - District context is applied to every sector.

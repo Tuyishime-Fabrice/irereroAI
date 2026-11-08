@@ -63,6 +63,11 @@ def document() -> str:
         "Generated from the declarations in `irerero/data/` by `python -m irerero.data --write`;"
         " do not edit by hand.",
         "",
+        "**Status now (bundle of 30 October 2026).** Every dataset with files is read from a real "
+        "file except WorldPop (incomplete: its male 1-4 layer is missing), which keeps its "
+        "stand-in. The LEARN check-ins and course progress (13) are simulated by design. Details "
+        "and the checks for each file: `docs/data_inventory.md`.",
+        "",
         "Put each file in its folder under `data/raw/` and run `make data`. Raw files never "
         "enter git. When a file is missing, the committed demo bundle in `data/demo/` stands in "
         "and every value from it carries the red SIMULATED badge and is left out of exports. "

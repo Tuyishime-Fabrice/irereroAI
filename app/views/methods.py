@@ -1,5 +1,5 @@
 """Screen 8. Data and methods: sources, definitions, status legend, model card, validation,
-limitations, and the simulated NCDA supply connector."""
+limitations, and the NCDA supply connector."""
 
 import pandas as pd
 import streamlit as st
@@ -62,7 +62,7 @@ with k2:
     coded = int(sector_units.nisr_code.notna().sum())
     if bool(loaded.loaded.get("boundaries", False)):
         theme.kpi("Sectors with real boundaries", str(len(sector_units)),
-                  "COD-AB boundaries (NISR via HDX)", "2022", "observed",
+                  "NISR 2022 boundaries (via HDX)", "2022", "observed",
                   f"{coded} with official NISR codes", "pin", "navy")  # fmt: skip
     else:
         theme.kpi("Sectors with real boundaries", str(len(sector_units)),
@@ -138,7 +138,7 @@ with tabs[0]:
         ),
         unsafe_allow_html=True,
     )
-    theme.note(
+    theme.info(
         "File names, formats and required columns for each dataset are in DATA_SOURCES.md. "
         "Put a real file in data/raw/<dataset>/ and rebuild; nothing else changes."
     )
@@ -159,7 +159,7 @@ with tabs[0]:
         )  # fmt: skip
         if school_report.get("status") == "provisional":
             mapped = school_report.get("osm_points")
-            theme.note(
+            theme.info(
                 (
                     f"A provisional list: {mapped} schools mapped in OpenStreetMap plus the "
                     f"{school_report['mineduc_points'] - school_report['mineduc_same_site']} "
@@ -312,16 +312,20 @@ with tabs[4]:
 - **The 2029 trend runs through a jump:** pupils rose 52% in 2022/23, so the straight-line
   trend is steep and reaches the 100% cap in many districts; read "on track" with the latest
   observed rate beside it.
-- **OSM does not say which schools have pre-primary.** Distance uses all schools and
-  kindergartens; where roads are thin, straight-line distance understates the walk.
+- **The school lists are partial.** Distance uses the schools and kindergartens mapped in OSM
+  together with the MINEDUC list of standalone pre-primary schools. OSM does not say which
+  schools have pre-primary, so the share beyond 1 km is an upper bound; where roads are thin,
+  straight-line distance understates the walk.
+- **WorldPop is incomplete** (its male 1-4 layer is missing), so a stand-in spreads children
+  evenly inside each sector. Distances ignore where people actually live.
 - **District context.** Capacity and stunting are district values applied to every sector.
 - **Peer model drivers are associations.** A sector's features explain its expected value; they
   do not say what would change attendance.
 - **LEARN data are simulated** for the Muhanga pilot. The quiz measures course knowledge, not
   teaching quality. Caregivers are never ranked.
 - **Kinyarwanda labels and course titles are drafts** awaiting review by a native speaker.
-- **Every value in this demo build that comes from a missing file is simulated**, labelled, and
-  excluded from exports by default.
+- **A value whose file is missing is simulated**, labelled, and excluded from exports by
+  default. Today that applies only to the WorldPop stand-in and the LEARN pilot.
 - **The IrereroAI assistant is a language model.** It answers from this dashboard's figures and
   labels their status, but it can still misread or misstate them: check an answer against the
   screen before using it. It reads aggregates only and cannot change plans or data.

@@ -47,7 +47,7 @@ simulated = SIMULATED in (status, rank_status, far_status, track_status, diag_st
 
 theme.header(
     "District brief",
-    "One page for the district council. Use your browser's print, or download the PDF or CSV.",
+    "One page for the district council. Print it or download the PDF or CSV.",
     simulated=simulated,
     crumbs=["Rwanda", frame.province.iat[0] if len(frame) else "", name, "District brief"],
     assistant="brief",
@@ -133,7 +133,7 @@ with theme.panel(
                 theme.Col("rank", "Rank", num=True),
                 theme.Col("name", "Sector", strong=True),
                 theme.Col(
-                    "children_3_5", "Children 3–5", fmt=lambda v, r: theme.fmt_int(v), num=True
+                    "children_3_5", "Children 3 to 5", fmt=lambda v, r: theme.fmt_int(v), num=True
                 ),
                 theme.Col(
                     "attendance_rate", "Attending", fmt=lambda v, r: theme.fmt_pct(v), num=True
@@ -184,17 +184,29 @@ with theme.panel(
         + "</ol>",
         unsafe_allow_html=True,
     )
-    theme.note(
-        f"{DEFINITION} Children, places and rooms: {status}; ranking: {rank_status}; > 1 km: "
-        f"{far_status}; trend: {track_status}; bottlenecks: {diag_status}. Priority is relative "
-        "to other sectors in the district. Associations, not causes. Decisions are made by "
-        "people."
+    st.markdown(
+        f"<span class='ir-note'>Status: children, places and rooms {status} · ranking "
+        f"{rank_status} · > 1 km {far_status} · trend {track_status} · bottlenecks "
+        f"{diag_status}.</span> "
+        + theme.info_html(
+            f"{DEFINITION} Priority is relative to other sectors in the district. Associations, "
+            "not causes. Decisions are made by people.",
+            align="left",
+        ),
+        unsafe_allow_html=True,
     )
 
 
 # --- exports ------------------------------------------------------------------------------
 with theme.panel(
-    "Export", "Simulated values are left out unless you include them, then labelled.", "database"
+    "Export",
+    "Download as CSV or PDF",
+    "database",
+    right=theme.info_html(
+        f"Counts of children under {SUPPRESS_BELOW} are exported as 'fewer than "
+        f"{SUPPRESS_BELOW}'. The CSV is long: one row per value, with its source, period and "
+        "status."
+    ),
 ):
     include = st.toggle(
         t("Include simulated values (labelled SIMULATED)"),
@@ -209,7 +221,7 @@ with theme.panel(
     if exported.empty:
         st.warning(
             "Every value here is simulated, so the export is empty unless you include simulated "
-            "values. Load the real files to export real figures."
+            "values."
         )
     c1, c2 = st.columns(2)
     c1.download_button(
@@ -244,8 +256,4 @@ with theme.panel(
         file_name=f"irerero-brief-{name.lower()}.pdf",
         mime="application/pdf",
         icon=":material/picture_as_pdf:",
-    )
-    theme.note(
-        f"Counts of children under {SUPPRESS_BELOW} are exported as 'fewer than {SUPPRESS_BELOW}'. "
-        "The CSV is long: one row per value, with its source, period and status."
     )

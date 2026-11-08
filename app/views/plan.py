@@ -79,7 +79,7 @@ target_label = (
 )
 theme.stat_strip(
     t("NST2 target: {target} pre-primary enrolment by {year}", target=f"{nst2:.0%}", year=TARGET_YEAR),
-    f"Gross rate (MINEDUC pupils per child aged 3–5) · {districts[district_id]} · "
+    f"Gross rate (MINEDUC pupils per child aged 3 to 5) · {districts[district_id]} · "
     f"status: {status_label}",
     [
         (
@@ -108,11 +108,11 @@ if user.role == OFFICER:
 k1, k2, k3, k4 = st.columns(4)
 with k1:
     theme.kpi(t("Projected {year}", year=TARGET_YEAR), theme.fmt_pct(summary.projected, 1), "IrereroAI linear trend",
-              TARGET_YEAR, status_label, f"80% range {theme.fmt_pct(summary.low)}–{theme.fmt_pct(summary.high)}",
+              TARGET_YEAR, status_label, f"80% range {theme.fmt_pct(summary.low)} to {theme.fmt_pct(summary.high)}",
               "trend", "blue")  # fmt: skip
 with k2:
     theme.kpi("Places a year still needed", theme.fmt_int(need), "IrereroAI, from MINEDUC pupils",
-              f"{PROJECTION_YEARS[0]}–{TARGET_YEAR}", status_label,
+              f"{PROJECTION_YEARS[0]} to {TARGET_YEAR}", status_label,
               f"about {theme.fmt_int(need / CHILDREN_PER_ROOM.value)} rooms a year", "rooms", "gold")  # fmt: skip
 with k3:
     if len(plan_items):
@@ -150,6 +150,12 @@ with (
         "Enrolment trend and what-if",
         f"{districts[district_id]} · observed, trend with 80% range, and added rooms",
         "trend",
+        right=theme.info_html(
+            f"Back-test: fitted on 2020/21 to 2023/24, the trend predicted {latest_year} within "
+            f"{abs(summary.backtest_error_pp):.1f} points "
+            f"({'inside' if summary.backtest_inside else 'outside'} its 80% range). Approved and "
+            f"edited plan items add {approved_rooms} rooms. Status: {status_label}."
+        ),
     ),
 ):
     w1, w2 = st.columns([2, 1])
@@ -190,16 +196,9 @@ with (
     if added > room_gap:
         st.warning(
             f"{added:,} places is more than {'the chosen sectors' if chosen else 'the district'} "
-            f"need to reach {theme.fmt_pct(target)} ({room_gap:,}). Extra places may stay empty, "
-            f"so the projection counts at most {room_gap:,}"
-            + (": spread the rooms to other sectors." if chosen else ".")
+            f"need to reach {theme.fmt_pct(target)} ({room_gap:,}). The projection counts at most "
+            f"{room_gap:,}" + (": spread the rooms to other sectors." if chosen else ".")
         )
-    back = summary.backtest_error_pp
-    theme.note(
-        f"Back-test: fitted on 2020/21–2023/24, the trend predicted {latest_year} within "
-        f"{abs(back):.1f} points ({'inside' if summary.backtest_inside else 'outside'} its 80% "
-        f"range). Approved and edited plan items add {approved_rooms} rooms. Status: {status_label}."
-    )
 
 ACTION_TEXT = {
     "plan.create": ("Plan created", "navy"),
@@ -262,8 +261,7 @@ with theme.panel(
         if user.can_decide:
             with st.form("create-plan", border=False):
                 st.markdown(
-                    "Start a plan from the ranked sectors. Each one becomes a recommendation for "
-                    "you to approve, edit or reject."
+                    "Start a plan from the ranked sectors. You approve, edit or reject each one."
                 )
                 f1, f2, f3 = st.columns(3)
                 preset = f1.selectbox(
@@ -346,7 +344,7 @@ with theme.panel(
                     Col(
                         "caregivers_low",
                         "Caregivers",
-                        fmt=lambda v, r: f"{v}–{r['caregivers_high']}",
+                        fmt=lambda v, r: f"{v} to {r['caregivers_high']}",
                         num=True,
                     ),
                     Col("decision", "Decision", fmt=lambda v, r: theme.pill(v)),
@@ -443,7 +441,15 @@ with theme.panel(
             theme.note("The audit log is append-only: entries cannot be edited or deleted.")
 
 # --- training -----------------------------------------------------------------------------
-with theme.panel("Training tracker", "Required LEARN courses by sector · aggregates only", "cap"):
+with theme.panel(
+    "Training tracker",
+    "Required LEARN courses by sector · aggregates only",
+    "cap",
+    right=theme.info_html(
+        f"Completion of required training feeds the capacity factor in DIAGNOSE. "
+        f"{progress.QUIZ_NOTE}"
+    ),
+):
     if training.empty:
         st.markdown(
             theme.empty_state(
@@ -477,7 +483,4 @@ with theme.panel("Training tracker", "Required LEARN courses by sector · aggreg
             ),
             unsafe_allow_html=True,
         )
-        theme.note(
-            "Simulated pilot data. Completion of required training feeds the capacity factor in "
-            f"DIAGNOSE. {progress.QUIZ_NOTE}"
-        )
+        theme.note("Simulated pilot data.")

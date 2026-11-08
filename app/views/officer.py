@@ -32,7 +32,7 @@ latest = checkins.problems(checkins.frame(eng, sector_centres))
 theme.header(
     "Caregiver learning",
     t(
-        "{sector} sector · confirm suggested courses, follow up training and centre check-ins.",
+        "{sector} sector · courses, training and check-ins",
         sector=sector_name,
     ),
     simulated=True,
@@ -72,7 +72,10 @@ left, right = st.columns([1, 1])
 with (
     left,
     theme.panel(
-        "Suggested courses to confirm", "Nothing becomes required automatically.", "clipboard"
+        "Suggested courses to confirm",
+        "Nothing becomes required automatically.",
+        "clipboard",
+        right=theme.info_html("Each confirmation and set-aside is recorded in the audit log."),
     ),
 ):
     if flags.empty:
@@ -106,10 +109,19 @@ with (
                     st.rerun()
                 except ValueError as error:
                     st.error(str(error))
-    theme.note("Each confirmation and set-aside is recorded in the audit log.")
 
 # --- completion ---------------------------------------------------------------------------
-with right, theme.panel("Required training by centre", "Completion, not scores", "cap"):
+with (
+    right,
+    theme.panel(
+        "Required training by centre",
+        "Completion, not scores",
+        "cap",
+        right=theme.info_html(
+            progress.QUIZ_NOTE + " Caregivers are never ranked; individual scores stay private."
+        ),
+    ),
+):
     by_centre = progress.aggregate(mine, "centre_id")
     by_centre["centre"] = [centres.name.get(c, c) for c in by_centre.centre_id]
     st.markdown(
@@ -136,7 +148,6 @@ with right, theme.panel("Required training by centre", "Completion, not scores",
             else f"not shown (fewer than {progress.MIN_FOR_AVERAGE} caregivers with a score)"
         )
     )
-    theme.note(progress.QUIZ_NOTE + " Caregivers are never ranked; individual scores stay private.")
 
 with right, theme.panel("Overdue, to follow up", "Required courses past their due date", "clock"):
     over = mine[mine.overdue]
@@ -196,4 +207,5 @@ with theme.panel("Latest check-ins", "One row per centre · counts only", "home"
             ),
             unsafe_allow_html=True,
         )
-        theme.note(LEARN_NOTE)
+        theme.note("Simulated pilot data for Muhanga (demo mode).")
+        theme.info(LEARN_NOTE)

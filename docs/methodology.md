@@ -17,7 +17,8 @@ every step can be checked.
 - One loader per dataset (`irerero/data/sources/`) with a declared schema
   ([DATA_SOURCES.md](../DATA_SOURCES.md)). Errors name the file, column and line.
 - A missing file falls back to the committed demo bundle (`data/demo/`), in the same format.
-  Every value read from it has the status **simulated**.
+  Every value read from it has the status **simulated**. With the bundle of 30 October 2026
+  every dataset is read from a real file except WorldPop, which keeps its stand-in.
 - Names join to `geo_id` only through the reviewed crosswalks in `data/reference/`. Matching
   ignores case and spacing only; any unmatched name stops the build with the list.
 - `make data` writes every input value to `observation` (geo_id, indicator, value, period,
@@ -32,16 +33,19 @@ never attended equals the total; all 416 sectors join to the boundaries; no dupl
 
 ### 2026 estimate of children aged 3 to 5 (`irerero/plan/estimate.py`)
 
-1. **District total.** NISR projected population for 2026 × the district's census 2022 share of
-   children aged 3 to 5.
+1. **District total.** NISR's projected children aged 3 to 5 in 2026, from the single-age
+   tables (otherwise the projected population × the district's census 2022 share of children
+   aged 3 to 5).
 2. **Sector split.** WorldPop 2020 under-5 counts summed per sector (100 m grids, zonal sum) ×
    the district's census ratio of 3-5 to 0-4 children, normalised within the district. While
-   WorldPop is missing, the census 2022 sector shares are used.
+   WorldPop is incomplete (today: its male 1-4 layer is missing), the census 2022 sector
+   shares stand in.
 3. **Range.** Relative half-width √(p² + d²): *p* is half the NISR projection range (or 3% when
    the projection gives no range) and *d* is the gap between the WorldPop and census sector
    shares (or 5% for drift since 2022 when only the census is available).
-4. **Attending.** The sector's census 2022 attendance rate × the district's change in MINEDUC
-   pupils per child from 2021/22 (the census school year) to 2024/25, capped at 98%.
+4. **Attending.** The sector's census 2022 attendance rate. The option to move it by the
+   district's change in MINEDUC pupils per child (`MINEDUC_TREND_ON_CENSUS`, capped at 98%) is
+   off: by district the two rates do not track each other.
 
 ### Places, rooms and caregivers (`irerero/plan/gap.py`)
 
@@ -134,9 +138,11 @@ and log children per km².
   values. The top 3 per sector are shown as *associated with, not caused by*.
 - **Diagnostics:** Moran's I on residuals (queen contiguity, 999 permutations), error by
   urban/rural and by province, and interval coverage by area.
-- **Fallback:** if a baseline is kept, no model beats the district average. The peer gap then
-  leaves the priority index, and each sector is compared with the average of the other
-  sectors in its district.
+- **Fallback:** if a baseline is kept, no model beats the district average. Each sector's
+  expected value is then the average of the other sectors in its district, and the peer gap
+  in the priority index measures the distance to that average. On the real data this is what
+  happens: the district mean is kept (MAE 9.21 points, R² 0.401; see the
+  [model card](model_card.md)).
 
 ### Bottleneck rules
 

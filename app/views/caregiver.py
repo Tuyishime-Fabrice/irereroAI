@@ -69,9 +69,9 @@ with (
     check_col,
     theme.panel(
         "Monthly check-in · Raporo y'ukwezi",
-        f"{month} · counts only, never children's names · about two minutes"
-        + (" · already submitted, you can correct it" if done else ""),
+        f"{month} · counts only, no names" + (" · submitted, you can correct it" if done else ""),
         "clipboard",
+        right=theme.info_html("Counts only, never children's names. It takes about two minutes."),
     ),
 ):
     with st.form("checkin", border=False):
@@ -166,8 +166,15 @@ with (
         )
 
 # --- learning -----------------------------------------------------------------------------
-with learn_col, theme.panel("My learning · Amasomo yanjye", "Your courses and progress", "book"):
-    theme.note(progress.QUIZ_NOTE + " Your quiz scores are visible only to you.")
+with (
+    learn_col,
+    theme.panel(
+        "My learning · Amasomo yanjye",
+        "Your courses and progress",
+        "book",
+        right=theme.info_html(progress.QUIZ_NOTE + " Your quiz scores are visible only to you."),
+    ),
+):
     if mine.empty:
         st.markdown(theme.empty_state("No courses yet.", "book"), unsafe_allow_html=True)
     groups = [
@@ -260,8 +267,9 @@ with theme.panel("Course", "Lessons, quiz and certificate", "cap"):
                 mime="application/pdf",
                 icon=":material/workspace_premium:",
             )
-    theme.note(
+    theme.info(
         "Kinyarwanda labels and course titles are drafts awaiting review by a native speaker."
     )
     if centre.status == SIMULATED:
-        theme.note(LEARN_NOTE)
+        theme.note("Simulated pilot data for Muhanga (demo mode).")
+        theme.info(LEARN_NOTE)

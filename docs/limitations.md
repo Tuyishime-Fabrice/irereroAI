@@ -2,9 +2,10 @@
 
 ## Data
 
-- **The demo build is simulated.** Every value from a missing file is simulated, labelled with
-  a red SIMULATED badge and left out of exports by default. Only the boundaries are real:
-  geoBoundaries shapes, CC BY 4.0, from NISR open data, simplified, without NISR codes.
+- **One stand-in remains.** WorldPop is incomplete (its male 1-4 layer is missing), so the app
+  uses its documented stand-in: census sector shares, and children spread evenly inside each
+  sector. LEARN check-ins and course progress are simulated by design. Everything else is read
+  from real files.
 - **Home-based ECD may be missing.** Census "nursery attendance" may not count home-based ECD,
   so the gap is the *formal* pre-primary gap. Census, MINEDUC and NCDA figures are never added
   together.
@@ -17,11 +18,10 @@
 
 ## Estimates
 
-- **Constant age structure.** The 3-5 share of the population is held at its 2022 value to
-  2029. Falling fertility would lower it, so 2029 child counts, and places needed, may be
-  overstated.
-- **Attendance in 2026** moves the census 2022 rate by the district's MINEDUC trend. A sector
-  whose trend differs from its district's is mis-estimated.
+- **One projection.** Children aged 3 to 5 come from NISR's single-age projections, one
+  variant only, so the range uses a default projection error instead of low and high variants.
+- **Attendance in 2026** is the census 2022 rate. Enrolment has grown since 2022, so places
+  needed may be overstated where it grew most.
 - **Ranges omit some error.** Where a source gives no range, a documented assumption sets it:
   3% for the projection and 5% for drift in sector shares. Ranges do not include census
   enumeration error.
@@ -31,8 +31,10 @@
 - **OSM does not say which schools have pre-primary.** Every school and kindergarten counts.
 - **Straight-line distance** understates the walk, so it is labelled *indicative*. Children
   more than 500 m from any road keep their straight-line distance.
-- **Even grid.** While WorldPop is missing, children are spread evenly over the sector, which
-  ignores where people actually live.
+- **Even grid (WorldPop stand-in).** While WorldPop is incomplete, children are spread evenly
+  over the sector, which ignores where people actually live.
+- **Partial school lists.** 592 schools mapped in OpenStreetMap and 139 standalone pre-primary
+  schools from MINEDUC, against 4,221 schools with pre-primary. Distances are an upper bound.
 
 ## Models and rules
 

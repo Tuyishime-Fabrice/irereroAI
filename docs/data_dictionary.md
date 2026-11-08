@@ -128,7 +128,7 @@ TRACK: enrolment rate per district and nationally: observed years, projected yea
 
 ## `supply_extract` (analysis)
 
-NCDA ECD Mapping extract in the connector schema (simulated for Muhanga in the demo).
+NCDA ECD Mapping extract in the connector schema (the real extract, plus the 36 simulated Muhanga centres of the LEARN demo, each row with its status).
 
 | Column | Type | Null | Key |
 | --- | --- | --- | --- |

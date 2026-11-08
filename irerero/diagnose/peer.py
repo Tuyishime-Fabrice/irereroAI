@@ -10,8 +10,8 @@ Target: census 2022 attendance rate of children aged 3 to 5 (observed). Up to si
     lightgbm        small gradient-boosted trees
 
 The simplest candidate within SIMPLER_WITHIN_PP points of the best MAE is kept. If that is a
-baseline, no model beats the district mean: the peer gap is dropped from the priority index
-and each sector is compared with its district average instead (the fallback).
+baseline, no model beats the district mean: each sector is compared with its district
+average instead (the fallback), and the peer gap measures the distance to that average.
 
 Expected values are out-of-fold, so a sector's expectation never uses its own district (models)
 or its own value (district mean). Intervals are split-conformal at CONFORMAL_COVERAGE.

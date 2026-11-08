@@ -40,7 +40,7 @@ simulated = SIMULATED in (status, far_status, diag_status)
 
 theme.header(
     "District priorities",
-    "Find where new pre-primary places are needed first, and how sure we can be of the order.",
+    "Where new places are needed first, and how sure the order is.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], "District priorities"],
     assistant="priorities",
@@ -96,7 +96,7 @@ with (
             key=f"w-{component}-{preset}",
         )
     if preset != "Custom":
-        theme.note(f"Preset '{preset}'. Choose Custom in the filters to set your own weights.")
+        theme.note(f"Preset '{preset}'. Pick Custom to set your own weights.")
 
 result, used = ranked(frame, target, weights)
 diag = data.diagnosis_now(target).set_index("geo_id")
@@ -125,7 +125,7 @@ with kpi_row:
             "2026",
             status,
             f"{theme.fmt_int(result.rooms.sum())} rooms · {theme.fmt_int(result.caregivers_low.sum())}"
-            f"–{theme.fmt_int(result.caregivers_high.sum())} caregivers",
+            f" to {theme.fmt_int(result.caregivers_high.sum())} caregivers",
             "rooms",
             "gold",
         )
@@ -135,8 +135,15 @@ with (
     main,
     theme.panel(
         "Sector ranking and needs",
-        f"Children aged 3–5 (2026 estimate) · target {theme.fmt_pct(target)} · status: {status}",
+        f"Children aged 3 to 5 (2026 estimate) · target {theme.fmt_pct(target)} · status: {status}",
         "chart",
+        right=theme.info_html(
+            f"Top-3 stability: share of {STABILITY_DRAWS} random weightings around the chosen "
+            "weights in which the sector stays in the top 3 (green ≥ 80%, amber 40 to 80%, grey "
+            f"below). Ranking and places: {status}; > 1 km: {far_status} "
+            f"({result.distance_method.iloc[0] if len(result) else ''}); main bottleneck: "
+            f"{diag_status}."
+        ),
     ),
 ):
     st.markdown(
@@ -169,13 +176,6 @@ with (
             pin=True,
         ),
         unsafe_allow_html=True,
-    )
-    theme.note(
-        f"Top-3 stability: share of {STABILITY_DRAWS} random weightings around the chosen "
-        "weights in which the sector stays in the top 3 (green ≥ 80%, amber 40–80%, grey "
-        f"below). Ranking and places: {status}; > 1 km: {far_status} "
-        f"({result.distance_method.iloc[0] if len(result) else ''}); main bottleneck: "
-        f"{diag_status}."
     )
     if user.can_decide:
         names = dict(zip(result.geo_id, result.name, strict=True))
@@ -234,7 +234,18 @@ with (
         key="priority-map",
     )
 
-with why_col, theme.panel("Why this order", "Top three sectors, component by component", "info"):
+with (
+    why_col,
+    theme.panel(
+        "Why this order",
+        "Top three sectors, component by component",
+        "info",
+        right=theme.info_html(
+            "Percentiles compare sectors within the district, not absolute need. Estimates are "
+            "ranges: sectors close in score can swap places."
+        ),
+    ),
+):
     st.markdown(
         "<span class='ir-note'><b>Weights used:</b> "
         + " · ".join(f"{COMPONENT_LABELS[c]} {w:.0%}" for c, w in used.items())
@@ -253,7 +264,3 @@ with why_col, theme.panel("Why this order", "Top three sectors, component by com
             f"<span class='ir-note'>{parts}</span>",
             unsafe_allow_html=True,
         )
-    theme.note(
-        "Percentiles compare sectors within the district, not absolute need. Estimates are "
-        "ranges: sectors close in score can swap places."
-    )

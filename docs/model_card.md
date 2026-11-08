@@ -30,36 +30,36 @@
 
 ## Evaluation as measured
 
-The numbers below come from the **demo build, where every input is simulated**. They show the
-method works end to end, not real-world accuracy. Re-run `make data` with the real files; the
-Data and methods screen then shows the real figures.
+Measured on the real files (the bundle of 30 October 2026) with `make data`; the Data and
+methods screen shows the same figures. 416 sectors in 30 districts. Five features were
+available: women's education is not published by sector, so it is left out.
 
 | Model | MAE (points) | Weighted MAE | R² |
 | --- | --- | --- | --- |
-| Province mean | 8.41 | 8.53 | 0.396 |
-| District mean | 8.52 | 8.93 | 0.349 |
-| **Weighted linear regression (chosen)** | **3.85** | **3.84** | **0.884** |
-| LightGBM | 4.11 | 4.26 | 0.869 |
+| Province mean | 13.05 | 12.09 | -0.133 |
+| **District mean (kept)** | **9.21** | **8.61** | **0.401** |
+| Weighted linear regression | 12.79 | 11.97 | -0.036 |
+| LightGBM | 11.57 | 11.16 | 0.066 |
 
-- 80% interval half-width: ±5.9 points. Empirical coverage: 80.3% overall, 85% rural and 61%
-  urban. Urban sectors are under-covered, so their intervals should be read as too narrow.
-- MAE by area: rural 3.4, urban 6.1 points. By province: Kigali 5.3, East 3.1, North 4.2,
-  South 3.2, West 4.4.
-- Moran's I of residuals: 0.30 (p = 0.001). Errors cluster in space: neighbouring sectors share
-  something the features miss. In the simulated data this is the district effect built into
-  the generator.
-- The simulated attendance was generated from a logistic model of these same features. A
-  linear model fitting it well is expected, and says nothing about real data.
+- Neither model beats the district mean in leave-one-district-out validation, so the district
+  mean is kept and the fallback below applies. The features explain little of the differences
+  between sectors once the district is known.
+- 80% interval half-width: ±14.9 points. Empirical coverage: 80.3% overall, 81.2% rural and
+  75.0% urban. Urban intervals are slightly too narrow.
+- MAE by area: rural 9.27, urban 8.85 points. By province: Kigali 8.46, East 8.23, North 8.72,
+  South 10.83, West 9.20.
+- Moran's I of residuals: 0.142 (p = 0.001). Errors cluster in space: neighbouring sectors share
+  something the features miss.
 
 ## Fallback
 
-If a baseline is kept, the peer gap drops out of the priority index and each sector is
-compared with the average of the other sectors in its district. The README and the Data and
-methods screen say so.
+If a baseline is kept, each sector is compared with the average of the other sectors in its
+district: that average is its expected value, and the peer gap in the priority index measures
+the distance to it. This is the case on the real data. The Data and methods screen says so.
 
 ## Ethical considerations
 
 - Inputs are published aggregates only; no child-level data.
 - Features describe places, not people. A low expectation is not a judgement on a community.
-- Outputs carry their status (model estimate, or simulated), are shown with intervals, and never
-  trigger an action without a person's decision, recorded in the audit log.
+- Outputs carry their status (model estimate, or simulated where an input is a stand-in), are
+  shown with intervals, and never trigger an action without a person's decision, recorded in the audit log.

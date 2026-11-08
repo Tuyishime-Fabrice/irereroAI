@@ -27,8 +27,8 @@ TABLES = {
     "at the default target.",
     "forecast": "TRACK: enrolment rate per district and nationally: observed years, projected "
     "years with a range, and the back-test.",
-    "supply_extract": "NCDA ECD Mapping extract in the connector schema (simulated for Muhanga "
-    "in the demo).",
+    "supply_extract": "NCDA ECD Mapping extract in the connector schema (the real extract, plus "
+    "the 36 simulated Muhanga centres of the LEARN demo, each row with its status).",
     "course": "LEARN: the four courses, English and Kinyarwanda titles, trigger and source.",
     "lesson": "LEARN: lesson text (Markdown) per course.",
     "quiz_item": "LEARN: five quiz questions per course.",

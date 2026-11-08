@@ -39,10 +39,7 @@ with theme.panel(key="filters"):
     )
     st.session_state["target_pct"] = target_pct
     if target_pct != round(TARGET_2029.value * 100):
-        theme.note(
-            f"Planning at {target_pct}%: the numbers below use this target, not the NST2 "
-            f"{theme.fmt_pct(TARGET_2029.value)}."
-        )
+        theme.note(f"Planning at {target_pct}%, not the NST2 {theme.fmt_pct(TARGET_2029.value)}.")
     f3.selectbox(
         t("Reference year"),
         ["2026 estimate (census 2022 base)"],
@@ -58,7 +55,7 @@ place = "Rwanda" if province == "All provinces" else province
 k1, k2, k3, k4 = st.columns(4)
 with k1:
     theme.kpi(
-        "Children aged 3–5 (2026)",
+        "Children aged 3 to 5 (2026)",
         theme.fmt_int(needs.children_3_5.sum()),
         source,
         "2026",
@@ -100,9 +97,11 @@ with k4:
         "IrereroAI distance layer",
         "2026",
         far_status,
-        method,
+        ("Walking distance" if method.startswith("road") else "Straight line, indicative")
+        + (" · upper bound" if provisional else ""),
         "route",
         "rose",
+        info=method,
     )
 
 track_all = forecast.summary(forecast_rows, target)
@@ -112,7 +111,7 @@ track = track[track.index.isin(in_scope)]
 
 # --- map and outlook ----------------------------------------------------------------------
 left, right = st.columns([3, 2])
-with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "pin"):
+with left, theme.panel("Where the gap is", f"{place} · children aged 3 to 5", "pin"):
     views = [f"{TARGET_YEAR} status", "Places needed", "Attendance rate", "Distance to school"]
     view = (
         st.segmented_control(
@@ -134,7 +133,7 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
             f"Projected {TARGET_YEAR} enrolment",
             lambda v: theme.fmt_pct(v),
             tooltip={
-                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)}–{theme.fmt_pct(r.high)} · "
+                g: f"{r.status} · 80% range {theme.fmt_pct(r.low)} to {theme.fmt_pct(r.high)} · "
                 f"{track_status}"
                 for g, r in track.iterrows()
             },
@@ -198,27 +197,39 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
         if provisional and "osm_points" in school_report:
             st.markdown(
                 theme.badge(PROVISIONAL) + " "
-                + t(
-                    "{n} schools: {osm} mapped in OpenStreetMap and {mineduc} standalone "
-                    "pre-primary schools from MINEDUC (a MINEDUC school at an OSM school's site "
-                    "is counted once). Both lists are partial: MINEDUC counts 4,221 schools with "
-                    "pre-primary. A sector far from a listed school may still have a school "
-                    "nearby: read these shares as an upper bound, not as areas without schools.",
-                    n=len(listed),
-                    osm=school_report["osm_points"],
-                    mineduc=school_report["mineduc_points"] - school_report["mineduc_same_site"],
+                + t("{n} listed schools. Read as an upper bound.", n=len(listed))
+                + " "
+                + theme.info_html(
+                    t(
+                        "{n} schools: {osm} mapped in OpenStreetMap and {mineduc} standalone "
+                        "pre-primary schools from MINEDUC (a MINEDUC school at an OSM school's "
+                        "site is counted once). Both lists are partial: MINEDUC counts 4,221 "
+                        "schools with pre-primary. A sector far from a listed school may still "
+                        "have a school nearby: these shares are an upper bound, not areas "
+                        "without schools.",
+                        n=len(listed),
+                        osm=school_report["osm_points"],
+                        mineduc=school_report["mineduc_points"] - school_report["mineduc_same_site"],
+                    ),
+                    align="left",
                 ),
                 unsafe_allow_html=True,
             )  # fmt: skip
         elif provisional:
+            n = school_report.get("loaded", len(listed))
             st.markdown(
                 theme.badge(PROVISIONAL) + " "
-                + t(
-                    "Only {n} schools are in the provisional list (standalone pre-primary "
-                    "schools; most pre-primary classes are in primary schools, which it does "
-                    "not list). A sector far from a listed school may still have a school "
-                    "nearby: read these shares as an upper bound, not as areas without schools.",
-                    n=school_report.get("loaded", len(listed)),
+                + t("{n} listed schools. Read as an upper bound.", n=n)
+                + " "
+                + theme.info_html(
+                    t(
+                        "Only {n} schools are in the provisional list (standalone pre-primary "
+                        "schools; most pre-primary classes are in primary schools, which it does "
+                        "not list). A sector far from a listed school may still have a school "
+                        "nearby: these shares are an upper bound, not areas without schools.",
+                        n=n,
+                    ),
+                    align="left",
                 ),
                 unsafe_allow_html=True,
             )  # fmt: skip
@@ -241,7 +252,13 @@ with left, theme.panel("Where the gap is", f"{place} · children aged 3–5", "p
 with (
     right,
     theme.panel(
-        t("{year} target outlook", year=TARGET_YEAR), "Pre-primary enrolment, Rwanda", "trend"
+        t("{year} target outlook", year=TARGET_YEAR),
+        "Pre-primary enrolment, Rwanda",
+        "trend",
+        right=theme.info_html(
+            "Gross rate: MINEDUC pre-primary pupils per child aged 3 to 5. Linear trend with an "
+            f"80% prediction range. Status: {track_status}."
+        ),
     ),
 ):
     national = forecast_rows[forecast_rows.geo_id == forecast.NATIONAL]
@@ -252,13 +269,9 @@ with (
     nat = track_all.loc[forecast.NATIONAL]
     st.markdown(
         f"Projected **{theme.fmt_pct(nat.projected, 1)}** by {TARGET_YEAR} "
-        f"(80% range {theme.fmt_pct(nat.low)}–{theme.fmt_pct(nat.high)}) "
+        f"(80% range {theme.fmt_pct(nat.low)} to {theme.fmt_pct(nat.high)}) "
         f"{theme.pill(nat.status)}",
         unsafe_allow_html=True,
-    )
-    theme.note(
-        "Gross rate: MINEDUC pre-primary pupils per child aged 3–5. Linear trend with an 80% "
-        f"prediction range. Status: {track_status}."
     )
 
 # --- districts and actions ----------------------------------------------------------------
@@ -284,6 +297,11 @@ with (
         "Districts needing attention first",
         f"Ranked by places needed to reach {theme.fmt_pct(target)} · {place}",
         "chart",
+        right=theme.info_html(
+            f"Children, places and rooms: {status}. {TARGET_YEAR} status: {track_status}. Rooms "
+            "and places follow the National ECD Standards (2024). Hover a KPI for its source "
+            "and year."
+        ),
     ),
 ):
     show_all = st.toggle(t("Show all districts"), value=False)
@@ -316,10 +334,6 @@ with (
             pin=True,
         ),
         unsafe_allow_html=True,
-    )
-    theme.note(
-        f"Children, places and rooms: {status}; {TARGET_YEAR} status: {track_status}. Rooms and "
-        "places: National ECD Standards (2024). Hover a KPI for its source and year."
     )
 
 with (

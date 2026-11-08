@@ -116,7 +116,7 @@ def choropleth(
     st.pydeck_chart(deck, height=height, key=key)
     if colours is None and len(edges) >= 2:
         legend(
-            [(palette[i], f"{fmt(edges[i])}–{fmt(edges[i + 1])}") for i in range(len(palette))],
+            [(palette[i], f"{fmt(edges[i])} to {fmt(edges[i + 1])}") for i in range(len(palette))],
             f"{label} (lighter = lower)",
         )
 

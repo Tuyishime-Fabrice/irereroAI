@@ -362,6 +362,20 @@ CSS = f"""
     font-weight: 600; color: #fff; }}
   .ir-num {{ border-bottom: 1px dotted {SLATE}; cursor: help; }}
   .ir-note {{ color: {SLATE}; font-size: 13px; line-height: 1.5; }}
+  /* ⓘ: an explanation one click or tap away (a <details>, no script) */
+  .ir-info {{ display: inline-block; position: relative; vertical-align: middle; }}
+  .ir-info > summary {{ list-style: none; cursor: pointer; color: {SLATE}; font-size: 15px;
+    width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 50%; }}
+  .ir-info > summary::-webkit-details-marker {{ display: none; }}
+  .ir-info > summary:hover, .ir-info[open] > summary {{ background: #EEF3F8; color: {INK}; }}
+  .ir-info > summary:focus-visible {{ outline: 2px solid {TEAL_700}; outline-offset: 1px; }}
+  .ir-info-body {{ position: absolute; right: 0; top: 28px; z-index: 60; width: max-content;
+    max-width: min(340px, 80vw); background: {SURFACE}; border: 1px solid {BORDER};
+    border-radius: var(--ir-radius-sm); box-shadow: 0 6px 20px rgba(16,24,40,.12);
+    padding: 10px 12px; color: {INK}; font-size: 13px; font-weight: 400; line-height: 1.5;
+    white-space: normal; text-align: left; }}
+  .ir-info.left .ir-info-body {{ right: auto; left: 0; }}
+  .ir-kpi .head .ir-info, .ir-panel-head .ir-info {{ margin-left: auto; }}
 
   /* KPI cards: icon + label, value, detail, then source and status pinned to the bottom */
   .ir-kpi, .ir-card {{ background: {SURFACE}; border: 1px solid {BORDER};
@@ -946,16 +960,19 @@ def kpi(
     detail: str | None = None,
     icon_name: str = "chart",
     tone: str = "teal",
+    info: str | None = None,
 ) -> None:
     """KPI card: tinted icon and label, value, detail line, and source with status pinned to
-    the bottom so cards in a row line up. The full provenance is also on hover."""
+    the bottom so cards in a row line up. The full provenance is also on hover; `info` adds an
+    ⓘ with the explanation."""
     bg, fg = TONES[tone]
     tip = escape(provenance(source, period, status), quote=True)
     detail_html = f'<div class="detail">{escape(t(detail))}</div>' if detail else ""
+    more = info_html(info) if info else ""
     st.markdown(
         f'<div class="ir-kpi ir-fill" title="{tip}"><div class="head">'
         f'<div class="ico" style="background:{bg};color:{fg}">{icon(icon_name, 20)}</div>'
-        f'<div class="label">{escape(t(label))}</div></div>'
+        f'<div class="label">{escape(t(label))}</div>{more}</div>'
         f'<div class="value">{escape(value)}</div>{detail_html}'
         f'<div class="src"><span>{escape(provenance(source, period, None))}</span>'
         f"{badge(status)}</div></div>",
@@ -1137,6 +1154,21 @@ def timeline(items: Sequence[tuple[str, str, str, str]], fresh: str = "") -> str
 
 def note(text: str) -> None:
     st.markdown(f'<div class="ir-note">{escape(text)}</div>', unsafe_allow_html=True)
+
+
+def info_html(text: str, align: str = "right") -> str:
+    """A small ⓘ that opens the explanation of a number or chart on click or tap."""
+    side = " left" if align == "left" else ""
+    return (
+        f'<details class="ir-info{side}"><summary aria-label="{escape(t("About this"))}" '
+        f'title="{escape(t("About this"))}">ⓘ</summary>'
+        f'<div class="ir-info-body">{escape(t(text))}</div></details>'
+    )
+
+
+def info(text: str, align: str = "left") -> None:
+    """The ⓘ on its own line, for places without a title row (under a chart or table)."""
+    st.markdown(info_html(text, align), unsafe_allow_html=True)
 
 
 def side_label(text: str) -> None:

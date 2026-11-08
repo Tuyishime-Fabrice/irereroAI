@@ -24,7 +24,15 @@ theme.header(
     hero=True,
 )
 
-with theme.panel("Users", "Fictional demo accounts and their roles", "users"):
+with theme.panel(
+    "Users",
+    "Fictional demo accounts and their roles",
+    "users",
+    right=theme.info_html(
+        "Demo users are fictional. Changes here apply to the stored accounts; the demo role "
+        "picker in the sidebar uses its own fixed demo accounts and ignores them."
+    ),
+):
     users = data.table("app_user")
     st.dataframe(
         users.assign(role=users.role.map(ROLE_LABELS)).rename(
@@ -107,16 +115,15 @@ with theme.panel("Users", "Fictional demo accounts and their roles", "users"):
                     s.commit()
                 data.clear()
                 st.rerun()
-    theme.note(
-        "Demo users are fictional. Changes here apply to the stored accounts; the demo role "
-        "picker in the sidebar uses its own fixed demo accounts and ignores them."
-    )
 
 with theme.panel(
     "Data files",
-    "One folder per dataset under data/raw/. Add received files with "
-    "python -m irerero.data.intake; it writes data/interim/intake_report.md.",
+    "One folder per dataset under data/raw/",
     "database",
+    right=theme.info_html(
+        "Add received files with python -m irerero.data.intake; it writes "
+        "data/interim/intake_report.md."
+    ),
 ):
     st.markdown(
         theme.table(

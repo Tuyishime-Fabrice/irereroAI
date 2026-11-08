@@ -36,12 +36,12 @@ PAGES = {
 PLACEHOLDER = "Ask about your overview, district gaps or targets…"
 # the hero's line and question box on each role's home screen
 HERO = {
-    "national": ("Understand your data. Explore district gaps. Plan your next steps.", PLACEHOLDER),
-    "officer": ("Understand your sector. Follow up training. Plan your next visits.",
+    "national": ("Explore district gaps and plan next steps.", PLACEHOLDER),
+    "officer": ("Follow up training and plan your next visits.",
                 "Ask about your sector, courses or check-ins…"),
-    "caregiver": ("Understand pre-primary. Work through your courses. Prepare your check-in.",
+    "caregiver": ("Work through your courses and prepare your check-in.",
                   "Ask about your courses or the monthly check-in…"),
-    "admin": ("See which data are real. Check what is still simulated.",
+    "admin": ("See which data are real and which are still simulated.",
               "Ask which datasets are real files and which are stand-ins…"),
 }  # fmt: skip
 PRIVACY = (
@@ -203,8 +203,13 @@ def notices_html(simulated: bool) -> str:
     scope = (
         f'<div class="ir-slide s1" role="group" aria-roledescription="slide" '
         f'aria-label="Scope"><span class="ir-slide-ico">{theme.icon("info", 18)}</span>'
-        f"<div><b>Scope:</b> {escape(theme.DEFINITION)} Census, MINEDUC and NCDA enrolment "
-        "figures are never added together.</div></div>"
+        "<div><b>Scope:</b> formal pre-primary, ages 3 to 5. "
+        + theme.info_html(
+            f"{theme.DEFINITION} Census, MINEDUC and NCDA enrolment figures are never added "
+            "together.",
+            align="left",
+        )
+        + "</div></div>"
     )
     if not simulated:
         return f'<div class="ir-notices single">{scope}</div>'

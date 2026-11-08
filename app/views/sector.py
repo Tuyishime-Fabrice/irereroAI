@@ -67,7 +67,7 @@ province = row.province if isinstance(row.province, str) else ""
 
 theme.header(
     "Sector diagnosis",
-    "Understand what is holding early childhood development back.",
+    "What is holding ECD back in this sector.",
     simulated=simulated,
     crumbs=["Rwanda", province, districts[district_id], row["name"]],
     assistant="sector",
@@ -98,8 +98,8 @@ with theme.panel(key="filters"):
 places = gap.places(target, row.children_3_5, row.attending)
 k1, k2, k3, k4 = st.columns([1, 1, 1, 1.4])
 with k1:
-    theme.kpi("Children aged 3–5", theme.fmt_int(row.children_3_5), "IrereroAI 2026 estimate",
-              "2026", est_status, f"range {theme.fmt_int(row.children_low)}–{theme.fmt_int(row.children_high)}",
+    theme.kpi("Children aged 3 to 5", theme.fmt_int(row.children_3_5), "IrereroAI 2026 estimate",
+              "2026", est_status, f"range {theme.fmt_int(row.children_low)} to {theme.fmt_int(row.children_high)}",
               "users", "teal")  # fmt: skip
 with k2:
     theme.kpi("Attending pre-primary", theme.fmt_pct(row.attendance_rate), "IrereroAI 2026 estimate",
@@ -129,6 +129,10 @@ with (
         t("Key factors affecting ECD in {name}", name=row["name"]),
         "National percentile, 1 = worst · line marks the worst quarter",
         "layers",
+        right=theme.info_html(
+            "District context applies to every sector of the district and is not a sector "
+            "value. Scores rank sectors (or districts); they are not shares of the gap."
+        ),
     ),
 ):
     items = []
@@ -148,12 +152,19 @@ with (
             label += " · distance not scored (provisional list)"
         items.append(Bar(FACTOR_LABELS[f], sub, value, label, ico, tone, theme.TONES[tone][1]))
     st.markdown(theme.bars(items, marker=WEAK_FACTOR), unsafe_allow_html=True)
-    theme.note(
-        "District context applies to every sector of the district and is not a sector value. "
-        "Scores rank sectors (or districts); they are not shares of the gap."
-    )
 
-with right, theme.panel("Planner decision", "The rules suggest; a person decides.", "clipboard"):
+with (
+    right,
+    theme.panel(
+        "Planner decision",
+        "The rules suggest; a person decides.",
+        "clipboard",
+        right=theme.info_html(
+            "This diagnosis applies explicit rules to estimates. A district planner approves, "
+            "edits or rejects it, and the decision is logged."
+        ),
+    ),
+):
     plan_list = plans.plans(data.eng(), district_id)
     in_plan = None
     if len(plan_list):
@@ -191,9 +202,6 @@ with right, theme.panel("Planner decision", "The rules suggest; a person decides
     st.page_link(
         "views/plan.py", label=t("Review in action plans"), icon=":material/arrow_forward:"
     )
-    theme.note(
-        "Human review: this diagnosis applies explicit rules to estimates. A district planner approves, edits or rejects it, with the decision logged."
-    )
 
 # --- peer benchmark -----------------------------------------------------------------------
 left, right = st.columns([3, 2])
@@ -204,13 +212,14 @@ with (
         "Observed vs expected attendance",
         f"Census 2022 · expected from {'the district average' if fallback else model_name} · 80% interval",
         "chart",
+        right=theme.info_html(
+            "Dot: observed (this sector: gold diamond). Bar: 80% interval; tick: expected value, "
+            f"fitted without the sector's own district. Status: {peer_status}."
+        ),
     ),
 ):
     if fallback:
-        st.info(
-            "No peer model beat the district average, so each sector is compared with the "
-            "average of the other sectors in its district."
-        )
+        st.info("No model beat the district average: each sector is compared with its district.")
     chart = peers[["name", "observed", "expected", "low", "high"]].copy()
     chart["selected"] = chart.name == row["name"]
     base = alt.Chart(chart).encode(
@@ -241,10 +250,6 @@ with (
         (interval + expected + observed).properties(height=max(220, 28 * len(chart))),
         width="stretch",
     )
-    theme.note(
-        f"Dot: observed (this sector: gold diamond). Bar: 80% interval; tick: expected value, "
-        f"fitted without the sector's own district. Status: {peer_status}."
-    )
 
 with (
     right,
@@ -252,7 +257,7 @@ with (
 ):
     st.markdown(
         f"**{row['name']}:** observed **{theme.fmt_pct(row.observed)}**, expected "
-        f"**{theme.fmt_pct(row.expected)}** (80% interval {theme.fmt_pct(row.low)}–"
+        f"**{theme.fmt_pct(row.expected)}** (80% interval {theme.fmt_pct(row.low)} to "
         f"{theme.fmt_pct(row.high)})."
     )
     if not fallback and isinstance(row.drivers, list) and row.drivers:
@@ -295,7 +300,7 @@ def pct(key: str) -> str:
 evidence = [
     {
         "factor": "Place gap (access)",
-        "evidence": f"{pct('nonattendance')} of children aged 3–5 not attending; "
+        "evidence": f"{pct('nonattendance')} of children aged 3 to 5 not attending; "
         + (
             f"at most {pct('far_share_listed')} live more than 1 km from a listed school "
             "(provisional: the school list is partial; not used in the bottleneck)."
@@ -343,8 +348,9 @@ evidence = [
 ]
 with theme.panel(
     "Evidence and recommended response",
-    f"Bottleneck and actions: {status}; each row shows the status of its evidence",
+    f"Status: {status}",
     "clipboard",
+    right=theme.info_html("Each row shows the status of its own evidence."),
 ):
     st.markdown(
         theme.table(

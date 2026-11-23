@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IrereroAI</title>
+<meta name="description" content="AI planning and action platform for early childhood development in Rwanda. NISR 2026 Big Data Hackathon, Track 3.">
+<meta property="og:title" content="IrereroAI">
+<meta property="og:description" content="AI planning and action platform for early childhood development in Rwanda.">
+<meta property="og:image" content="/logo-light.png">
+<meta name="theme-color" content="#0B2E50">
+<link rel="icon" type="image/png" href="/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Brand tokens mirror irerero/ui/theme.py */
+  :root {
+    --navy: #0B2E50;
+    --navy-700: #14406B;
+    --teal-700: #0F7A67;
+    --canvas: #F4F7FB;
+    --ink: #0F1B2A;
+    --slate: #5B6B7C;
+    --on-navy: #E6EEF6;
+    --bar: 56px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    height: var(--bar);
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    background: var(--navy);
+    border-bottom: 1px solid var(--navy-700);
+  }
+  header img { height: 28px; width: auto; display: block; }
+  .tagline { color: var(--on-navy); font-size: 14px; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .open {
+    margin-left: auto;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: var(--teal-700);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .open:hover { background: #0C6656; }
+  .open:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  main { position: relative; flex: 1; min-height: 0; }
+  .loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    text-align: center;
+    color: var(--slate);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .loading strong { color: var(--ink); font-size: 16px; font-weight: 600; }
+  .loading a { color: var(--teal-700); font-weight: 600; }
+  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; }
+  @media (max-width: 640px) {
+    .tagline { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <img src="/logo-light.png" alt="IrereroAI">
+  <span class="tagline">Early childhood development planning for Rwanda</span>
+  <a class="open" href="https://irereroai.streamlit.app/" target="_blank" rel="noopener">Open full app <span aria-hidden="true">↗</span></a>
+</header>
+<main>
+  <!-- Shown until the app paints over it. The app runs on Streamlit Community Cloud, which
+       Vercel's serverless functions cannot host, so this page embeds it. -->
+  <div class="loading" aria-hidden="true">
+    <strong>Loading IrereroAI…</strong>
+    <span>If nobody has used the app for a while, it can take up to a minute to wake up.</span>
+    <span>Nothing showing? <a href="https://irereroai.streamlit.app/" target="_blank" rel="noopener">Open the app directly</a>.</span>
+  </div>
+  <iframe src="https://irereroai.streamlit.app/?embed=true" title="IrereroAI app" allow="clipboard-write; fullscreen"></iframe>
+</main>
+</body>
+</html>
